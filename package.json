@@ -14,20 +14,39 @@
     "build": "npm run build:app && npm run build:installer"
   },
   "devDependencies": {
-    "electron": "33.4.11",
-    "electron-builder": "^25.1.8",
+    "electron": "45.4.1",
+    "electron-builder": "^26.0.0",
     "resedit": "^3.1.1"
   },
   "build": {
     "appId": "app.stockinfos",
     "productName": "StockInfos",
-    "directories": { "output": "dist", "buildResources": "installateur" },
-    "files": ["app/**/*", "package.json"],
+    "directories": {
+      "output": "dist",
+      "buildResources": "installateur"
+    },
+    "files": [
+      "app/**/*",
+      "package.json"
+    ],
     "afterPack": "installateur/after-pack.mjs",
     "win": {
-      "target": [{ "target": "dir", "arch": ["x64"] }],
+      "target": [
+        {
+          "target": "dir",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
       "icon": "installateur/icon.ico",
       "signAndEditExecutable": false
+    },
+    "electronFuses": {
+      "runAsNode": false,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "onlyLoadAppFromAsar": true
     }
   }
 }

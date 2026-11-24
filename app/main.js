@@ -9,7 +9,26 @@ app.setAppUserModelId('app.stockinfos');
 // Une seule fenêtre à la fois
 if (!app.requestSingleInstanceLock()) {
   app.quit();
+  process.exit(0);
 }
+
+// ---- journal de démarrage : %APPDATA%\StockInfos\journal.txt ----
+function journal(msg) {
+  try {
+    const f = path.join(app.getPath('userData'), 'journal.txt');
+    fs.mkdirSync(path.dirname(f), { recursive: true });
+    if (fs.existsSync(f) && fs.statSync(f).size > 200000) fs.renameSync(f, f + '.ancien');
+    fs.appendFileSync(f, `${new Date().toISOString()}  ${msg}\n`);
+  } catch (e) { /* rien */ }
+}
+process.on('uncaughtException', err => {
+  journal('ERREUR ' + (err && err.stack || err));
+  try { dialog.showErrorBox('StockInfos', 'Une erreur est survenue :\n' + (err && err.message || err)); } catch (e) { /* rien */ }
+});
+
+// Si la carte graphique a planté au lancement précédent, on démarre sans accélération
+const noGpuFlag = () => path.join(app.getPath('userData'), 'sans-acceleration-graphique');
+if (fs.existsSync(noGpuFlag())) app.disableHardwareAcceleration();
 
 let win = null;
 const dataDir = () => app.getPath('userData'); // %APPDATA%\StockInfos
@@ -80,7 +99,18 @@ function createWindow() {
     if (input.control && input.key.toLowerCase() === 'r') { win.webContents.reload(); e.preventDefault(); }
     if (input.key === 'F12') { win.webContents.toggleDevTools(); e.preventDefault(); }
   });
-  win.once('ready-to-show', () => win.show());
+  // Affiche la fenêtre dès qu'elle est prête, et au plus tard après 5 secondes
+  const showNow = () => { if (win && !win.isDestroyed() && !win.isVisible()) win.show(); };
+  win.once('ready-to-show', showNow);
+  win.webContents.once('did-finish-load', showNow);
+  setTimeout(showNow, 5000);
+
+  win.webContents.on('did-fail-load', (e, code, desc) => journal(`chargement impossible : ${code} ${desc}`));
+  win.webContents.on('render-process-gone', (e, d) => {
+    journal('interface arrêtée : ' + d.reason);
+    if (d.reason !== 'clean-exit' && win && !win.isDestroyed()) setTimeout(() => win.reload(), 500);
+  });
+  win.on('unresponsive', () => journal('fenêtre bloquée'));
 
   // Les liens externes s'ouvrent dans le navigateur, jamais dans l'app
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -203,7 +233,9 @@ async function checkUpdate(manual) {
     if (!res.ok) throw new Error('réponse ' + res.status + ' de GitHub');
     const rel = await res.json();
     const ver = String(rel.tag_name || '').replace(/^v/i, '');
-    const asset = (rel.assets || []).find(a => /\.exe$/i.test(a.name));
+    // n'accepte que l'installateur publié dans les releases de ce dépôt, en https
+    const base = `https://github.com/${UPDATE_REPO}/releases/download/`.toLowerCase();
+    const asset = (rel.assets || []).find(a => /\.exe$/i.test(a.name) && String(a.browser_download_url || '').toLowerCase().startsWith(base));
     if (!ver || !newer(ver, app.getVersion()) || !asset) { UPD.state = 'none'; return; }
     UPD.version = ver; UPD.notes = String(rel.body || '').slice(0, 600);
     if (!app.isPackaged) { UPD.state = 'available'; return; } // version locale : on signale seulement
@@ -246,7 +278,18 @@ app.on('second-instance', () => {
   }
 });
 
+app.on('child-process-gone', (e, d) => {
+  journal(`processus ${d.type} arrêté : ${d.reason}`);
+  if (d.type === 'GPU' && d.reason !== 'clean-exit' && !fs.existsSync(noGpuFlag())) {
+    try { fs.writeFileSync(noGpuFlag(), 'Créé après un plantage de la carte graphique. Supprimer ce fichier pour réessayer avec accélération.'); } catch (err) { /* rien */ }
+    journal('redémarrage sans accélération graphique');
+    app.relaunch();
+    app.exit(0);
+  }
+});
+
 app.whenReady().then(() => {
+  journal(`démarrage v${app.getVersion()} · Electron ${process.versions.electron} · Windows ${require('os').release()}`);
   Menu.setApplicationMenu(null);
   dailyBackup();
   createWindow();
