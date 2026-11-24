@@ -1,0 +1,33 @@
+{
+  "name": "stockinfos",
+  "productName": "StockInfos",
+  "version": "1.0.0",
+  "description": "Gestion du stock de matériel et du planning des chantiers, reliée à vos agendas (logiciel libre)",
+  "main": "app/main.js",
+  "private": true,
+  "updateRepo": "Weauz/StockInfos",
+  "repository": "github:Weauz/StockInfos",
+  "scripts": {
+    "start": "electron .",
+    "build:app": "electron-builder --win dir --x64",
+    "build:installer": "makensis -DVERSION=%npm_package_version% installateur/installer.nsi",
+    "build": "npm run build:app && npm run build:installer"
+  },
+  "devDependencies": {
+    "electron": "33.4.11",
+    "electron-builder": "^25.1.8",
+    "resedit": "^3.1.1"
+  },
+  "build": {
+    "appId": "app.stockinfos",
+    "productName": "StockInfos",
+    "directories": { "output": "dist", "buildResources": "installateur" },
+    "files": ["app/**/*", "package.json"],
+    "afterPack": "installateur/after-pack.mjs",
+    "win": {
+      "target": [{ "target": "dir", "arch": ["x64"] }],
+      "icon": "installateur/icon.ico",
+      "signAndEditExecutable": false
+    }
+  }
+}

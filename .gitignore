@@ -1,0 +1,13 @@
+# Dépendances et builds
+node_modules/
+package-lock.json
+dist/
+
+# Moteur Electron local (trop lourd pour GitHub, voir README)
+moteur/
+
+# Divers Windows / éditeurs
+Thumbs.db
+desktop.ini
+.vscode/
+*.log
