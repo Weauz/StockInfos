@@ -110,10 +110,14 @@ Le fichier `dist/StockInfos-Installation-1.0.0.exe` est créé.
 
 ## Publier une nouvelle version
 
-1. Change le numéro `version` dans `package.json` (ex. `1.0.1`).
-2. `npm run build` pour créer `dist/StockInfos-Installation-1.0.1.exe`.
-3. Sur GitHub : **Releases → Draft a new release**, tag `v1.0.1`,
-   dépose le fichier `.exe`, puis **Publish release**.
-4. Les apps installées se mettent à jour toutes seules dans les heures qui suivent.
+Tout est automatique grâce à GitHub Actions (`.github/workflows/publier.yml`) :
 
-Le tag doit être plus grand que la version installée, et la release doit contenir un fichier `.exe`.
+1. Crée une release sur GitHub : **Releases → Draft a new release**, nouveau tag `v1.0.1`
+   (toujours plus grand que le précédent), puis **Publish release**.
+   Ou en ligne de commande : `git tag v1.0.1 && git push origin v1.0.1`.
+2. GitHub fabrique l'installateur (environ 5 minutes) et l'ajoute à la release.
+3. Les apps installées se mettent à jour toutes seules dans les heures qui suivent.
+
+Le numéro de version de l'app est pris dans le tag : pas besoin de modifier `package.json`.
+
+Pour fabriquer l'installateur sur ton PC (Node.js et NSIS nécessaires) : `npm install` puis `npm run build`.
