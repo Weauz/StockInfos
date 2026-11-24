@@ -1,9 +1,9 @@
-# Fabrique l'installateur Windows et publie la release quand on pousse un tag vX.Y.Z
+# Fabrique l'installateur Windows et l'ajoute à chaque release publiée (tag vX.Y.Z)
 name: Publier une version
 
 on:
-  push:
-    tags: ['v*']
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -43,12 +43,11 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: StockInfos ${{ github.ref_name }}
-          files: dist/StockInfos-Installation-*.exe
-          generate_release_notes: true
+          files: dist/StockInfos-Installation.exe
 
       - name: Fichier (lancement manuel)
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         uses: actions/upload-artifact@v4
         with:
           name: installateur
-          path: dist/StockInfos-Installation-*.exe
+          path: dist/StockInfos-Installation.exe

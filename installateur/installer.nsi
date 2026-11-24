@@ -15,10 +15,10 @@ Unicode true
 !define UNINSTKEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\StockInfos"
 
 Name "${APPNAME}"
-OutFile "..\dist\StockInfos-Installation-${VERSION}.exe"
-InstallDir "$PROGRAMFILES64\${APPNAME}"
-InstallDirRegKey HKLM "${UNINSTKEY}" "InstallLocation"
-RequestExecutionLevel admin
+OutFile "..\dist\StockInfos-Installation.exe"
+InstallDir "$LOCALAPPDATA\Programs\${APPNAME}"
+InstallDirRegKey HKCU "${UNINSTKEY}" "InstallLocation"
+RequestExecutionLevel user
 SetCompressor /SOLID lzma
 BrandingText "${COMPANY}"
 
@@ -41,7 +41,7 @@ VIAddVersionKey /LANG=1036 "LegalCopyright" "© ${COMPANY}"
 !define MUI_ABORTWARNING
 
 !define MUI_WELCOMEPAGE_TITLE "Installation de ${APPNAME}"
-!define MUI_WELCOMEPAGE_TEXT "Cet assistant va installer ${APPNAME} ${VERSION} : la gestion du stock et du planning des chantiers de ton entreprise.$\r$\n$\r$\nTes données ne sont jamais effacées par une mise à jour.$\r$\n$\r$\nClique sur Suivant pour continuer."
+!define MUI_WELCOMEPAGE_TEXT "Cet assistant va installer ${APPNAME} ${VERSION} : la gestion de ton stock et de son planning.$\r$\n$\r$\nTes données ne sont jamais effacées par une mise à jour.$\r$\n$\r$\nClique sur Suivant pour continuer."
 !define MUI_FINISHPAGE_RUN "$INSTDIR\${EXENAME}"
 !define MUI_FINISHPAGE_RUN_TEXT "Lancer ${APPNAME}"
 
@@ -66,7 +66,7 @@ FunctionEnd
 
 Section "Application" SecApp
   SectionIn RO
-  SetShellVarContext all
+  SetShellVarContext current
   ; ferme l'app si elle est ouverte (mise à jour)
   nsExec::Exec 'taskkill /F /IM "${EXENAME}"'
   Sleep 500
@@ -84,16 +84,16 @@ Section "Application" SecApp
   CreateShortCut "$SMPROGRAMS\${APPNAME}.lnk" "$INSTDIR\${EXENAME}" "" "$INSTDIR\${EXENAME}" 0
 
   ; « Applications installées » de Windows
-  WriteRegStr   HKLM "${UNINSTKEY}" "DisplayName"     "${APPNAME}"
-  WriteRegStr   HKLM "${UNINSTKEY}" "DisplayVersion"  "${VERSION}"
-  WriteRegStr   HKLM "${UNINSTKEY}" "Publisher"       "${COMPANY}"
-  WriteRegStr   HKLM "${UNINSTKEY}" "DisplayIcon"     "$INSTDIR\${EXENAME},0"
-  WriteRegStr   HKLM "${UNINSTKEY}" "InstallLocation" "$INSTDIR"
-  WriteRegStr   HKLM "${UNINSTKEY}" "UninstallString" '"$INSTDIR\Désinstaller ${APPNAME}.exe"'
-  WriteRegStr   HKLM "${UNINSTKEY}" "QuietUninstallString" '"$INSTDIR\Désinstaller ${APPNAME}.exe" /S'
-  WriteRegDWORD HKLM "${UNINSTKEY}" "NoModify" 1
-  WriteRegDWORD HKLM "${UNINSTKEY}" "NoRepair" 1
-  WriteRegDWORD HKLM "${UNINSTKEY}" "EstimatedSize" 260000
+  WriteRegStr   HKCU "${UNINSTKEY}" "DisplayName"     "${APPNAME}"
+  WriteRegStr   HKCU "${UNINSTKEY}" "DisplayVersion"  "${VERSION}"
+  WriteRegStr   HKCU "${UNINSTKEY}" "Publisher"       "${COMPANY}"
+  WriteRegStr   HKCU "${UNINSTKEY}" "DisplayIcon"     "$INSTDIR\${EXENAME},0"
+  WriteRegStr   HKCU "${UNINSTKEY}" "InstallLocation" "$INSTDIR"
+  WriteRegStr   HKCU "${UNINSTKEY}" "UninstallString" '"$INSTDIR\Désinstaller ${APPNAME}.exe"'
+  WriteRegStr   HKCU "${UNINSTKEY}" "QuietUninstallString" '"$INSTDIR\Désinstaller ${APPNAME}.exe" /S'
+  WriteRegDWORD HKCU "${UNINSTKEY}" "NoModify" 1
+  WriteRegDWORD HKCU "${UNINSTKEY}" "NoRepair" 1
+  WriteRegDWORD HKCU "${UNINSTKEY}" "EstimatedSize" 260000
 SectionEnd
 
 ;  Mise à jour automatique : l'app lance ce programme avec /S /RELANCER
@@ -103,8 +103,7 @@ Function .onInstSuccess
     ClearErrors
     ${GetOptions} $R0 "/RELANCER" $R1
     ${IfNot} ${Errors}
-      ; relance sans les droits administrateur
-      Exec '"$WINDIR\explorer.exe" "$INSTDIR\${EXENAME}"'
+      Exec '"$INSTDIR\${EXENAME}"'
     ${EndIf}
   ${EndIf}
 FunctionEnd
@@ -114,13 +113,13 @@ Function un.onInit
 FunctionEnd
 
 Section "Uninstall"
-  SetShellVarContext all
+  SetShellVarContext current
   nsExec::Exec 'taskkill /F /IM "${EXENAME}"'
   Sleep 500
   Delete "$DESKTOP\${APPNAME}.lnk"
   Delete "$SMPROGRAMS\${APPNAME}.lnk"
   RMDir /r "$INSTDIR"
-  DeleteRegKey HKLM "${UNINSTKEY}"
+  DeleteRegKey HKCU "${UNINSTKEY}"
   ; Les données (stock, chantiers, sauvegardes) restent dans
   ; %APPDATA%\StockInfos pour une future réinstallation.
 SectionEnd

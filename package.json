@@ -2,7 +2,7 @@
   "name": "stockinfos",
   "productName": "StockInfos",
   "version": "1.0.0",
-  "description": "Gestion du stock de matériel et du planning des chantiers, reliée à vos agendas (logiciel libre)",
+  "description": "Gestion de stock simple, avec planning relié à vos agendas (logiciel libre)",
   "main": "app/main.js",
   "private": true,
   "updateRepo": "Weauz/StockInfos",

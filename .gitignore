@@ -3,8 +3,9 @@ node_modules/
 package-lock.json
 dist/
 
-# Moteur Electron local (trop lourd pour GitHub, voir README)
+# Version locale (lancement sans installation)
 moteur/
+Lancer.bat
 
 # Divers Windows / éditeurs
 Thumbs.db
