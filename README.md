@@ -42,26 +42,4 @@ Téléchargez **`StockInfos-Installation.exe`** dans la [dernière version](http
 | **Fiche produit** | **Kits** |
 | ![Fiche produit](docs/captures/fiche-produit.png) | ![Kits](docs/captures/kits.png) |
 
-## Contenu du dépôt
-
-| Dossier | Rôle |
-|---|---|
-| `app/` | L'application (Electron) : `main.js` pour la fenêtre, les données et les mises à jour, `renderer/index.html` pour toute l'interface |
-| `installateur/` | `StockInfos-Installation.exe` : script d'installation (NSIS) et icônes |
-| `.github/workflows/` | Fabrique l'installateur et l'ajoute automatiquement à chaque release |
-| `docs/captures/` | Captures d'écran |
-
-## Publier une nouvelle version
-
-1. Sur GitHub : **Releases → Draft a new release**.
-2. Créez un tag plus grand que le précédent (ex. `v1.0.1`), puis **Publish release**.
-3. GitHub fabrique `StockInfos-Installation.exe` (environ 5 minutes) et l'ajoute à la release.
-4. Les apps installées se mettent à jour toutes seules dans les heures qui suivent.
-
-Le numéro de version de l'app est pris dans le tag.
-
-## Développement
-
-Avec Node.js : `npm install` puis `npm start`. Après une modification de `app/renderer/index.html`, **Ctrl + R** recharge l'app.
-
 StockInfos est fourni « tel quel », sans garantie.
