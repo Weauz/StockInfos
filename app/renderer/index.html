@@ -931,6 +931,30 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .rrow i.tm{color:var(--amb)}
 .wkt{font-style:normal;text-transform:none;letter-spacing:0;font-size:11.5px;margin-left:auto;padding-left:8px;color:var(--ink);font-weight:700}
 .wki span{width:100%}
+.tg{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+.tgh,.tga{display:grid;grid-template-columns:56px minmax(0,1fr);border-bottom:1px solid var(--line)}
+.tgdays{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr))}
+.tgdays .ch{border-bottom:0;border-left:1px solid var(--line)}.tgdays .ch:first-child{border-left:0}
+.tgg{border-right:1px solid var(--line);position:relative}
+.tga .tgg{display:flex;align-items:flex-start;justify-content:flex-end;padding:7px 6px 0}.tga .tgg small{font-size:10.5px;color:var(--mute)}
+.tgagrid{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:3px 0;padding-top:4px;position:relative;min-height:34px}
+.tgab{border-left:1px solid var(--line);cursor:copy;z-index:0}.tgab:first-child{border-left:0}.tgab.today{background:color-mix(in srgb,var(--acc) 5%,transparent)}
+.tga .cev{z-index:1}
+.tgb{height:min(62vh,600px);overflow-y:auto;position:relative}
+.tgin{display:grid;grid-template-columns:56px minmax(0,1fr);position:relative}
+.tgl span{position:absolute;right:8px;transform:translateY(-50%);font-size:11px;color:var(--mute)}
+.tgcols{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));background:repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px 44px)}
+.tgc{position:relative;border-left:1px solid var(--line);cursor:copy}.tgc:first-child{border-left:0}.tgc.today{background:color-mix(in srgb,var(--acc) 4%,transparent)}
+.tgc.dsel,.tgab.dsel{background:color-mix(in srgb,var(--acc) 14%,transparent)}
+.tge{position:absolute;z-index:1;border:0;border-radius:6px;padding:3px 7px;text-align:left;cursor:pointer;overflow:hidden;background:color-mix(in srgb,var(--c) 24%,var(--card));border-left:4px solid var(--c);color:var(--ink);font:inherit;display:flex;flex-direction:column;gap:1px;box-shadow:0 0 0 1px var(--card)}
+.tge:hover{filter:brightness(.96);z-index:2}
+.tge b{font-size:12.5px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+.tge small{font-size:11px;color:var(--mute);overflow:hidden;text-overflow:ellipsis}
+.tge small.tt{font-weight:700;color:color-mix(in srgb,var(--c) 70%,var(--ink));white-space:nowrap}
+.tge.tiny{flex-direction:row;align-items:center;gap:5px;padding-top:1px;padding-bottom:1px}.tge.tiny b{-webkit-line-clamp:1;white-space:nowrap;display:block}
+.tge.short{box-shadow:inset 0 0 0 1.5px var(--red)}
+.tgnow{position:absolute;left:0;right:0;height:2px;background:var(--red);z-index:3;pointer-events:none}
+.tgnow::before{content:"";position:absolute;left:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--red)}
 </style>
 </head>
 <body>
@@ -1301,6 +1325,38 @@ function pvTitle(){const d=U.pd,[a,b]=pvRange();
   if(U.pv==='planning')return "À partir d'aujourd'hui";
   return a.slice(0,7)===b.slice(0,7)?`${dt(a).getDate()} – ${fmt(b,{day:'numeric',month:'long',year:'numeric'})}`:`${fmt(a,{day:'numeric',month:'short'})} – ${fmt(b,{day:'numeric',month:'short',year:'numeric'})}`}
 function pvMove(n){const d=U.pd;if(U.pv==='mois'){const x=new Date(+d.slice(0,4),+d.slice(5,7)-1+n,1);U.pd=iso(x)}else U.pd=add(d,n*({jour:1,'4j':4,semaine:7}[U.pv]||1));U.ym=U.pd.slice(0,7)}
+// ---- grille horaire façon Google Agenda (vues Jour, 4 jours, Semaine) ----
+const TGH=44; // hauteur d'une heure en pixels
+const tmin=t=>t?(+t.slice(0,2))*60+(+t.slice(3,5)):null;
+function timeGrid(days){
+  const a=days[0],b=days[days.length-1],n=days.length;
+  const all=S.events.filter(VIS).map(ev=>({ev,r:rng(ev)})).filter(x=>x.r.s<=b&&x.r.e>=a);
+  // en haut « journée » : sans heure ou sur plusieurs jours ; dans la grille : un seul jour avec une heure
+  const top=all.filter(x=>!x.ev.t0||x.r.s!==x.r.e).sort((x,y)=>x.r.s<y.r.s?-1:x.r.s>y.r.s?1:(x.ev.t0||'')!==(y.ev.t0||'')?((x.ev.t0||'')<(y.ev.t0||'')?-1:1):(y.r.e>x.r.e?1:-1));
+  const timed=all.filter(x=>x.ev.t0&&x.r.s===x.r.e);
+  const lanes=[];for(const x of top){let l=0;while(lanes[l]&&lanes[l]>=x.r.s)l++;lanes[l]=x.r.e;x.l=l}
+  const L=lanes.length;
+  const head=days.map(d=>`<button class="ch${d===TODAY?' today':''}" data-act="pvday" data-d="${d}"><small>${fmt(d,{weekday:'short'})}</small><b>${dt(d).getDate()}</b></button>`).join('');
+  const bars=top.map(x=>{const si=Math.max(0,diff(a,x.r.s)),ei=Math.min(n-1,diff(a,x.r.e)),p=P(x.ev),it=Object.entries(p.items).slice(0,n>1?3:20).map(([id,q])=>byId(id)?`${esc(byId(id).name)} ×${q}`:'').filter(Boolean).join(' · ');
+    return `<button class="cev${evShort(x.ev)?' short':''}${x.r.s<a?' cl':''}${x.r.e>b?' cr':''}" style="--c:${evColor(x.ev)};grid-column:${si+1}/${ei+2};grid-row:${x.l+1}" data-act="openev" data-id="${x.ev.id}" title="${esc(x.ev.title)}"><b>${x.ev.t0&&x.r.s>=a?`<i class="tm">${hh(x.ev.t0)}</i>`:''}${esc(x.ev.title)}${x.ev.t1&&x.r.e<=b?`<i class="tm e">→ ${hh(x.ev.t1)}</i>`:''}</b><small>${x.ev.lieu?esc(x.ev.lieu)+' · ':''}${it}</small></button>`}).join('');
+  const bg=days.map((d,i)=>`<div class="tgab${d===TODAY?' today':''}" data-dd="${d}" style="grid-column:${i+1};grid-row:1/${Math.max(L,1)+2}" title="Clique ou glisse pour créer un chantier"></div>`).join('');
+  // colonnes horaires avec placement des chantiers qui se chevauchent côte à côte
+  const cols=days.map(d=>{const es=timed.filter(x=>x.r.s===d).map(x=>{const s0=tmin(x.ev.t0),e0=Math.max(s0+30,x.ev.t1?tmin(x.ev.t1):s0+60);return{...x,s0,e0}}).sort((p,q)=>p.s0-q.s0||q.e0-p.e0);
+    let grp=[],end=-1;const fin=()=>{const ln=[];grp.forEach(x=>{let k=0;while(ln[k]!==undefined&&ln[k]>x.s0)k++;ln[k]=x.e0;x.k=k});grp.forEach(x=>x.nk=ln.length);grp=[]};
+    es.forEach(x=>{if(x.s0>=end&&grp.length){fin();end=-1}grp.push(x);end=Math.max(end,x.e0)});if(grp.length)fin();
+    const blocks=es.map(x=>{const p=P(x.ev),it=Object.entries(p.items).slice(0,4).map(([id,q])=>byId(id)?`${esc(byId(id).name)} ×${q}`:'').filter(Boolean).join(' · '),h=(x.e0-x.s0)/60*TGH;
+      return `<button class="tge${evShort(x.ev)?' short':''}${h<40?' tiny':''}" style="--c:${evColor(x.ev)};top:${x.s0/60*TGH}px;height:${Math.max(20,h-2)}px;left:calc(${x.k/x.nk*100}% + 2px);width:calc(${100/x.nk}% - 5px)" data-act="openev" data-id="${x.ev.id}" title="${esc(x.ev.title)}"><small class="tt">${hh(x.ev.t0)}${x.ev.t1?' – '+hh(x.ev.t1):''}</small><b>${esc(x.ev.title)}</b>${h>=58?`<small>${x.ev.lieu?esc(x.ev.lieu)+' · ':''}${it}</small>`:''}</button>`}).join('');
+    const now=d===TODAY?(()=>{const t=new Date(),m=t.getHours()*60+t.getMinutes();return `<i class="tgnow" style="top:${m/60*TGH}px"></i>`})():'';
+    return `<div class="tgc${d===TODAY?' today':''}" data-dd="${d}">${blocks}${now}</div>`}).join('');
+  const hours=[...Array(24)].map((_,h)=>`<span style="top:${h*TGH}px">${h?h+'h':''}</span>`).join('');
+  return `<div class="tg" style="--n:${n}">
+    <div class="tgh"><div class="tgg"></div><div class="tgdays">${head}</div></div>
+    <div class="tga"><div class="tgg"><small>Journée</small></div><div class="tgagrid" style="grid-template-rows:repeat(${Math.max(L,1)},auto) 6px">${bg}${bars}</div></div>
+    <div class="tgb" id="tgb"><div class="tgin" style="height:${24*TGH}px"><div class="tgg tgl">${hours}</div><div class="tgcols">${cols}</div></div></div>
+  </div>`;
+}
+function tgScroll(){const el=document.getElementById('tgb');if(!el||el.dataset.done)return;el.dataset.done=1;
+  const mins=[...el.querySelectorAll('.tge')].map(e=>parseFloat(e.style.top));const first=mins.length?Math.min(...mins):7*TGH;el.scrollTop=Math.max(0,Math.min(first,7*TGH)-TGH*.5)}
 function colsHTML(days){
   const a=days[0],b=days[days.length-1],n=days.length;
   const evs=S.events.filter(VIS).map(ev=>({ev,r:rng(ev)})).filter(x=>x.r.s<=b&&x.r.e>=a).sort((x,y)=>x.r.s<y.r.s?-1:x.r.s>y.r.s?1:(x.ev.t0||'')!==(y.ev.t0||'')?((x.ev.t0||'')<(y.ev.t0||'')?-1:1):(y.r.e>x.r.e?1:-1));
@@ -1314,19 +1370,19 @@ function colsHTML(days){
 }
 function dayHTML(){const d=U.pd,evs=S.events.filter(VIS).filter(ev=>{const r=rng(ev);return d>=r.s&&d<=r.e}).sort((a,b)=>rng(a).s<rng(b).s?-1:1);
   const out=S.products.map(p=>({p,u:usage(p.id,d)})).filter(x=>x.u>0);
-  return `${colsHTML([d])}<div class="cols2" style="display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-top:12px"><section class="card"><h2>${ic('box')}Matériel sorti ce jour (${out.reduce((n,x)=>n+x.u,0)})</h2>${out.length?`<div class="chips">${out.map(x=>`<span class="chip${x.p.qty-x.u<0?' ko':''}">${esc(x.p.name)} ×${x.u}${x.p.qty-x.u<0?' · manque '+(x.u-x.p.qty):''}</span>`).join('')}</div>`:'<div class="empty">Rien de sorti.</div>'}</section></div>`}
+  return `${timeGrid([d])}<div class="cols2" style="display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-top:12px"><section class="card"><h2>${ic('box')}Matériel sorti ce jour (${out.reduce((n,x)=>n+x.u,0)})</h2>${out.length?`<div class="chips">${out.map(x=>`<span class="chip${x.p.qty-x.u<0?' ko':''}">${esc(x.p.name)} ×${x.u}${x.p.qty-x.u<0?' · manque '+(x.u-x.p.qty):''}</span>`).join('')}</div>`:'<div class="empty">Rien de sorti.</div>'}</section></div>`}
 function calFilter(){const cals=S.cfg.cals||[];if(!cals.length)return '';const H=S.ui.hide||[];
   const it=[...cals.map(c=>({id:c.id,name:c.name,col:c.color})),{id:'manuel',name:'Saisis à la main',col:'var(--mute)'}];
   return `<div class="calf"><span class="h">Afficher :</span>${it.map(x=>`<button class="${H.includes(x.id)?'':'on'}" style="--c:${x.col}" data-act="calvis" data-v="${x.id}" aria-pressed="${H.includes(x.id)?'false':'true'}"><i></i>${esc(x.name)}</button>`).join('')}</div>`}
 VIEWS.plan=()=>{
   const v=U.pv;U.ym=U.pd.slice(0,7);
-  const body=v==='mois'?monthHTML():v==='planning'?listHTML():v==='jour'?dayHTML():colsHTML((()=>{const [a,b]=pvRange(),r=[];for(let x=a;x<=b;x=add(x,1))r.push(x);return r})());
+  const body=v==='mois'?monthHTML():v==='planning'?listHTML():v==='jour'?dayHTML():timeGrid((()=>{const [a,b]=pvRange(),r=[];for(let x=a;x<=b;x=add(x,1))r.push(x);return r})());
   return `<div class="tools gtool"><button class="btn" data-act="pvtoday">Aujourd'hui</button>${v!=='planning'?`<button class="ib" data-act="pvprev" aria-label="Précédent">${ic('l')}</button><button class="ib" data-act="pvnext" aria-label="Suivant">${ic('r')}</button>`:''}<b class="gtitle">${pvTitle()}</b><span class="sp"></span>
     <div class="vsel"><button class="btn" data-act="pvmenu" aria-haspopup="true" aria-expanded="${U.pvm?'true':'false'}">${pvName(v)} <svg class="i" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M6 9l6 6 6-6"/></svg></button>${U.pvm?`<div class="vmenu" role="menu">${PVIEWS.map(([k,l,key])=>`<button role="menuitem" class="${k===v?'on':''}" data-act="pv" data-v="${k}"><span>${l}</span><kbd>${key}</kbd></button>`).join('')}</div>`:''}</div>
     <button class="btn" data-act="sync" id="syncb" title="${!S.cfg.cals.length?'Ajoute un agenda dans Paramètres':'Synchroniser maintenant'}">${ic('sync')}Synchroniser</button><button class="btn pri" data-act="newev">${ic('plus')}Nouveau chantier</button></div>
   ${calFilter()}
   ${body}
-  <p class="note" style="margin-top:10px">${U.pv!=='planning'?'Astuce : clique-glisse sur plusieurs jours pour créer un chantier. ':''}${!S.cfg.cals.length?'Aucun agenda relié (voir Paramètres)':S.lastSync?'Dernière synchro à '+new Date(S.lastSync).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'Pas encore synchronisé'}</p>`};
+  <p class="note" style="margin-top:10px">${U.pv!=='planning'?'Astuce : clique sur une heure pour créer un chantier à cette heure, ou glisse sur plusieurs jours dans la ligne « Journée ». ':''}${!S.cfg.cals.length?'Aucun agenda relié (voir Paramètres)':S.lastSync?'Dernière synchro à '+new Date(S.lastSync).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'Pas encore synchronisé'}</p>`};
 function kitCap(k,days,skip){const its=Object.entries(k.items||{}).filter(([id])=>byId(id));if(!its.length)return {n:0,lim:[]};
   const per=its.map(([id,n])=>{const pr=byId(id);let a=Infinity;for(const d of days)a=Math.min(a,pr.qty-usage(id,d,skip));a=Math.max(0,a);return {pr,n,a,c:Math.floor(a/n)}});
   const m=Math.min(...per.map(x=>x.c));return {n:m,lim:per.filter(x=>x.c===m),per}}
@@ -1814,7 +1870,7 @@ VIEWS.set=()=>{const cals=S.cfg.cals;
   </div>`};
 
 if(S&&S.cfg&&(S.cfg.logo||S.cfg.site)){delete S.cfg.logo;delete S.cfg.site}
-function render(){
+function render(){setTimeout(tgScroll,0);
   if(!VIEWS[U.view])U.view='dash';
   if(U.view==='packs'&&!S.cfg.kits)U.view='dash';
   {const t=iso(new Date());if(t!==TODAY){if(U.date===TODAY)U.date=t;TODAY=t;PC.clear()}}
@@ -1996,7 +2052,7 @@ function printLoad(id,mode){const ev=S.events.find(e=>e.id===id),r=rng(ev),p=P(e
     <div class="lsign"><div><span>Préparé par</span></div><div><span>Chargé par · date</span></div><div><span>Vérifié au retour par · date</span></div></div>
   </div>`;
   outPrint(mode,`Chargement-${short(ev.title).replace(/[^\w\-]+/g,'_')}-${r.s}.pdf`)}
-function openE(id,d0,d1){const ev=id&&S.events.find(e=>e.id===id);MD={k:'e',d:ev?{...ev,man:JSON.parse(JSON.stringify(ev.man||{packs:{},items:{}}))}:{man:{packs:{},items:{}},id:null,title:'',start:d0||U.date,end:d1||add(d0||U.date,2),lieu:'',desc:'',src:'manuel',ci:S.events.length%COLORS.length},confirm:false,mk:-1};drawE()}
+function openE(id,d0,d1,tt){const ev=id&&S.events.find(e=>e.id===id);MD={k:'e',d:ev?{...ev,man:JSON.parse(JSON.stringify(ev.man||{packs:{},items:{}}))}:{man:{packs:{},items:{}},id:null,title:'',start:d0||U.date,end:d1||add(d0||U.date,2),lieu:'',desc:'',src:'manuel',ci:S.events.length%COLORS.length,...(tt?{t0:tt[0],t1:tt[1],end:d0}:{})},confirm:false,mk:-1};drawE()}
 function readHTML(){
   const d=MD.d,p=P(d),r=rng(d);
   const marks=[...p.hits.map(h=>({a:h.s,b:h.e,c:h.pk?'k':''})),...p.unknown.map(u=>({a:u.a,b:u.b,c:'u'})),...(p.amb||[]).map(u=>({a:u.s,b:u.e,c:'u'})),...(p.umiss||[]).map(u=>({a:u.s,b:u.e,c:'u'})),...(p.dates?[{a:p.dates.a,b:p.dates.b,c:'d'}]:[])].sort((x,y)=>x.a-y.a);
@@ -2132,9 +2188,9 @@ function closePal(){PAL.on=false;drawPal()}
 /* ---------- glisser pour créer un chantier ---------- */
 const DRAG={on:false,a:null,b:null,moved:false,skip:false};
 function dragPaint(){const x=DRAG.a<DRAG.b?DRAG.a:DRAG.b,y=DRAG.a<DRAG.b?DRAG.b:DRAG.a;document.querySelectorAll('[data-dd]').forEach(el=>el.classList.toggle('dsel',DRAG.on&&el.dataset.dd>=x&&el.dataset.dd<=y))}
-document.addEventListener('mousedown',e=>{if(e.button!==0||MD||PAL.on)return;const t=e.target.closest('[data-dd]');if(!t||e.target.closest('.ev,.cev'))return;DRAG.on=true;DRAG.a=DRAG.b=t.dataset.dd;DRAG.moved=false;DRAG.cell=t.classList.contains('cbg');dragPaint();e.preventDefault()});
+document.addEventListener('mousedown',e=>{if(e.button!==0||MD||PAL.on)return;const t=e.target.closest('[data-dd]');if(!t||e.target.closest('.ev,.cev,.tge'))return;DRAG.on=true;DRAG.a=DRAG.b=t.dataset.dd;DRAG.moved=false;DRAG.cell=t.matches('.cbg,.tgab,.tgc');DRAG.t=null;if(t.classList.contains('tgc')){const m=Math.floor((e.clientY-t.getBoundingClientRect().top)/TGH*2)*30,f=x=>String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');DRAG.t=[f(Math.min(m,1410)),f(Math.min(m+120,1439))]}dragPaint();e.preventDefault()});
 document.addEventListener('mouseover',e=>{if(!DRAG.on)return;const t=e.target.closest('[data-dd]');if(t&&t.dataset.dd!==DRAG.b){DRAG.b=t.dataset.dd;DRAG.moved=DRAG.b!==DRAG.a;dragPaint()}});
-document.addEventListener('mouseup',()=>{if(!DRAG.on)return;DRAG.on=false;const x=DRAG.a<DRAG.b?DRAG.a:DRAG.b,y=DRAG.a<DRAG.b?DRAG.b:DRAG.a;dragPaint();if(DRAG.moved||DRAG.cell){DRAG.skip=true;setTimeout(()=>{DRAG.skip=false},0);openE(null,x,y)}});
+document.addEventListener('mouseup',()=>{if(!DRAG.on)return;DRAG.on=false;const x=DRAG.a<DRAG.b?DRAG.a:DRAG.b,y=DRAG.a<DRAG.b?DRAG.b:DRAG.a;dragPaint();if(DRAG.moved||DRAG.cell){DRAG.skip=true;setTimeout(()=>{DRAG.skip=false},0);openE(null,x,y,DRAG.moved?null:DRAG.t)}});
 
 /* ---------- actions ---------- */
 function setView(v){U.view=v;U.reset=false;try{history.replaceState(null,'','#'+VH[v])}catch(e){location.hash=VH[v]}render();$('#main').scrollTop=0}
@@ -2142,11 +2198,16 @@ const A={
   qcnew:()=>{const Q=U.qc;openE(null,Q.a<=Q.b?Q.a:Q.b,Q.a<=Q.b?Q.b:Q.a);if(MD&&MD.d){MD.d.desc=Q.txt;drawE()}},
   essaiadd:()=>{const pr=S.products.filter(p=>p.qty>0).sort((a,b)=>b.qty-a.qty);if(!pr.length)return;
     const P=k=>pr[k%pr.length],q=(p,f)=>Math.max(1,Math.ceil(p.qty*f)),D=n=>add(TODAY,n);
-    const mk=(title,a,b,lieu,items)=>{const m={};items.forEach(([p,n])=>{m[p.id]=(m[p.id]||0)+n});return{id:'e'+uid(),title:'Essai · '+title,start:D(a),end:D(b),lieu,desc:'Chantier d\'essai créé par StockInfos (Paramètres › Chantiers d\'essai).',src:'manuel',ci:S.events.length%COLORS.length,man:{packs:{},items:m},created:Date.now(),used:Date.now(),essai:true}};
-    const ev=[mk('Fête de village',-1,1,'Place de la mairie',[[P(2),q(P(2),.4)],[P(0),q(P(0),.2)]]),
-      mk('Mariage Dupont',2,4,'Domaine des Chênes',[[P(0),q(P(0),.6)],[P(1),q(P(1),.5)]]),
+    const mk=(title,a,b,lieu,items,t0,t1)=>{const m={};items.forEach(([p,n])=>{m[p.id]=(m[p.id]||0)+n});return{id:'e'+uid(),title:'Essai · '+title,start:D(a),end:D(b),lieu,desc:'Chantier d\'essai créé par StockInfos (Paramètres › Chantiers d\'essai).',src:'manuel',ci:S.events.length%COLORS.length,man:{packs:{},items:m},created:Date.now(),used:Date.now(),essai:true,...(t0?{t0}:{}),...(t1?{t1}:{})}};
+    const ev=[mk('Fête de village',-1,1,'Place de la mairie',[[P(2),q(P(2),.4)],[P(0),q(P(0),.2)]],'14:00','23:00'),
+      mk('Livraison mairie',0,0,'Mairie',[[P(1),q(P(1),.2)]],'08:30','10:00'),
+      mk('Vin d\'honneur',0,0,'Salle polyvalente',[[P(2),q(P(2),.2)]],'09:00','12:30'),
+      mk('Repas associatif',0,0,'Gymnase',[[P(0),q(P(0),.15)]],'18:00','22:00'),
+      mk('Mariage Dupont',2,4,'Domaine des Chênes',[[P(0),q(P(0),.6)],[P(1),q(P(1),.5)]],'15:00','02:00'),
       mk('Salon professionnel',3,6,'Parc des expositions',[[P(0),q(P(0),.55)],[P(1),q(P(1),.3)],[P(3),q(P(3),.5)]]),
-      mk('Anniversaire Martin',7,7,'Salle des fêtes',[[P(0),q(P(0),.5)],[P(2),q(P(2),.3)]]),
+      mk('Conférence',1,1,'Centre des congrès',[[P(3),q(P(3),.3)]],'09:00','17:30'),
+      mk('Anniversaire Martin',7,7,'Salle des fêtes',[[P(0),q(P(0),.5)],[P(2),q(P(2),.3)]],'19:00','23:30'),
+      mk('Cocktail entreprise',7,7,'Bureaux Axion',[[P(1),q(P(1),.2)]],'17:00','20:00'),
       mk('Séminaire',11,13,'Hôtel du Lac',[[P(1),q(P(1),.4)],[P(3),q(P(3),.6)],[P(4),q(P(4),.5)]])];
     ev.forEach(e=>{e.ci=S.events.length%COLORS.length;S.events.push(e)});save();render();toast(`${ev.length} chantiers d'essai créés : regarde le Planning et le Stock`)},
   essaidel:()=>{const n=S.events.filter(e=>e.essai).length;S.events=S.events.filter(e=>!e.essai);save();render();toast(`${n} chantiers d'essai supprimés`)},
