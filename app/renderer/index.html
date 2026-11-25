@@ -931,6 +931,12 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .rrow i.tm{color:var(--amb)}
 .qca{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px}.qca>span{font-size:12.5px;color:var(--amb);font-weight:600;margin-right:2px}
 .qcp{cursor:pointer;border:1px solid var(--line);display:inline-flex;align-items:baseline;gap:6px}.qcp:hover{border-color:var(--acc);color:var(--acc)}.qcp small{font-size:10.5px;color:var(--mute)}
+.qcs{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;min-height:0}.qcs:empty{display:none}.qcs kbd{font:inherit;font-size:10px;color:var(--mute);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:2px}
+.qcdr{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px}
+.qcdb{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;font-weight:600;cursor:pointer}
+.qcdb:hover,.qcdb.on{border-color:var(--acc)}.qcdb span{font-weight:400;color:var(--mute);text-transform:none}.qcdb em{font-style:normal;font-weight:600;font-size:11.5px;color:var(--acc);background:var(--accbg);border-radius:9px;padding:1px 7px;margin-left:4px;text-transform:none}.qcdb svg{width:15px;height:15px;color:var(--mute)}
+.qcq{display:flex;flex-wrap:wrap;gap:5px}.qcq .chip{cursor:pointer;border:1px solid var(--line)}.qcq .chip:hover{border-color:var(--acc)}.qcq .chip.on{background:var(--accbg);border-color:var(--acc);color:var(--acc);font-weight:600}
+.qcdp{left:0;right:auto;width:250px;z-index:20}
 .wks{margin-left:auto}.wks button{height:28px;padding:0 12px;font-size:12.5px}.wkn{display:inline-block;min-width:18px;margin-left:4px;padding:0 5px;border-radius:9px;background:var(--line);font-size:11px;font-weight:700;line-height:17px}.wks button.on .wkn{background:var(--acc);color:var(--accink)}
 .wkt{font-style:normal;text-transform:none;letter-spacing:0;font-size:11.5px;margin-left:auto;padding-left:8px;color:var(--ink);font-weight:700}
 .wki span{width:100%}
@@ -1190,9 +1196,27 @@ function dcard(ev){const r=rng(ev),p=P(ev),st=evStatus(ev),n=Object.values(p.ite
 // ---- tableau de bord : blocs ----
 const NUMWS=/^(un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|onze|douze|treize|quatorze|quinze|seize|vingt|trente|quarante|cinquante|soixante|cent|cents|mille)$/;
 function qcHTML(){const Q=U.qc||(U.qc={a:TODAY,b:add(TODAY,2),txt:''});
-  return `<div class="qcf"><div class="qcd"><label>Du<input class="in" type="date" data-qc="a" value="${Q.a}"></label><label>Au<input class="in" type="date" data-qc="b" value="${Q.b}" min="${Q.a}"></label></div>
-    <textarea class="in" data-qc="txt" rows="2" placeholder="Écris le matériel comme dans un chantier : 120 chaises, 2 chapiteaux, 30 m² de plancher…">${esc(Q.txt)}</textarea></div>
+  return `<div class="qcf"><div id="qcdw">${qcDates()}</div>
+    <textarea class="in" data-qc="txt" rows="2" placeholder="Écris le matériel comme dans un chantier : 120 chaises, 2 chapiteaux, 30 m² de plancher…">${esc(Q.txt)}</textarea><div class="qcs" id="qcsug"></div></div>
     <div class="qcr" id="qcr">${qcRes()}</div>`}
+function qcDates(){const Q=U.qc,a=Q.a<=Q.b?Q.a:Q.b,b=Q.a<=Q.b?Q.b:Q.a,n=diff(a,b)+1,F=d=>fmt(d,{weekday:'short',day:'numeric',month:'short'});
+  const sat=add(TODAY,(6-dt(TODAY).getDay()+7)%7);
+  const quick=[["Aujourd'hui",TODAY,TODAY],['Demain',add(TODAY,1),add(TODAY,1)],['Ce week-end',sat,add(sat,1)],['7 jours',TODAY,add(TODAY,6)]];
+  let pop='';if(U.qcd){const m=U.qcm||a.slice(0,7),[y,mo]=m.split('-').map(Number),f=`${y}-${pad(mo)}-01`;let d=add(f,-((dt(f).getDay()+6)%7)),g='';
+    const A=U.qcpk?U.qcpk:a,B=U.qcpk?U.qcpk:b;
+    for(let i=0;i<42;i++){const sel=d===A||d===B,inr=d>A&&d<B;g+=`<button class="${d.slice(0,7)!==m?'o ':''}${d===TODAY?'t ':''}${sel?'s':inr?'r':''}" data-act="qcday" data-d="${d}">${dt(d).getDate()}</button>`;d=add(d,1)}
+    pop=`<div class="dp qcdp"><div class="dph"><button class="ib" data-act="qcmon" data-v="-1" aria-label="Mois précédent">${ic('l')}</button><span>${new Date(y,mo-1,1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}</span><button class="ib" data-act="qcmon" data-v="1" aria-label="Mois suivant">${ic('r')}</button></div><div class="dphint">${U.qcpk?`Début : <b>${fmt(U.qcpk,{day:'numeric',month:'short'})}</b>. Clique le dernier jour.`:'Clique le premier jour, puis le dernier.'}</div><div class="dpg">${['L','M','M','J','V','S','D'].map(x=>`<i>${x}</i>`).join('')}${g}</div></div>`}
+  return `<div class="qcdr"><div style="position:relative"><button class="dbtn qcdb${U.qcd?' on':''}" data-act="qcdp">${ic('cal')}${n===1?`<span>Le</span>${F(a)}`:`<span>Du</span>${F(a)} <span>au</span>${F(b)}`}<em>${n} jour${n>1?'s':''}</em></button>${pop}</div>
+    <div class="qcq">${quick.map(([l,x,z])=>`<button class="chip${x===a&&z===b?' on':''}" data-act="qcq" data-a="${x}" data-b="${z}">${l}</button>`).join('')}</div></div>`}
+// propositions pendant la frappe, comme le clavier d'un téléphone
+function qcWord(t){const el=document.querySelector('[data-qc=txt]');if(!el)return null;const c=el.selectionStart??el.value.length,v=el.value;let i=c;while(i>0&&/[\p{L}\d²\-']/u.test(v[i-1]))i--;let j=c;while(j<v.length&&/[\p{L}\d²\-']/u.test(v[j]))j++;const w=v.slice(i,j);return /\p{L}{2,}/u.test(w)&&!/^\d/.test(w)?{i,j,w}:null}
+function qcSuggest(){const box=$('#qcsug');if(!box)return;const W=qcWord();if(!W){box.innerHTML='';return}
+  const st=norm(W.w).replace(/(s|x)$/,'');if(st.length<2){box.innerHTML='';return}
+  const L=S.products.map(p=>{const ws=norm(p.name).split(/[^a-z0-9œ]+/).filter(Boolean),kw=(p.kw||[]).map(norm);const k=ws.findIndex(x=>x.startsWith(st));const kk=kw.some(x=>x.startsWith(st));return{p,r:k===0?0:k>0?1:kk?2:9}}).filter(x=>x.r<9).sort((x,y)=>x.r-y.r||x.p.name.localeCompare(y.p.name)).slice(0,6);
+  const exact=L.length===1&&norm(L[0].p.name)===norm(W.w);
+  box.innerHTML=L.length&&!exact?L.map((x,n)=>`<button class="chip qcp" data-act="qcsug" data-id="${x.p.id}" tabindex="-1">${esc(x.p.name)}<small>${x.p.qty} en stock</small>${n===0?'<kbd>Tab</kbd>':''}</button>`).join(''):''}
+function qcAccept(id){const pr=byId(id),W=qcWord(),el=document.querySelector('[data-qc=txt]');if(!pr||!W||!el)return;const v=el.value.slice(0,W.i)+pr.name+' '+el.value.slice(W.j).replace(/^ /,'');el.value=v;U.qc.txt=v;const c=W.i+pr.name.length+1;el.focus();el.setSelectionRange(c,c);$('#qcsug').innerHTML='';const r=$('#qcr');if(r)r.innerHTML=qcRes()}
+function qcRedraw(){const w=$('#qcdw');if(w)w.innerHTML=qcDates();const r=$('#qcr');if(r)r.innerHTML=qcRes()}
 function qcRes(){const Q=U.qc;if(!Q||!Q.txt.trim())return '<p class="h" style="margin:0">Le résultat s\'affiche ici au fur et à mesure.</p>';
   const a=Q.a<=Q.b?Q.a:Q.b,b=Q.a<=Q.b?Q.b:Q.a,days=[];for(let d=a;d<=b&&days.length<92;d=add(d,1))days.push(d);
   const p=P({desc:Q.txt,man:{packs:{},items:{}}}),its=Object.entries(p.items).map(([id,q])=>({pr:byId(id),q})).filter(x=>x.pr);
@@ -2208,6 +2232,11 @@ function setView(v){U.view=v;U.reset=false;try{history.replaceState(null,'','#'+
 const A={
   wkm:e=>{U.wkm=e.dataset.v;render()},
   qcpick:e=>{const Q=U.qc,i=+e.dataset.i,l=+e.dataset.l,pr=byId(e.dataset.id);if(!Q||!pr)return;Q.txt=Q.txt.slice(0,i)+pr.name+Q.txt.slice(i+l);const t=document.querySelector('[data-qc=txt]');if(t)t.value=Q.txt;const r=$('#qcr');if(r)r.innerHTML=qcRes()},
+  qcdp:()=>{U.qcd=!U.qcd;U.qcpk=null;U.qcm=(U.qc.a<=U.qc.b?U.qc.a:U.qc.b).slice(0,7);qcRedraw()},
+  qcmon:e=>{const [y,m]=(U.qcm||TODAY.slice(0,7)).split('-').map(Number),d=new Date(y,m-1+(+e.dataset.v),1);U.qcm=`${d.getFullYear()}-${pad(d.getMonth()+1)}`;qcRedraw()},
+  qcday:e=>{const d=e.dataset.d;if(!U.qcpk){U.qcpk=d}else{const x=U.qcpk<d?U.qcpk:d,y=U.qcpk<d?d:U.qcpk;U.qc.a=x;U.qc.b=y;U.qcpk=null;U.qcd=false}qcRedraw()},
+  qcq:e=>{U.qc.a=e.dataset.a;U.qc.b=e.dataset.b;U.qcd=false;U.qcpk=null;qcRedraw()},
+  qcsug:e=>qcAccept(e.dataset.id),
   qcnew:()=>{const Q=U.qc;openE(null,Q.a<=Q.b?Q.a:Q.b,Q.a<=Q.b?Q.b:Q.a);if(MD&&MD.d){MD.d.desc=Q.txt;drawE()}},
   essaiadd:()=>{const pr=S.products.filter(p=>p.qty>0).sort((a,b)=>b.qty-a.qty);if(!pr.length)return;
     const P=k=>pr[k%pr.length],q=(p,f)=>Math.max(1,Math.ceil(p.qty*f)),D=n=>add(TODAY,n);
@@ -2330,10 +2359,12 @@ document.addEventListener('click',e=>{
   if(e.target.classList.contains('pov')){closePal();return}
   if(e.target.classList.contains('ov')){closeM();return}
   if(U.pvm&&!e.target.closest('.vsel')){U.pvm=false;render();if(!e.target.closest('[data-act]')||!document.body.contains(e.target))return}
+  if(U.qcd&&document.body.contains(e.target)&&!e.target.closest('.qcdr')){U.qcd=false;U.qcpk=null;qcRedraw();if(!e.target.closest('[data-act]'))return}
   if(U.dp&&!e.target.closest('.dw')){U.dp=false;render();if(!e.target.closest('[data-act]')||!document.body.contains(e.target))return}
   const b=e.target.closest('[data-act]');if(!b)return;const f=A[b.dataset.act];if(f){e.preventDefault();f(b)}
 });
 document.addEventListener('keydown',e=>{
+  if(e.target.dataset&&e.target.dataset.qc==='txt'){const f=document.querySelector('#qcsug [data-act=qcsug]');if(e.key==='Tab'&&f&&!e.shiftKey){e.preventDefault();qcAccept(f.dataset.id);return}if(e.key==='Escape'&&f){$('#qcsug').innerHTML='';e.stopPropagation();return}}
   if(e.key==='Enter'&&e.target.matches('.cname'))e.target.blur();
   if(e.key==='Enter'&&e.target.id==='w-co'&&MD&&MD.k==='co'){A['co-ok']()}
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();PAL.on?closePal():openPal();return}
@@ -2347,7 +2378,7 @@ document.addEventListener('keydown',e=>{
 });
 document.addEventListener('input',e=>{
   const t=e.target;
-  if(t.dataset.qc){U.qc[t.dataset.qc]=t.value;if(t.dataset.qc==='a'&&U.qc.b<U.qc.a){U.qc.b=U.qc.a;const bb=document.querySelector('[data-qc=b]');if(bb)bb.value=U.qc.a}clearTimeout(window.__qct);window.__qct=setTimeout(()=>{const r=$('#qcr');if(r)r.innerHTML=qcRes()},180);return}
+  if(t.dataset.qc){U.qc[t.dataset.qc]=t.value;if(t.dataset.qc==='txt')qcSuggest();if(t.dataset.qc==='a'&&U.qc.b<U.qc.a){U.qc.b=U.qc.a;const bb=document.querySelector('[data-qc=b]');if(bb)bb.value=U.qc.a}clearTimeout(window.__qct);window.__qct=setTimeout(()=>{const r=$('#qcr');if(r)r.innerHTML=qcRes()},180);return}
   if(MD&&MD.k==='imp'&&MD.inv&&MD.inv.rows&&/^inv(cnt|hs|rem)$/.test(t.dataset.in||'')){const r=MD.inv.rows[+t.dataset.k],f={invcnt:'ucnt',invhs:'uhs',invrem:'urem'}[t.dataset.in];r[f]=t.value;const e=document.querySelector(`.invtot[data-k="${t.dataset.k}"]`);if(e)e.innerHTML=invTotTxt(r);return}
   if(t.id==='palq'){PAL.q=t.value;PAL.i=0;drawPal();return}
   if(MD&&MD.k==='ret'&&(t.classList.contains('rok')||t.classList.contains('rcs'))){const i=+t.dataset.i,r=MD.rows[i],v=Math.max(0,parseInt(t.value)||0);
