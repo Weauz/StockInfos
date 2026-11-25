@@ -2221,12 +2221,17 @@ function gBody(ev){const r=rng(ev),p=P(ev),its=Object.entries(p.items).map(([id,
   const description=[its.length?'Matériel :\n'+its.join('\n'):'',(ev.desc||'').trim(),'— Envoyé par StockInfos'].filter(Boolean).join('\n\n');
   const b={summary:ev.title||'(Sans titre)',location:ev.lieu||'',description,start,end};
   b.extendedProperties={private:{si:ev.id,h:hashId(JSON.stringify(b))}};return b}
+function gToLocal(it){const S0=it.start||{},E0=it.end||{};let start,end,t0='',t1='';
+  if(S0.date){start=S0.date;end=E0.date?add(E0.date,-1):start}
+  else if(S0.dateTime){start=S0.dateTime.slice(0,10);t0=S0.dateTime.slice(11,16);if(E0.dateTime){end=E0.dateTime.slice(0,10);t1=E0.dateTime.slice(11,16);if(t1==='00:00'&&end>start){end=add(end,-1);t1=''}}else end=start}
+  else return null;if(end<start)end=start;
+  return{title:it.summary||'(Sans titre)',start,end,t0,t1,lieu:it.location||'',desc:htmlToText(it.description||'')}}
 function gSoon(ms){clearTimeout(GS.timer);GS.timer=setTimeout(()=>gSync(false),ms??1500)}
 async function gSync(manual){
   if(!API||!API.gApi)return;
   if(GS.busy){GS.again=true;return}GS.busy=true;
   const st=GS.st||await gStatus();if(!st||!st.connected){GS.busy=false;if(manual&&st&&st.configured)toast('Connecte d\'abord ton compte Google dans Paramètres');return}
-  GS.err=null;let nA=0,nU=0,nD=0;
+  GS.err=null;let nA=0,nU=0,nD=0,nI=0;
   const call=async(method,path,body)=>{const r=await API.gApi({method,path,body});if(r.status>=400&&r.status!==404&&r.status!==410)throw new Error((r.json&&r.json.error&&r.json.error.message)||('erreur Google '+r.status));return r};
   try{
     let cal=S.cfg.gcal;
@@ -2241,9 +2246,17 @@ async function gSync(manual){
     for(const ev of local){const b=gBody(ev),ex=remote.get(ev.id);remote.delete(ev.id);
       if(ex){ev.gid=ex.id;if(ex.extendedProperties.private.h!==b.extendedProperties.private.h){const r=await call('PATCH',base+'/'+encodeURIComponent(ex.id),b);if(r.status<300)nU++;else{const r2=await call('POST',base,b);ev.gid=r2.json.id;nA++}}}
       else{const r=await call('POST',base,b);ev.gid=r.json.id;nA++}}
-    for(const it of [...remote.values(),...extra]){await call('DELETE',base+'/'+encodeURIComponent(it.id));nD++}
-    GS.last=Date.now();save();
-    if(manual)toast(nA||nU||nD?`Google Agenda : ${nA} envoyé${nA>1?'s':''}, ${nU} mis à jour, ${nD} retiré${nD>1?'s':''}`:'Google Agenda : déjà à jour');
+    // chantiers d'origine StockInfos supprimés dans l'appli : on les retire de Google
+    for(const it of remote.values()){if(S.events.some(e=>e.id===it.extendedProperties.private.si))continue;await call('DELETE',base+'/'+encodeURIComponent(it.id));nD++}
+    // rendez-vous ajoutés directement dans Google sur cet agenda : on les ramène dans l'appli
+    const seenG=new Set();
+    for(const it of extra){if(it.status==='cancelled'||!it.start)continue;const f=gToLocal(it);if(!f)continue;const id='gs'+it.id;seenG.add(id);
+      const ex=S.events.find(e=>e.id===id);
+      if(ex){if(ex.title!==f.title||ex.start!==f.start||ex.end!==f.end||(ex.t0||'')!==f.t0||(ex.t1||'')!==f.t1||(ex.lieu||'')!==f.lieu||(ex.desc||'')!==f.desc){Object.assign(ex,f);nI++}}
+      else{S.events.push({id,src:'google',cal:'gsi',gid:it.id,ci:3,created:Date.now(),man:{packs:{},items:{}},...f});nI++}}
+    const b4=S.events.length;S.events=S.events.filter(e=>e.cal!=='gsi'||seenG.has(e.id));nI+=b4-S.events.length;
+    GS.last=Date.now();save();if(nI&&U.view!=='set')render();
+    if(manual)toast(nA||nU||nD||nI?`Google Agenda : ${nA} envoyé${nA>1?'s':''}, ${nU} mis à jour, ${nD} retiré${nD>1?'s':''}${nI?`, ${nI} changement${nI>1?'s':''} reçu${nI>1?'s':''}`:''}`:'Google Agenda : déjà à jour');
   }catch(e){GS.err=String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,'');if(/non connecté|expirée/.test(GS.err))await gStatus();if(manual)toast('Google Agenda : '+GS.err)}
   GS.busy=false;if(U.view==='set')render();if(GS.again){GS.again=false;gSoon(300)}
 }
