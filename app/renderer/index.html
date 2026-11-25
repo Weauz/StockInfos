@@ -950,7 +950,7 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .tgagrid{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:3px 0;padding-top:4px;position:relative;min-height:34px}
 .tgab{border-left:1px solid var(--line);cursor:copy;z-index:0}.tgab:first-child{border-left:0}.tgab.today{background:color-mix(in srgb,var(--acc) 5%,transparent)}
 .tga .cev{z-index:1}
-.tgb{height:min(62vh,600px);overflow-y:auto;position:relative}
+.tgb{height:min(62vh,600px);overflow-y:auto;position:relative;overscroll-behavior:contain}
 .tgin{display:grid;grid-template-columns:56px minmax(0,1fr);position:relative}
 .tgl span{position:absolute;right:8px;transform:translateY(-50%);font-size:11px;color:var(--mute)}
 .tgcols{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));background:repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px 44px)}
@@ -1391,7 +1391,11 @@ function timeGrid(days){
   </div>`;
 }
 function tgFollow(el){const st=el.scrollTop;el.querySelectorAll('.tge').forEach(b=>{const t=b.querySelector('.tgt');if(!t)return;const top=parseFloat(b.style.top),room=b.clientHeight-t.offsetHeight-6;t.style.transform=st>top&&room>0?`translateY(${Math.min(st-top,room)}px)`:''})}
-function tgScroll(){const el=document.getElementById('tgb');if(!el||el.dataset.done)return;el.dataset.done=1;el.addEventListener('scroll',()=>tgFollow(el),{passive:true});
+// la grille horaire prend toute la hauteur de la fenêtre (moins la petite note dessous)
+function tgFit(){const el=document.getElementById('tgb');if(!el)return;
+  const h=Math.max(320,Math.min(24*TGH,window.innerHeight-el.getBoundingClientRect().top-56));el.style.height=h+'px'}
+window.addEventListener('resize',()=>{clearTimeout(window.__tgf);window.__tgf=setTimeout(tgFit,80)});
+function tgScroll(){tgFit();const el=document.getElementById('tgb');if(!el||el.dataset.done)return;el.dataset.done=1;el.addEventListener('scroll',()=>tgFollow(el),{passive:true});
   const mins=[...el.querySelectorAll('.tge')].map(e=>parseFloat(e.style.top)).filter(t=>t>0);const first=mins.length?Math.min(...mins):7*TGH;el.scrollTop=Math.max(0,Math.min(first,7*TGH)-TGH*.5);tgFollow(el)}
 function colsHTML(days){
   const a=days[0],b=days[days.length-1],n=days.length;
