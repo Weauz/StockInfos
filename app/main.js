@@ -1,5 +1,7 @@
 // StockInfos — processus principal Electron (logiciel libre)
-const { app, BrowserWindow, ipcMain, dialog, shell, net, Menu, nativeTheme } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, net, Menu, nativeTheme, safeStorage } = require('electron');
+const http = require('http');
+const crypto = require('crypto');
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -305,6 +307,106 @@ app.on('child-process-gone', (e, d) => {
     app.relaunch();
     app.exit(0);
   }
+});
+
+
+// ---- Connexion Google Agenda (envoi des chantiers vers un agenda « Chantiers StockInfos ») ----
+// Client OAuth de type « Application de bureau » : pour Google, ces deux valeurs ne sont pas secrètes.
+const GOOGLE = { id: '', secret: '' };
+const G_SCOPE = 'openid email https://www.googleapis.com/auth/calendar.app.created';
+const G = { access: null, exp: 0, email: null };
+const gFile = () => path.join(app.getPath('userData'), 'google.dat');
+function gRead() {
+  try {
+    const b = fs.readFileSync(gFile());
+    const txt = safeStorage.isEncryptionAvailable() ? safeStorage.decryptString(b) : b.toString('utf8');
+    return JSON.parse(txt);
+  } catch (e) { return null; }
+}
+function gWrite(o) {
+  const txt = JSON.stringify(o);
+  fs.writeFileSync(gFile(), safeStorage.isEncryptionAvailable() ? safeStorage.encryptString(txt) : Buffer.from(txt));
+}
+const b64u = b => b.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+function gEmail(idToken) { try { return JSON.parse(Buffer.from(idToken.split('.')[1], 'base64').toString()).email || null; } catch (e) { return null; } }
+async function gToken(params) {
+  const r = await net.fetch('https://oauth2.googleapis.com/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ client_id: GOOGLE.id, client_secret: GOOGLE.secret, ...params }).toString() });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error_description || j.error || ('Google a refusé (' + r.status + ')'));
+  return j;
+}
+async function gAccess() {
+  if (G.access && Date.now() < G.exp - 60000) return G.access;
+  const st = gRead();
+  if (!st || !st.refresh) throw new Error('non connecté');
+  try {
+    const j = await gToken({ grant_type: 'refresh_token', refresh_token: st.refresh });
+    G.access = j.access_token; G.exp = Date.now() + (j.expires_in || 3600) * 1000;
+    return G.access;
+  } catch (e) {
+    if (/invalid_grant/i.test(String(e.message))) { try { fs.unlinkSync(gFile()); } catch (x) {} throw new Error('connexion Google expirée, reconnecte-toi'); }
+    throw e;
+  }
+}
+ipcMain.handle('g-status', () => {
+  const st = gRead();
+  return { configured: !!(GOOGLE.id && GOOGLE.secret), connected: !!(st && st.refresh), email: st ? st.email : null };
+});
+let gLoginBusy = null;
+ipcMain.handle('g-login', () => {
+  if (!GOOGLE.id || !GOOGLE.secret) throw new Error('connexion Google pas encore configurée dans cette version');
+  if (gLoginBusy) { try { gLoginBusy.close(); } catch (e) {} }
+  return new Promise((resolve, reject) => {
+    const verifier = b64u(crypto.randomBytes(48)), state = b64u(crypto.randomBytes(16));
+    const challenge = b64u(crypto.createHash('sha256').update(verifier).digest());
+    let done = false, redirect = '';
+    const finish = (err, val) => { if (done) return; done = true; clearTimeout(timer); setTimeout(() => { try { srv.close(); } catch (e) {} }, 500); gLoginBusy = null; err ? reject(err) : resolve(val); };
+    const srv = http.createServer(async (req, res) => {
+      const u = new URL(req.url, 'http://127.0.0.1');
+      if (u.pathname !== '/') { res.writeHead(404); res.end(); return; }
+      const page = (t, m) => { res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }); res.end(`<!doctype html><meta charset="utf-8"><title>StockInfos</title><body style="font-family:system-ui;text-align:center;padding:60px"><h2>${t}</h2><p>${m}</p></body>`); };
+      if (u.searchParams.get('state') !== state) { page('Lien invalide', 'Recommence depuis StockInfos.'); return; }
+      if (u.searchParams.get('error')) { page('Connexion annulée', 'Tu peux fermer cet onglet.'); finish(new Error('connexion annulée')); return; }
+      const code = u.searchParams.get('code');
+      try {
+        const j = await gToken({ grant_type: 'authorization_code', code, code_verifier: verifier, redirect_uri: redirect });
+        if (!j.refresh_token) throw new Error('Google n\'a pas donné d\'accès durable, réessaie');
+        if (!String(j.scope || '').includes('calendar.app.created')) throw new Error('il faut cocher l\'accès à Google Agenda');
+        const email = gEmail(j.id_token || '');
+        gWrite({ refresh: j.refresh_token, email });
+        G.access = j.access_token; G.exp = Date.now() + (j.expires_in || 3600) * 1000; G.email = email;
+        page('C\'est bon !', 'StockInfos est connecté à ton Google Agenda. Tu peux fermer cet onglet.');
+        journal('Google connecté');
+        finish(null, { email });
+        if (win) { if (win.isMinimized()) win.restore(); win.focus(); }
+      } catch (e) { page('Connexion impossible', String(e.message || e)); finish(e); }
+    });
+    gLoginBusy = srv;
+    const timer = setTimeout(() => finish(new Error('temps écoulé, réessaie')), 5 * 60000);
+    srv.listen(0, '127.0.0.1', () => {
+      redirect = 'http://127.0.0.1:' + srv.address().port;
+      const q = new URLSearchParams({ client_id: GOOGLE.id, redirect_uri: redirect, response_type: 'code', scope: G_SCOPE, code_challenge: challenge, code_challenge_method: 'S256', state, access_type: 'offline', prompt: 'consent' });
+      shell.openExternal('https://accounts.google.com/o/oauth2/v2/auth?' + q.toString());
+    });
+    srv.on('error', e => finish(e));
+  });
+});
+ipcMain.handle('g-logout', async () => {
+  const st = gRead();
+  try { if (st && st.refresh) await net.fetch('https://oauth2.googleapis.com/revoke?token=' + encodeURIComponent(st.refresh), { method: 'POST' }); } catch (e) {}
+  try { fs.unlinkSync(gFile()); } catch (e) {}
+  G.access = null; G.exp = 0;
+  return true;
+});
+// Appels limités à l'API Google Agenda
+ipcMain.handle('g-api', async (e, o) => {
+  const method = String(o && o.method || 'GET').toUpperCase(), p = String(o && o.path || '');
+  if (!['GET', 'POST', 'PATCH', 'PUT', 'DELETE'].includes(method) || !/^\/(calendars|users\/me\/calendarList)(\/|\?|$)/.test(p) || p.includes('..')) throw new Error('appel refusé');
+  const tok = await gAccess();
+  const r = await net.fetch('https://www.googleapis.com/calendar/v3' + p, { method, headers: { Authorization: 'Bearer ' + tok, ...(o.body ? { 'Content-Type': 'application/json' } : {}) }, body: o.body ? JSON.stringify(o.body) : undefined });
+  const txt = await r.text();
+  let json = null; try { json = txt ? JSON.parse(txt) : null; } catch (x) {}
+  return { status: r.status, json };
 });
 
 app.whenReady().then(() => {

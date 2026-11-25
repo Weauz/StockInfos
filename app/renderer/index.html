@@ -1888,6 +1888,7 @@ VIEWS.set=()=>{const cals=S.cfg.cals;
   ${!cals.length||U.caladd?calAddHTML():`<button class="setr addbtn" data-act="cal-add-open"><span class="seti">${ic('plus')}</span><span class="sett"><b>Ajouter un agenda</b></span><span></span></button>`}
   ${setRow('sync','Synchronisation automatique',cals.length?(SYNC.err?`<span style="color:var(--red)">${esc(SYNC.err)}</span>`:S.lastSync?'Dernière synchro '+rel(S.lastSync):''):'',`<select id="s-au" data-cfg="auto" aria-label="Fréquence">${[['5','Toutes les 5 min'],['15','Toutes les 15 min'],['60','Toutes les heures'],['0','Seulement à la main']].map(([v,l])=>`<option value="${v}"${S.cfg.auto===v?' selected':''}>${l}</option>`).join('')}</select>${cals.length?`<button class="btn sm" data-act="sync">${ic('sync')}Maintenant</button>`:''}`)}
 
+  ${gSetHTML()}
   <h3 class="seth">Fonctions</h3>
   ${setRow('pack','Page Kits','Regrouper plusieurs produits (ex. « Chapiteau réception ») et les ajouter d\'un coup',`<input type="checkbox" class="sw" id="s-kits" data-cfg="kits"${S.cfg.kits?' checked':''} aria-label="Page Kits">`)}
 
@@ -2179,10 +2180,10 @@ async function syncNow(manual){
   for(const c of cals){
     try{
       const txt=await API.fetchICS(c.url);if(!/BEGIN:VCALENDAR/.test(txt))throw new Error('ce lien n\'est pas un agenda iCal');
-      const seen=new Set();
+      const seen=new Set(),mine=new Set(S.events.filter(e=>e.gid).map(e=>e.gid+'@google.com'));
       const all=parseICS(txt).filter(v=>v.UID&&v.DTSTART),over=new Set(all.filter(v=>v['RECURRENCE-ID']).map(v=>v.UID.v+'|'+icsDate(v['RECURRENCE-ID'],false)));
       for(const v of all){
-        if(v.STATUS&&v.STATUS.v==='CANCELLED')continue;
+        if(v.STATUS&&v.STATUS.v==='CANCELLED')continue;if(mine.has(v.UID.v))continue;
         const start=icsDate(v.DTSTART,false);let end=v.DTEND?icsDate(v.DTEND,true):start;if(!start)continue;if(!end||end<start)end=start;
         const isOver=!!v['RECURRENCE-ID'],occs=isOver?[{s:start,e:end,occ:icsDate(v['RECURRENCE-ID'],false)}]:expandOcc(v,start,end,lo,hi);
         for(const o of occs){
@@ -2204,6 +2205,53 @@ async function syncNow(manual){
   else if(manual||nA||nU||nD)toast(nA||nU||nD?`Agendas : ${nA} ajouté${nA>1?'s':''}, ${nU} mis à jour, ${nD} supprimé${nD>1?'s':''}`:'Agendas : rien de nouveau');
   render();planSync();
 }
+/* ---------- envoi des chantiers vers Google Agenda ---------- */
+const GS={st:null,busy:false,again:false,timer:null,err:null,last:0};
+const TZ=(()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'Europe/Paris'}catch(e){return 'Europe/Paris'}})();
+async function gStatus(){if(!API||!API.gStatus)return null;try{GS.st=await API.gStatus()}catch(e){GS.st=null}return GS.st}
+const gSyncable=ev=>ev.src==='manuel'&&!ev.essai;
+function gBody(ev){const r=rng(ev),p=P(ev),its=Object.entries(p.items).map(([id,q])=>byId(id)?`- ${byId(id).name} ×${q}`:'').filter(Boolean);
+  const pm=x=>{const [h,m]=x.split(':').map(Number);return h*60+m},fm=n=>String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
+  let start,end;
+  if(!ev.t0){start={date:r.s};end={date:add(r.e,1)}}
+  else{start={dateTime:`${r.s}T${ev.t0}:00`,timeZone:TZ};
+    if(ev.t1){let e=r.e;if(r.e===r.s&&pm(ev.t1)<=pm(ev.t0))e=add(e,1);end={dateTime:`${e}T${ev.t1}:00`,timeZone:TZ}}
+    else if(r.e===r.s){const n=Math.min(pm(ev.t0)+60,1439);end={dateTime:`${r.s}T${fm(n)}:00`,timeZone:TZ}}
+    else end={dateTime:`${r.e}T23:59:00`,timeZone:TZ}}
+  const description=[its.length?'Matériel :\n'+its.join('\n'):'',(ev.desc||'').trim(),'— Envoyé par StockInfos'].filter(Boolean).join('\n\n');
+  const b={summary:ev.title||'(Sans titre)',location:ev.lieu||'',description,start,end};
+  b.extendedProperties={private:{si:ev.id,h:hashId(JSON.stringify(b))}};return b}
+function gSoon(ms){clearTimeout(GS.timer);GS.timer=setTimeout(()=>gSync(false),ms??1500)}
+async function gSync(manual){
+  if(!API||!API.gApi)return;const st=GS.st||await gStatus();if(!st||!st.connected){if(manual&&st&&st.configured)toast('Connecte d\'abord ton compte Google dans Paramètres');return}
+  if(GS.busy){GS.again=true;return}GS.busy=true;GS.err=null;let nA=0,nU=0,nD=0;
+  const call=async(method,path,body)=>{const r=await API.gApi({method,path,body});if(r.status>=400&&r.status!==404&&r.status!==410)throw new Error((r.json&&r.json.error&&r.json.error.message)||('erreur Google '+r.status));return r};
+  try{
+    let cal=S.cfg.gcal;
+    if(cal){const r=await call('GET','/calendars/'+encodeURIComponent(cal));if(r.status===404||r.status===410)cal=null}
+    if(!cal){const r=await call('POST','/calendars',{summary:'Chantiers StockInfos',description:'Chantiers créés dans StockInfos',timeZone:TZ});cal=r.json.id;S.cfg.gcal=cal}
+    const base='/calendars/'+encodeURIComponent(cal)+'/events';
+    const remote=new Map(),extra=[];let tok='';
+    do{const r=await call('GET',base+'?maxResults=2500&showDeleted=false'+(tok?'&pageToken='+encodeURIComponent(tok):''));
+      for(const it of (r.json&&r.json.items)||[]){const si=it.extendedProperties&&it.extendedProperties.private&&it.extendedProperties.private.si;if(si&&!remote.has(si))remote.set(si,it);else extra.push(it)}
+      tok=r.json&&r.json.nextPageToken}while(tok);
+    const local=S.events.filter(gSyncable);
+    for(const ev of local){const b=gBody(ev),ex=remote.get(ev.id);remote.delete(ev.id);
+      if(ex){ev.gid=ex.id;if(ex.extendedProperties.private.h!==b.extendedProperties.private.h){const r=await call('PATCH',base+'/'+encodeURIComponent(ex.id),b);if(r.status<300)nU++;else{const r2=await call('POST',base,b);ev.gid=r2.json.id;nA++}}}
+      else{const r=await call('POST',base,b);ev.gid=r.json.id;nA++}}
+    for(const it of [...remote.values(),...extra]){await call('DELETE',base+'/'+encodeURIComponent(it.id));nD++}
+    GS.last=Date.now();save();
+    if(manual)toast(nA||nU||nD?`Google Agenda : ${nA} envoyé${nA>1?'s':''}, ${nU} mis à jour, ${nD} retiré${nD>1?'s':''}`:'Google Agenda : déjà à jour');
+  }catch(e){GS.err=String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,'');if(/non connecté|expirée/.test(GS.err))await gStatus();if(manual)toast('Google Agenda : '+GS.err)}
+  GS.busy=false;if(U.view==='set')render();if(GS.again){GS.again=false;gSoon(300)}
+}
+function gSetHTML(){const st=GS.st;
+  if(!API||!API.gStatus)return setRow('cal','Envoyer mes chantiers vers Google Agenda','Disponible dans l\'app installée.','');
+  if(!st)return setRow('cal','Envoyer mes chantiers vers Google Agenda','Vérification…','');
+  if(!st.configured)return setRow('cal','Envoyer mes chantiers vers Google Agenda','Bientôt : cette version ne contient pas encore la connexion Google.','');
+  if(!st.connected)return setRow('cal','Envoyer mes chantiers vers Google Agenda','Tes chantiers créés ici apparaîtront dans un agenda « Chantiers StockInfos ». Tes autres agendas ne sont jamais modifiés.',`<button class="btn sm pri" data-act="glogin">Se connecter à Google</button>`);
+  const n=S.events.filter(gSyncable).length;
+  return setRow('cal','Envoyer mes chantiers vers Google Agenda',`Connecté${st.email?' avec '+esc(st.email):''} · ${n} chantier${n>1?'s':''} dans l'agenda « Chantiers StockInfos »${GS.busy?' · envoi en cours…':GS.err?` · <span style="color:var(--red)">${esc(GS.err)}</span>`:GS.last?' · à jour à '+new Date(GS.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}`,`<button class="btn sm" data-act="gsync">Synchroniser</button><button class="btn sm" data-act="glogout">Se déconnecter</button>`)}
 function planSync(){clearTimeout(SYNC.timer);const m=+S.cfg.auto;if(S.cfg.cals.length&&m>0)SYNC.timer=setTimeout(()=>syncNow(false),m*6e4)}
 
 /* ---------- recherche Ctrl+K ---------- */
@@ -2295,7 +2343,10 @@ const A={
   mprev:()=>{const [y,m]=U.ym.split('-').map(Number),d=new Date(y,m-2,1);U.ym=iso(d).slice(0,7);render()},
   mnext:()=>{const [y,m]=U.ym.split('-').map(Number),d=new Date(y,m,1);U.ym=iso(d).slice(0,7);render()},
   day:b=>{U.mode='jour';U.date=b.dataset.d;U.pd=b.dataset.d;U.pv='jour';render()},
-  sync:()=>syncNow(true),
+  sync:()=>{syncNow(true);gSync(false)},
+  gsync:()=>gSync(true),
+  glogin:async()=>{toast('Connexion dans ton navigateur…');try{const r=await API.gLogin();await gStatus();render();toast('Connecté à Google'+(r&&r.email?' ('+r.email+')':''));gSync(true)}catch(e){toast('Google : '+String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,''))}},
+  glogout:async()=>{await API.gLogout();await gStatus();GS.err=null;render();toast('Déconnecté de Google. L\'agenda « Chantiers StockInfos » reste dans ton Google Agenda.')},
   folder:()=>API?API.openDataFolder():toast('Disponible dans l\'app installée'),
   export:async()=>{if(!API)return toast('Disponible dans l\'app installée');const f=await API.exportData(JSON.stringify(S,null,1));if(f)toast('Données exportées')},
   import:async()=>{if(!API)return toast('Disponible dans l\'app installée');const t=await API.importData();if(!t)return;try{const o=JSON.parse(t);if(!Array.isArray(o.products)||!Array.isArray(o.events))throw 0;S=o;S.cfg=Object.assign({read:true,auto:'15',kits:true},S.cfg||{});migrateCals();S.ui=S.ui||{};S.packs=S.packs||[];save();render();toast('Données importées')}catch(e){toast('Ce fichier n\'est pas une sauvegarde StockInfos')}},
@@ -2333,9 +2384,9 @@ const A={
   delyes:()=>{let undo;if(MD.k==='p'){const i=S.products.findIndex(p=>p.id===MD.d.id),o=S.products[i];S.products.splice(i,1);undo=()=>{S.products.splice(i,0,o)}}
     else if(MD.k==='k'){const i=S.packs.findIndex(k=>k.id===MD.d.id),o=S.packs[i],refs=[];S.packs.splice(i,1);for(const ev of S.events)if(ev.man?.packs&&ev.man.packs[o.id]){refs.push([ev,ev.man.packs[o.id]]);delete ev.man.packs[o.id]}undo=()=>{S.packs.splice(i,0,o);for(const [ev,q] of refs)ev.man.packs[o.id]=q}}
     else{const i=S.events.findIndex(e=>e.id===MD.d.id),o=S.events[i];S.events.splice(i,1);undo=()=>{S.events.splice(i,0,o)}}
-    save();closeM();render();toast('Supprimé',()=>{undo();save();render();toast('Suppression annulée')})},
+    const wasEv=MD.k!=='p'&&MD.k!=='k';save();closeM();render();if(wasEv)gSoon();toast('Supprimé',()=>{undo();save();render();if(wasEv)gSoon();toast('Suppression annulée')})},
   savee:()=>{const d=MD.d;if(!d.title.trim()){toast('Donne un nom au chantier');$('#e-title').focus();return}if(d.end<d.start)d.end=d.start;
-    const {mk,...rest}=d;let nid=d.id;if(d.id)Object.assign(S.events.find(e=>e.id===d.id),rest);else{nid='e'+uid();S.events.push({...rest,id:nid,created:Date.now()})}S.events.find(e=>e.id===nid).used=Date.now();save();render();openR(nid);toast('Chantier enregistré')},
+    const {mk,...rest}=d;let nid=d.id;if(d.id)Object.assign(S.events.find(e=>e.id===d.id),rest);else{nid='e'+uid();S.events.push({...rest,id:nid,created:Date.now()})}S.events.find(e=>e.id===nid).used=Date.now();save();render();openR(nid);gSoon();toast('Chantier enregistré')},
   ecancel:()=>{if(MD&&MD.d&&MD.d.id)openR(MD.d.id);else closeM()},
   redit:b=>openE(b.dataset.id),
   setunit:b=>{const x=byId(b.dataset.p);if(!x)return;x.unit=b.dataset.u;x.usize=x.usize||1;save();if(MD&&MD.k==='r')drawR();else redrawRead();render();toast('« '+x.name+' » est maintenant compté en '+b.dataset.u)},
@@ -2419,7 +2470,7 @@ U.sort=S.ui.sort||'az';
 render();
 if(FIRST){MD={k:'w'};$('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(460px,100%)"><div class="dh"><h3 id="mt">Bienvenue dans StockInfos</h3></div><div class="wel"><div class="f" style="margin:0"><label for="w-co">Nom de ton entreprise</label><input class="in" id="w-co" placeholder="Ex : Location Martin" autocomplete="off"><span class="h">Il s'affichera en haut de l'app. Tu pourras le changer dans Paramètres.</span></div><p style="margin:8px 0 0">Comment veux-tu commencer ?</p><button class="btn" data-act="welcome" data-v="ex"><span><b>Avec des exemples</b><small>Du matériel, des kits et des chantiers fictifs pour tout essayer. Tu pourras les effacer dans Paramètres.</small></span></button><button class="btn" data-act="welcome" data-v="vide"><span><b>Avec un stock vide</b><small>Pour saisir directement ton vrai matériel et relier Google Agenda.</small></span></button></div></div></div>`}
 else{if(!S.cfg.coAsked){MD={k:'co'};$('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(420px,100%)"><div class="dh"><h3 id="mt">Nom de ton entreprise</h3></div><div class="wel"><p style="margin:0">L'app s'appelle maintenant <b>StockInfos</b>. Quel nom d'entreprise veux-tu afficher en haut ?</p><input class="in" id="w-co" value="${esc(S.cfg.company||'')}" placeholder="Ex : Location Martin" autocomplete="off"><span class="h">Tu pourras le changer dans Paramètres.</span></div><div class="df"><button class="btn" data-act="co-skip">Ne rien afficher</button><button class="btn pri" data-act="co-ok">Valider</button></div></div></div>`;setTimeout(()=>$('#w-co')?.focus(),50)}
-  if(S.cfg.cals.length)syncNow(false);}
+  if(S.cfg.cals.length)syncNow(false);gStatus().then(st=>{if(st&&st.connected)gSync(false);if(U.view==='set')render()});}
 }
 </script>
 </body>
