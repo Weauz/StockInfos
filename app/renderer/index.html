@@ -902,6 +902,29 @@ b.brk{color:#c77700}b.lost{color:var(--red)}.okt{color:var(--ok)}
 .hsr2 small{grid-column:1/-1;color:var(--mute);font-size:11.5px}
 .lsum{display:flex;gap:16px;padding:10px 12px;border-bottom:1px solid var(--line);font-size:13px}.lsum b{font-size:16px}
 i.brk{color:#c77700}i.lost{color:var(--red)}
+.top.ctr{flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:2px;margin-bottom:22px}
+.top.ctr h1{font-size:26px;margin:0;width:100%;text-align:center;flex:none}.top.ctr p{margin:0;color:var(--mute);text-transform:capitalize;font-size:14px}
+.dash{max-width:1260px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.dash .hero,.dash .dgrid2{margin:0}
+.dash .card{margin:0}
+.dash .dgrid{gap:20px}
+.dside{display:flex;flex-direction:column;gap:20px;min-width:0}
+.dash .dsec,.dash aside .dsec{padding:0}
+.dsec{padding:0;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.dsh{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--card2) 55%,var(--card))}
+.dsh h2{margin:0;font-size:14.5px;font-weight:650;flex:1;display:flex;align-items:baseline;gap:8px;min-width:0}
+.dsh h2 small{font-weight:400;color:var(--mute);font-size:12px}
+.dsh .lnk{font-size:12.5px}
+.dsi{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:var(--accbg);color:var(--acc);flex:none}
+.dsi svg{width:15px;height:15px}.dsi.bad{background:var(--redbg);color:var(--red)}.dsi.amb{background:var(--ambbg);color:var(--amb)}
+.dsb{padding:14px 16px;min-width:0}
+.dsec.scroll .dsb{max-height:270px;overflow:auto;padding:6px 8px}
+.dsec.scroll.big .dsb{max-height:460px;padding:12px}
+.dsec .hsr2,.dsec .ret,.dsec .lsum{border-radius:8px}
+.dsec .al-card{padding:0}
+.dsec .dlist{gap:10px}
+.dsec .empty{padding:14px;text-align:center}
+@media(max-width:1000px){.dash .dgrid,.dash .dgrid2{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -937,7 +960,7 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 const $=s=>document.querySelector(s);
 const COLORS=['#2563eb','#c2410c','#15803d','#7c3aed','#b45309','#be185d','#0e7490'];
 const CATC={'Chapiteaux':'#0e7490','Plancher':'#78716c','Mobilier':'#2563eb','Éclairage':'#b45309','Chauffage':'#c2410c','Scène':'#7c3aed','Décoration':'#be185d','Électroportatif':'#c2410c','Accès':'#2563eb','Gros matériel':'#52525b','Électricité':'#b45309','Mesure':'#7c3aed'};
-const IC={home:'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',box:'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',cal:'M4 5h16v16H4zM4 9h16M8 3v4M16 3v4',gear:'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM19.4 13a7.5 7.5 0 0 0 0-2l2-1.5-2-3.4-2.3 1a7.6 7.6 0 0 0-1.7-1L15 3.6h-4l-.4 2.5a7.6 7.6 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.5a7.5 7.5 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7.6 7.6 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.6 7.6 0 0 0 1.7-1l2.3 1 2-3.4z',plus:'M12 5v14M5 12h14',search:'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4',sync:'M20 12a8 8 0 0 1-14 5.3M4 12a8 8 0 0 1 14-5.3M18 3v4h-4M6 21v-4h4',sun:'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',moon:'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z',alert:'M12 3 2 20h20zM12 10v4M12 17v.5',back:'M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3',cam:'M4 8h3l2-3h6l2 3h3v11H4zM12 10a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z',l:'M15 5l-7 7 7 7',r:'M9 5l7 7-7 7',pin:'M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4z',check:'M5 12l5 5 9-10',x:'M6 6l12 12M18 6 6 18',eye:'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',link:'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',trash:'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',pack:'M12 3 3 7.5l9 4.5 9-4.5zM3 12l9 4.5 9-4.5M3 16.5 12 21l9-4.5',chart:'M4 20V10M10 20V4M16 20v-7M2 20h20',dl:'M12 4v11M7 10l5 5 5-5M5 20h14',ul:'M12 15V4M7 9l5-5 5 5M5 20h14',tool:'M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z',print:'M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z',hand:'M7 11V6a1.5 1.5 0 0 1 3 0v4M10 10V4.5a1.5 1.5 0 0 1 3 0V10M13 10V5.5a1.5 1.5 0 0 1 3 0V12M16 9a1.5 1.5 0 0 1 3 0v4a8 8 0 0 1-8 8 6 6 0 0 1-5-3l-2.5-4.5a1.5 1.5 0 0 1 2.6-1.5L7 14'};
+const IC={home:'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',box:'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',cal:'M4 5h16v16H4zM4 9h16M8 3v4M16 3v4',gear:'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM19.4 13a7.5 7.5 0 0 0 0-2l2-1.5-2-3.4-2.3 1a7.6 7.6 0 0 0-1.7-1L15 3.6h-4l-.4 2.5a7.6 7.6 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.5a7.5 7.5 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7.6 7.6 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.6 7.6 0 0 0 1.7-1l2.3 1 2-3.4z',plus:'M12 5v14M5 12h14',search:'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4',sync:'M20 12a8 8 0 0 1-14 5.3M4 12a8 8 0 0 1 14-5.3M18 3v4h-4M6 21v-4h4',sun:'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',moon:'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z',alert:'M12 3 2 20h20zM12 10v4M12 17v.5',back:'M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3',cam:'M4 8h3l2-3h6l2 3h3v11H4zM12 10a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z',l:'M15 5l-7 7 7 7',r:'M9 5l7 7-7 7',pin:'M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4z',check:'M5 12l5 5 9-10',x:'M6 6l12 12M18 6 6 18',eye:'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',link:'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',trash:'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',pack:'M12 3 3 7.5l9 4.5 9-4.5zM3 12l9 4.5 9-4.5M3 16.5 12 21l9-4.5',chart:'M4 20V10M10 20V4M16 20v-7M2 20h20',dl:'M12 4v11M7 10l5 5 5-5M5 20h14',ul:'M12 15V4M7 9l5-5 5 5M5 20h14',star:'M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z',truck:'M3 6h11v9H3zM14 9h4l3 3v3h-7M7 18.5a1.5 1.5 0 1 0 0 .01M17 18.5a1.5 1.5 0 1 0 0 .01',tool:'M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z',print:'M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z',hand:'M7 11V6a1.5 1.5 0 0 1 3 0v4M10 10V4.5a1.5 1.5 0 0 1 3 0V10M13 10V5.5a1.5 1.5 0 0 1 3 0V12M16 9a1.5 1.5 0 0 1 3 0v4a8 8 0 0 1-8 8 6 6 0 0 1-5-3l-2.5-4.5a1.5 1.5 0 0 1 2.6-1.5L7 14'};
 const ic=n=>`<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="${IC[n]}"/></svg>`;
 
 /* ---------- données ---------- */
@@ -1104,6 +1127,7 @@ function dateHTML(){
 function topHTML(){
   const T={dash:'Tableau de bord',stock:'Stock',packs:'Kits de matériel',plan:'Planning des chantiers',ret:'Retours de matériel',set:'Paramètres'};
   const dark=isDark();
+  if(U.view==='dash')return `<div class="top ctr"><h1>${T.dash}</h1><p>${fmt(TODAY,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</p></div>`;
   return `<div class="top"><h1>${T[U.view]}</h1>${U.view==='stock'?dateHTML():''}</div>`;
 }
 function ecard(ev){
@@ -1171,30 +1195,31 @@ VIEWS.dash=()=>{
   const unk=S.events.filter(ev=>rng(ev).e>=TODAY&&(P(ev).unknown.length||P(ev).amb.length||(P(ev).umiss||[]).length));
   const evs=S.events.filter(ev=>rng(ev).e>=TODAY).sort((a,b)=>rng(a).s<rng(b).s?-1:1).slice(0,6);
   const nAl=SH.length+unk.length;
-  return `<p class="hello">${fmt(d,{weekday:'long',day:'numeric',month:'long'})}</p>
+  const sec=(icon,title,sub,body,o={})=>`<section class="card dsec${o.cls?' '+o.cls:''}"><header class="dsh"><span class="dsi${o.tone?' '+o.tone:''}">${ic(icon)}</span><h2>${title}${sub?`<small>${sub}</small>`:''}</h2>${o.link||''}</header><div class="dsb">${body}</div></section>`;
+  const tc=S.events.filter(ev=>{const r=rng(ev);return counts(ev)&&r.e<=TODAY&&r.e>=add(TODAY,-30)&&!ev.checked&&Object.keys(P(ev).items).length}).sort((a,b)=>rng(b).e<rng(a).e?-1:1);
+  return `<div class="dash">
   <div class="hero">
     <button class="htile" data-act="view" data-v="plan"><span class="hi">${ic('cal')}</span><span><small>Chantiers en cours</small><b>${act.length}</b><em>${act.length?act.slice(0,2).map(e=>esc(short(e.title))).join(', ')+(act.length>2?'…':''):'Aucun aujourd\'hui'}</em></span></button>
     ${(()=>{const ten=S.products.filter(p=>{const a=p.qty-usage(p.id,d);return p.qty>0&&usage(p.id,d)>0&&a<=Math.max(1,Math.round(p.qty*.2))});return `<button class="htile${ten.length?' warn':''}" data-act="view" data-v="stock"><span class="hi">${ic('box')}</span><span><small>Produits presque épuisés aujourd'hui</small><b>${ten.length}<i> / ${S.products.length}</i></b><em>${ten.length?ten.slice(0,3).map(p=>esc(p.name)).join(', ')+(ten.length>3?'…':''):'Le stock est large'}</em></span></button>`})()}
     <div class="htile${nAl?' bad':' good'}"><span class="hi">${ic(nAl?'alert':'check')}</span><span><small>À surveiller</small><b>${nAl}</b><em>${nAl?(SH.length?`${SH.length} manque${SH.length>1?'s':''} prévu${SH.length>1?'s':''}`:'')+(SH.length&&unk.length?' · ':'')+(unk.length?`${unk.length} à vérifier`:''):'Tout est en ordre'}</em></span></div>
   </div>
   <div class="dgrid2">
-    <section class="card wcard qc"><h2 class="dh2">Vérif rapide pour un devis</h2>${qcHTML()}</section>
-    <section class="card wcard"><h2 class="dh2">Matériel le plus demandé <small>30 jours</small></h2>${topHTML30()}</section>
+    ${sec('search','Vérif rapide pour un devis','',qcHTML(),{cls:'qc'})}
+    ${sec('star','Matériel le plus demandé','30 jours',topHTML30())}
   </div>
-  <section class="card wcard" style="margin-top:14px"><h2 class="dh2">Sorties et retours <small>5 prochains jours</small> <button class="lnk" data-act="view" data-v="ret">Retours</button></h2>${weekHTML()}</section>
+  ${sec('truck','Sorties et retours','5 prochains jours',weekHTML(),{link:'<button class="lnk" data-act="view" data-v="ret">Voir les retours</button>'})}
   <div class="dgrid">
-    <section><h2 class="dh2">Chantiers en cours et à venir</h2>
-      <div class="dlist">${evs.map(dcard).join('')||`<div class="empty card">Aucun chantier prévu. Ajoute-en un dans le Planning ou relie un agenda.</div>`}</div>
-    </section>
-    <aside>
-      ${nAl?`<h2 class="dh2">À surveiller</h2><div class="card al-card">
+    ${sec('cal','Chantiers en cours et à venir',evs.length?evs.length+' chantier'+(evs.length>1?'s':''):'',`<div class="dlist">${evs.map(dcard).join('')||`<div class="empty">Aucun chantier prévu. Ajoute-en un dans le Planning ou relie un agenda.</div>`}</div>`,{cls:'scroll big'})}
+    <aside class="dside">
+      ${nAl?sec('alert','À surveiller','',`<div class="al-card">
         ${SH.map(sh=>`<button class="al" data-act="openp" data-id="${sh.p.id}">${ic('alert')}<span><strong>Il manque ${sh.miss} ${esc(sh.p.name)}</strong><small>${sh.from===sh.to?'le '+fmt(sh.from):'du '+fmt(sh.from)+' au '+fmt(sh.to)} · ${sh.evs.map(e=>esc(short(e.title))).join(', ')}</small></span></button>`).join('')}
         ${unk.map(ev=>`<button class="al w" data-act="openev" data-id="${ev.id}">${ic('eye')}<span><strong>${[...P(ev).amb.map(a=>`« ${esc(a.label)} » : plusieurs produits possibles`),...(P(ev).umiss||[]).map(a=>`« ${esc(a.label)} » : aucun produit dans cette unité`),...(P(ev).unknown.length?['Pas reconnu : '+P(ev).unknown.map(u=>esc(u.name)).join(', ')]:[])].join(' · ')}</strong><small>dans « ${esc(short(ev.title))} » · clique pour préciser</small></span></button>`).join('')}
-      </div>`:''}
-      ${(()=>{const tc=S.events.filter(ev=>{const r=rng(ev);return counts(ev)&&r.e<=TODAY&&r.e>=add(TODAY,-30)&&!ev.checked&&Object.keys(P(ev).items).length}).sort((a,b)=>rng(b).e<rng(a).e?-1:1);return tc.length?`<h2 class="dh2">Retours à vérifier</h2><div class="card">${tc.map(ev=>`<button class="ret" data-act="retopen" data-id="${ev.id}"><span class="jx" style="background:var(--ambbg);color:var(--amb)">${ic('back')}</span><span><strong>${esc(short(ev.title))}</strong><span>terminé le ${fmt(rng(ev).e)} · clique pour vérifier</span></span></button>`).join('')}</div>`:''})()}
-      <h2 class="dh2">Matériel hors service</h2><div class="card">${hsHTML()}</div>
-      <h2 class="dh2">Casse et pertes <small>30 jours</small></h2><div class="card">${lossHTML()}</div>
+      </div>`,{tone:'bad',cls:'scroll'}):''}
+      ${tc.length?sec('back','Retours à vérifier',tc.length,`${tc.map(ev=>`<button class="ret" data-act="retopen" data-id="${ev.id}"><span class="jx" style="background:var(--ambbg);color:var(--amb)">${ic('back')}</span><span><strong>${esc(short(ev.title))}</strong><span>terminé le ${fmt(rng(ev).e)} · clique pour vérifier</span></span></button>`).join('')}`,{tone:'amb',cls:'scroll'}):''}
+      ${sec('tool','Matériel hors service','',hsHTML(),{cls:'scroll'})}
+      ${sec('alert','Casse et pertes','30 jours',lossHTML(),{cls:'scroll'})}
     </aside>
+  </div>
   </div>`;
 };
 function stockInfo(p){
