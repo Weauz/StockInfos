@@ -932,6 +932,7 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .qca{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px}.qca>span{font-size:12.5px;color:var(--amb);font-weight:600;margin-right:2px}
 .qcp{cursor:pointer;border:1px solid var(--line);display:inline-flex;align-items:baseline;gap:6px}.qcp:hover{border-color:var(--acc);color:var(--acc)}.qcp small{font-size:10.5px;color:var(--mute)}
 .qcs{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;min-height:0}.qcs:empty{display:none}.qcs kbd{font:inherit;font-size:10px;color:var(--mute);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:2px}
+.gcon{display:flex;align-items:center;gap:14px;padding:16px;border:1px solid var(--acc);border-radius:10px;background:var(--accbg);margin-bottom:8px}.gcon>div{flex:1;display:flex;flex-direction:column;gap:3px}.gcon small{color:var(--mute);font-size:12.5px;line-height:1.4}.gcon .btn{white-space:nowrap}
 .qcdr{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px}
 .qcdb{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;font-weight:600;cursor:pointer}
 .qcdb:hover,.qcdb.on{border-color:var(--acc)}.qcdb span{font-weight:400;color:var(--mute);text-transform:none}.qcdb em{font-style:normal;font-weight:600;font-size:11.5px;color:var(--acc);background:var(--accbg);border-radius:9px;padding:1px 7px;margin-left:4px;text-transform:none}.qcdb svg{width:15px;height:15px;color:var(--mute)}
@@ -1160,7 +1161,7 @@ function whenTxt(ev,short){const r=rng(ev),f=d=>short?fmt(d,{weekday:'short',day
 
 /* ---------- vues ---------- */
 const NAV=[['dash','Tableau de bord','home'],['stock','Stock','box'],['packs','Kits','pack'],['plan','Planning','cal'],['ret','Retours','back'],['set','Paramètres','gear']];
-function navHTML(){const rc=retToCheck().length,showRet=rc||retSoon(7).length||U.view==='ret';return NAV.filter(([v])=>(v!=='packs'||S.cfg.kits)&&(v!=='ret'||showRet)).map(([v,l,i])=>`<button class="nb${U.view===v?' on':''}${v==='ret'&&rc?' alert':''}" data-act="view" data-v="${v}" title="${l}">${ic(i)}<span>${l}</span>${v==='dash'&&SH.length?`<b class="badge">${SH.length}</b>`:''}${v==='ret'&&rc?`<b class="badge pulse" title="${rc} retour${rc>1?'s':''} à vérifier">${rc}</b>`:''}</button>`).join('')+`<div class="grow"></div><div class="gs" title="Google Agenda"><i class="dot${!S.cfg.cals.length?' off':SYNC.err?' err':''}"></i><span>${!S.cfg.cals.length?'Aucun agenda relié':SYNC.err?'Synchro en échec':SYNC.busy?'Synchro en cours…':(S.cfg.cals.length>1?S.cfg.cals.length+' agendas':'Agenda')+' · synchro '+(S.lastSync?new Date(S.lastSync).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'—')}</span></div>`}
+function navHTML(){const rc=retToCheck().length,showRet=rc||retSoon(7).length||U.view==='ret';return NAV.filter(([v])=>(v!=='packs'||S.cfg.kits)&&(v!=='ret'||showRet)).map(([v,l,i])=>`<button class="nb${U.view===v?' on':''}${v==='ret'&&rc?' alert':''}" data-act="view" data-v="${v}" title="${l}">${ic(i)}<span>${l}</span>${v==='dash'&&SH.length?`<b class="badge">${SH.length}</b>`:''}${v==='ret'&&rc?`<b class="badge pulse" title="${rc} retour${rc>1?'s':''} à vérifier">${rc}</b>`:''}</button>`).join('')+`<div class="grow"></div><div class="gs" title="Google Agenda"><i class="dot${!(GS.st&&GS.st.connected)?' off':GS.err?' err':''}"></i><span>${!(GS.st&&GS.st.connected)?'Google non connecté':GS.err?'Synchro en échec':GS.busy?'Synchro en cours…':'Google Agenda · synchro '+(GS.last?new Date(GS.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'—')}</span></div>`}
 function isDark(){if(S.theme!=='auto')return S.theme==='dark';const r=document.documentElement.dataset.theme;if(r==='dark'||r==='light')return r==='dark';return matchMedia('(prefers-color-scheme: dark)').matches}
 function dateHTML(){
   const per=U.mode==='periode';let pop='';
@@ -1417,7 +1418,7 @@ VIEWS.plan=()=>{
     <button class="btn" data-act="sync" id="syncb" title="${!S.cfg.cals.length?'Ajoute un agenda dans Paramètres':'Synchroniser maintenant'}">${ic('sync')}Synchroniser</button><button class="btn pri" data-act="newev">${ic('plus')}Nouveau chantier</button></div>
   ${calFilter()}
   ${body}
-  <p class="note" style="margin-top:10px">${U.pv!=='planning'?'Astuce : clique sur une heure pour créer un chantier à cette heure, ou glisse sur plusieurs jours pour un chantier long. ':''}${!S.cfg.cals.length?'Aucun agenda relié (voir Paramètres)':S.lastSync?'Dernière synchro à '+new Date(S.lastSync).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'Pas encore synchronisé'}</p>`};
+  <p class="note" style="margin-top:10px">${U.pv!=='planning'?'Astuce : clique sur une heure pour créer un chantier à cette heure, ou glisse sur plusieurs jours pour un chantier long. ':''}${!(GS.st&&GS.st.connected)?'Google Agenda pas connecté (voir Paramètres)':GS.last?'Google Agenda synchronisé à '+new Date(GS.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'Google Agenda connecté'}</p>`};
 function kitCap(k,days,skip){const its=Object.entries(k.items||{}).filter(([id])=>byId(id));if(!its.length)return {n:0,lim:[]};
   const per=its.map(([id,n])=>{const pr=byId(id);let a=Infinity;for(const d of days)a=Math.min(a,pr.qty-usage(id,d,skip));a=Math.max(0,a);return {pr,n,a,c:Math.floor(a/n)}});
   const m=Math.min(...per.map(x=>x.c));return {n:m,lim:per.filter(x=>x.c===m),per}}
@@ -1879,16 +1880,10 @@ function printInv(mode){
 }
 VIEWS.set=()=>{const cals=S.cfg.cals;
   return `<div class="setw">
-  <h3 class="seth">Agendas synchronisés</h3>
-  ${cals.map(c=>`<div class="setr">
-    <input type="color" class="cdot" value="${esc(c.color)}" data-calf="color" data-id="${c.id}" title="Couleur dans le planning" aria-label="Couleur de ${esc(c.name)}">
-    <span class="sett"><input class="cname" value="${esc(c.name)}" data-calf="name" data-id="${c.id}" aria-label="Nom de l'agenda" title="Clique pour renommer"><small>${c.err?`<span style="color:var(--red)">Échec : ${esc(c.err)}</span>`:c.last?`${S.events.filter(e=>e.cal===c.id).length} événement(s) · synchro ${rel(c.last)}`:'Pas encore synchronisé'}</small></span>
-    <span class="setc"><label class="swl" title="Si désactivé, les événements s'affichent mais ne sortent pas de matériel">Compte dans le stock <input type="checkbox" class="sw" data-calf="count" data-id="${c.id}"${c.count!==false?' checked':''}></label>${U.delcal===c.id?`<button class="btn sm" data-act="caldel-no">Annuler</button><button class="btn sm pri" data-act="caldel-yes" data-id="${c.id}">Retirer</button>`:`<button class="ib" data-act="caldel" data-id="${c.id}" title="Retirer cet agenda" aria-label="Retirer ${esc(c.name)}">${ic('trash')}</button>`}</span>
-  </div>`).join('')}
-  ${!cals.length||U.caladd?calAddHTML():`<button class="setr addbtn" data-act="cal-add-open"><span class="seti">${ic('plus')}</span><span class="sett"><b>Ajouter un agenda</b></span><span></span></button>`}
-  ${setRow('sync','Synchronisation automatique',cals.length?(SYNC.err?`<span style="color:var(--red)">${esc(SYNC.err)}</span>`:S.lastSync?'Dernière synchro '+rel(S.lastSync):''):'',`<select id="s-au" data-cfg="auto" aria-label="Fréquence">${[['5','Toutes les 5 min'],['15','Toutes les 15 min'],['60','Toutes les heures'],['0','Seulement à la main']].map(([v,l])=>`<option value="${v}"${S.cfg.auto===v?' selected':''}>${l}</option>`).join('')}</select>${cals.length?`<button class="btn sm" data-act="sync">${ic('sync')}Maintenant</button>`:''}`)}
-
+  <h3 class="seth">Google Agenda</h3>
   ${gSetHTML()}
+  ${setRow('sync','Synchronisation automatique',(GS.st&&GS.st.connected)||cals.length?(GS.err||SYNC.err?`<span style="color:var(--red)">${esc(GS.err||SYNC.err)}</span>`:'Aussi à l\'ouverture de l\'app et à chaque chantier créé ou modifié'):'',`<select id="s-au" data-cfg="auto" aria-label="Fréquence">${[['5','Toutes les 5 min'],['15','Toutes les 15 min'],['60','Toutes les heures'],['0','Seulement à la main']].map(([v,l])=>`<option value="${v}"${S.cfg.auto===v?' selected':''}>${l}</option>`).join('')}</select>`)}
+  ${cals.length?`<h3 class="seth">Anciens liens iCal</h3><p class="note" style="margin:-4px 0 8px">Ces liens marchent encore, mais ne sont plus nécessaires : tu peux les retirer. Les chantiers qu'ils ont importés disparaîtront de l'appli.</p>${cals.map(c=>`<div class="setr"><span class="seti" style="color:${esc(c.color)}">${ic('cal')}</span><span class="sett"><b>${esc(c.name)}</b><small>${c.err?`<span style="color:var(--red)">Échec : ${esc(c.err)}</span>`:`${S.events.filter(e=>e.cal===c.id).length} événement(s)`}</small></span><span class="setc">${U.delcal===c.id?`<button class="btn sm" data-act="caldel-no">Annuler</button><button class="btn sm pri" data-act="caldel-yes" data-id="${c.id}">Retirer</button>`:`<button class="btn sm" data-act="caldel" data-id="${c.id}">Retirer</button>`}</span></div>`).join('')}`:''}
   <h3 class="seth">Fonctions</h3>
   ${setRow('pack','Page Kits','Regrouper plusieurs produits (ex. « Chapiteau réception ») et les ajouter d\'un coup',`<input type="checkbox" class="sw" id="s-kits" data-cfg="kits"${S.cfg.kits?' checked':''} aria-label="Page Kits">`)}
 
@@ -2173,7 +2168,7 @@ function expandOcc(v,start,end,lo,hi){
   return out}
 async function syncNow(manual){
   const cals=S.cfg.cals||[];
-  if(!cals.length){if(manual)toast('Ajoute d\'abord un agenda dans Paramètres');return}
+  if(!cals.length){if(manual&&!(GS.st&&GS.st.connected))toast('Connecte ton compte Google dans Paramètres');return}
   if(!API){if(manual)toast('La synchro marche dans l\'app installée');return}
   if(SYNC.busy)return;SYNC.busy=true;document.querySelectorAll('[data-act=sync] svg').forEach(x=>x.classList.add('spin'));render();
   const lo=add(TODAY,-90),hi=add(TODAY,540),errs=[];let nA=0,nU=0,nD=0;
@@ -2258,16 +2253,16 @@ async function gSync(manual){
     GS.last=Date.now();save();if(nI&&U.view!=='set')render();
     if(manual)toast(nA||nU||nD||nI?`Google Agenda : ${nA} envoyé${nA>1?'s':''}, ${nU} mis à jour, ${nD} retiré${nD>1?'s':''}${nI?`, ${nI} changement${nI>1?'s':''} reçu${nI>1?'s':''}`:''}`:'Google Agenda : déjà à jour');
   }catch(e){GS.err=String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,'');if(/non connecté|expirée/.test(GS.err))await gStatus();if(manual)toast('Google Agenda : '+GS.err)}
-  GS.busy=false;if(U.view==='set')render();if(GS.again){GS.again=false;gSoon(300)}
+  GS.busy=false;{const a=document.activeElement;if(!MD&&!(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)))render();else{const n=document.querySelector('.gs');if(n)n.outerHTML=navHTML().match(/<div class="gs"[\s\S]*$/)[0]}}planSync();if(GS.again){GS.again=false;gSoon(300)}
 }
 function gSetHTML(){const st=GS.st;
-  if(!API||!API.gStatus)return setRow('cal','Envoyer mes chantiers vers Google Agenda','Disponible dans l\'app installée.','');
-  if(!st)return setRow('cal','Envoyer mes chantiers vers Google Agenda','Vérification…','');
-  if(!st.configured)return setRow('cal','Envoyer mes chantiers vers Google Agenda','Bientôt : cette version ne contient pas encore la connexion Google.','');
-  if(!st.connected)return setRow('cal','Envoyer mes chantiers vers Google Agenda','Tes chantiers créés ici apparaîtront dans un agenda « Chantiers StockInfos ». Tes autres agendas ne sont jamais modifiés.',`<button class="btn sm pri" data-act="glogin">Se connecter à Google</button>`);
+  if(!API||!API.gStatus)return setRow('cal','Google Agenda','Disponible dans l\'app installée.','');
+  if(!st)return setRow('cal','Google Agenda','Vérification…','');
+  if(!st.configured)return setRow('cal','Google Agenda','Bientôt : cette version ne contient pas encore la connexion Google.','');
+  if(!st.connected)return `<div class="gcon"><span class="seti">${ic('cal')}</span><div><b>Relie StockInfos à ton Google Agenda</b><small>Tes chantiers apparaissent dans un agenda « Chantiers StockInfos », et ce que tu ajoutes dans cet agenda depuis Google revient ici. Tes autres agendas ne sont jamais touchés.</small></div><button class="btn pri" data-act="glogin">Se connecter à Google</button></div>`;
   const n=S.events.filter(gSyncable).length;
-  return setRow('cal','Envoyer mes chantiers vers Google Agenda',`Connecté${st.email?' avec '+esc(st.email):''} · ${n} chantier${n>1?'s':''} dans l'agenda « Chantiers StockInfos »${GS.busy?' · envoi en cours…':GS.err?` · <span style="color:var(--red)">${esc(GS.err)}</span>`:GS.last?' · à jour à '+new Date(GS.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}`,`<button class="btn sm" data-act="gsync">Synchroniser</button><button class="btn sm" data-act="glogout">Se déconnecter</button>`)}
-function planSync(){clearTimeout(SYNC.timer);const m=+S.cfg.auto;if(S.cfg.cals.length&&m>0)SYNC.timer=setTimeout(()=>syncNow(false),m*6e4)}
+  return setRow('cal','Google Agenda',`Connecté${st.email?' avec '+esc(st.email):''} · ${n} chantier${n>1?'s':''} envoyé${n>1?'s':''} vers « Chantiers StockInfos »${GS.busy?' · envoi en cours…':GS.err?` · <span style="color:var(--red)">${esc(GS.err)}</span>`:GS.last?' · à jour à '+new Date(GS.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}`,`<button class="btn sm" data-act="gsync">Synchroniser</button><button class="btn sm" data-act="glogout">Se déconnecter</button>`)}
+function planSync(){clearTimeout(SYNC.timer);const m=+S.cfg.auto;if((S.cfg.cals.length||(GS.st&&GS.st.connected))&&m>0)SYNC.timer=setTimeout(()=>{syncNow(false);gSync(false)},m*6e4)}
 
 /* ---------- recherche Ctrl+K ---------- */
 const PAL={on:false,q:'',i:0,res:[]};
