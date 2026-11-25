@@ -878,6 +878,20 @@ b.brk{color:#c77700}b.lost{color:var(--red)}.okt{color:var(--ok)}
   #print .ld .lsign{display:flex;gap:4mm;margin-top:4mm;page-break-inside:avoid}
   #print .ld .lsign div{flex:1;height:16mm;border:.6pt solid #d0d0d0;border-radius:2mm;padding:1.5mm 3mm}
 }
+.logorow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.lprev{display:inline-grid;place-items:center;height:34px;min-width:34px;max-width:110px;padding:2px 6px;background:#fff;border:1px solid var(--line);border-radius:6px}
+.lprev img{max-height:28px;max-width:96px;object-fit:contain}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.lcand{display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--card);cursor:pointer;font:inherit;color:var(--ink)}
+.lcand:hover{border-color:var(--acc)}
+.lcand .lim{display:grid;place-items:center;height:90px;background:#fff;border-radius:6px;border:1px solid #eee}
+.lcand img{max-width:100%;max-height:80px;object-fit:contain}
+.lcand small{color:var(--mute);font-size:11.5px}
+@media print{
+  #print .plogo{max-height:10mm;max-width:45mm;object-fit:contain;display:block}
+  #print .inv .plogo{max-height:7.5mm;max-width:40mm}
+  #print .ico,#print .lco{display:flex;align-items:center;gap:3mm}
+}
 </style>
 </head>
 <body>
@@ -913,7 +927,7 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 const $=s=>document.querySelector(s);
 const COLORS=['#2563eb','#c2410c','#15803d','#7c3aed','#b45309','#be185d','#0e7490'];
 const CATC={'Chapiteaux':'#0e7490','Plancher':'#78716c','Mobilier':'#2563eb','Éclairage':'#b45309','Chauffage':'#c2410c','Scène':'#7c3aed','Décoration':'#be185d','Électroportatif':'#c2410c','Accès':'#2563eb','Gros matériel':'#52525b','Électricité':'#b45309','Mesure':'#7c3aed'};
-const IC={home:'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',box:'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',cal:'M4 5h16v16H4zM4 9h16M8 3v4M16 3v4',gear:'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM19.4 13a7.5 7.5 0 0 0 0-2l2-1.5-2-3.4-2.3 1a7.6 7.6 0 0 0-1.7-1L15 3.6h-4l-.4 2.5a7.6 7.6 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.5a7.5 7.5 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7.6 7.6 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.6 7.6 0 0 0 1.7-1l2.3 1 2-3.4z',plus:'M12 5v14M5 12h14',search:'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4',sync:'M20 12a8 8 0 0 1-14 5.3M4 12a8 8 0 0 1 14-5.3M18 3v4h-4M6 21v-4h4',sun:'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',moon:'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z',alert:'M12 3 2 20h20zM12 10v4M12 17v.5',back:'M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3',cam:'M4 8h3l2-3h6l2 3h3v11H4zM12 10a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z',l:'M15 5l-7 7 7 7',r:'M9 5l7 7-7 7',pin:'M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4z',check:'M5 12l5 5 9-10',x:'M6 6l12 12M18 6 6 18',eye:'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',link:'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',trash:'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',pack:'M12 3 3 7.5l9 4.5 9-4.5zM3 12l9 4.5 9-4.5M3 16.5 12 21l9-4.5',chart:'M4 20V10M10 20V4M16 20v-7M2 20h20',dl:'M12 4v11M7 10l5 5 5-5M5 20h14',ul:'M12 15V4M7 9l5-5 5 5M5 20h14',tool:'M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z',print:'M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z',hand:'M7 11V6a1.5 1.5 0 0 1 3 0v4M10 10V4.5a1.5 1.5 0 0 1 3 0V10M13 10V5.5a1.5 1.5 0 0 1 3 0V12M16 9a1.5 1.5 0 0 1 3 0v4a8 8 0 0 1-8 8 6 6 0 0 1-5-3l-2.5-4.5a1.5 1.5 0 0 1 2.6-1.5L7 14'};
+const IC={home:'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',box:'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',cal:'M4 5h16v16H4zM4 9h16M8 3v4M16 3v4',gear:'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM19.4 13a7.5 7.5 0 0 0 0-2l2-1.5-2-3.4-2.3 1a7.6 7.6 0 0 0-1.7-1L15 3.6h-4l-.4 2.5a7.6 7.6 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.5a7.5 7.5 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7.6 7.6 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.6 7.6 0 0 0 1.7-1l2.3 1 2-3.4z',plus:'M12 5v14M5 12h14',search:'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4',sync:'M20 12a8 8 0 0 1-14 5.3M4 12a8 8 0 0 1 14-5.3M18 3v4h-4M6 21v-4h4',sun:'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',moon:'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z',alert:'M12 3 2 20h20zM12 10v4M12 17v.5',back:'M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3',cam:'M4 8h3l2-3h6l2 3h3v11H4zM12 10a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z',l:'M15 5l-7 7 7 7',r:'M9 5l7 7-7 7',pin:'M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4z',check:'M5 12l5 5 9-10',x:'M6 6l12 12M18 6 6 18',eye:'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',link:'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',trash:'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',pack:'M12 3 3 7.5l9 4.5 9-4.5zM3 12l9 4.5 9-4.5M3 16.5 12 21l9-4.5',chart:'M4 20V10M10 20V4M16 20v-7M2 20h20',dl:'M12 4v11M7 10l5 5 5-5M5 20h14',ul:'M12 15V4M7 9l5-5 5 5M5 20h14',img:'M4 5h16v14H4zM4 16l4.5-4.5 4 4 3-3 4.5 4.5M15.5 9.5h.01',tool:'M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z',print:'M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z',hand:'M7 11V6a1.5 1.5 0 0 1 3 0v4M10 10V4.5a1.5 1.5 0 0 1 3 0V10M13 10V5.5a1.5 1.5 0 0 1 3 0V12M16 9a1.5 1.5 0 0 1 3 0v4a8 8 0 0 1-8 8 6 6 0 0 1-5-3l-2.5-4.5a1.5 1.5 0 0 1 2.6-1.5L7 14'};
 const ic=n=>`<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="${IC[n]}"/></svg>`;
 
 /* ---------- données ---------- */
@@ -1421,8 +1435,17 @@ async function scanPage(cv){
   const th=otsu(g),bin=new Uint8Array(w*h);for(let i=0;i<w*h;i++)bin[i]=g[i]<th?1:0;
   const p0=H(0,0),p1=H(10,0),pxmm=Math.hypot(p1[0]-p0[0],p1[1]-p0[1])/10,mkA=(L.mk*pxmm)**2,{list}=blobs(bin,w,h,Math.max(20,mkA*.3));
   const cand=list.filter(b=>{const bw=b.x1-b.x0+1,bh=b.y1-b.y0+1;return b.a>mkA*.35&&b.a<mkA*3.5&&bw/bh>.6&&bw/bh<1.6&&b.a/(bw*bh)>.7});
-  const want=[[L.mk/2,L.mk/2],[L.W-L.mk/2,L.mk/2],[L.mk/2,L.H-L.mk/2],[L.W-L.mk/2,L.H-L.mk/2]],got=[];
-  want.forEach(([x,y])=>{const[u,v]=H(x,y);let best=null,bd=Math.max(w,h)*.18;cand.forEach(b=>{const cx=(b.x0+b.x1)/2,cy=(b.y0+b.y1)/2,d=Math.hypot(cx-u,cy-v);if(d<bd){bd=d;best=[cx,cy]}});got.push(best)});
+  const want=[[L.mk/2,L.mk/2],[L.W-L.mk/2,L.mk/2],[L.mk/2,L.H-L.mk/2],[L.W-L.mk/2,L.H-L.mk/2]],got=[null,null,null,null];
+  // position approximative de chaque carré sur la page (via le QR), puis on garde le plus excentré dans chaque coin
+  const Q2=[[Q.topLeftCorner.x,Q.topLeftCorner.y],[Q.topRightCorner.x,Q.topRightCorner.y],[Q.bottomLeftCorner.x,Q.bottomLeftCorner.y],[Q.bottomRightCorner.x,Q.bottomRightCorner.y]],
+    inv=homog(Q2,[[L.qr.x,L.qr.y],[L.qr.x+L.qr.s,L.qr.y],[L.qr.x,L.qr.y+L.qr.s],[L.qr.x+L.qr.s,L.qr.y+L.qr.s]]);
+  const pc=cand.map(b=>{const cx=(b.x0+b.x1)/2,cy=(b.y0+b.y1)/2,[px,py]=inv(cx,cy);return{cx,cy,px,py,a:b.a}}).filter(c=>c.px>-40&&c.py>-40&&c.px<L.W+40&&c.py<L.H+40);
+  const score=[c=>-(c.px+c.py),c=>c.px-c.py,c=>c.py-c.px,c=>c.px+c.py];
+  score.forEach((f,k)=>{let best=null,bv=-1e9;pc.forEach(c=>{const v=f(c);if(v>bv){bv=v;best=c}});
+    // le coin retenu doit être dans le bon quart de la page
+    if(best&&(k%2?best.px>L.W*.6:best.px<L.W*.4)&&(k<2?best.py<L.H*.35:best.py>L.H*.65))got[k]=[best.cx,best.cy]});
+  // les 4 carrés doivent avoir à peu près la même taille ; sinon on écarte l'intrus
+  {const sel=got.map((g,k)=>g&&pc.find(c=>c.cx===g[0]&&c.cy===g[1])),as=sel.filter(Boolean).map(c=>c.a).sort((x,y)=>x-y),med=as[as.length>>1];sel.forEach((c,k)=>{if(c&&(c.a>med*1.8||c.a<med/1.8))got[k]=null})}
   const nf=got.filter(Boolean).length;
   if(nf===3){const k=got.findIndex(g=>!g),o={0:[1,2,3],1:[0,3,2],2:[0,3,1],3:[1,2,0]}[k];const[a,b,c]=o.map(i=>got[i]);got[k]=[a[0]+b[0]-c[0],a[1]+b[1]-c[1]]}
   if(got.every(Boolean))H=homog(want,got);
@@ -1449,7 +1472,10 @@ function struck(bin,W,x0,x1,y0,y1){const gw=x1-x0+1,gh=y1-y0+1;if(gw<6||gh<4)ret
     let up=0,dn=0;for(let x=bs;x<=be;x++){const yl=yc+sl*(x-(x0+x1)/2);for(let y=y0;y<=y1;y++)if(bin[y*W+x]){if(y<yl-gh*.22)up++;else if(y>yl+gh*.22)dn++}}
     if(up>tot*.15&&dn>tot*.15)return true}return false}
 // lit un nombre manuscrit dans une case ; renvoie {v, conf, struck, ink}
-function readBox(c,border){const{W,H,ink}=c,bin=new Uint8Array(W*H);for(let i=0;i<W*H;i++)bin[i]=ink[i]>.42?1:0;
+function readBox(c,border){const{W,H,ink}=c,bin=new Uint8Array(W*H);
+  // seuil propre à la case : le papier (clair) sert de référence, le bord gris imprimé reste sous le seuil
+  const gs=Array.from(c.gray).sort((a,b)=>a-b),paper=gs[Math.floor(gs.length*.9)],cut=paper*.6;
+  for(let i=0;i<W*H;i++)bin[i]=c.gray[i]<cut&&ink[i]>.42?1:0;
   if(border){// efface les traits imprimés (bord de la case, lignes du tableau) : longues lignes droites près des bords
     const eraseRow=(y,x0,x1)=>{for(let x=x0;x<=x1;x++)for(let d=-1;d<=1;d++){const yy=y+d;if(yy>=0&&yy<H)bin[yy*W+x]=0}};
     for(let y=0;y<H;y++){if(y>H*.3&&y<H*.7)continue;let run=0;for(let x=0;x<=W;x++){if(x<W&&bin[y*W+x])run++;else{if(run>=W*.3)eraseRow(y,x-run,x-1);run=0}}}
@@ -1674,7 +1700,7 @@ function printInv(mode){
     return `<section class="ipg">
       <i class="mk" style="left:0;top:0"></i><i class="mk" style="right:0;top:0"></i><i class="mk" style="left:0;bottom:0"></i><i class="mk" style="right:0;bottom:0"></i>
       <div class="iqr" style="left:${mm(L.qr.x)};top:${mm(L.qr.y)};width:${mm(L.qr.s)};height:${mm(L.qr.s)}">${qrSvg(`SI1|${sh.id}|${pi}`)}</div>
-      <div class="ihead"><div class="ico">${co?esc(co):'&nbsp;'}</div><div class="idate">${fmt(TODAY,{day:'numeric',month:'long',year:'numeric'})} · page ${pi+1}/${np}</div></div>
+      <div class="ihead"><div class="ico">${logoHTML('plogo')}<span>${co?esc(co):'&nbsp;'}</span></div><div class="idate">${fmt(TODAY,{day:'numeric',month:'long',year:'numeric'})} · page ${pi+1}/${np}</div></div>
       ${head}
       <div class="r th" style="top:${mm(L.rows0-6)};height:6mm">${col('n','#')}${col('pr','Produit')}${col('tot','Total')}<div class="c hsh" style="left:${mm(L.c.hsp[0])};width:${mm(L.c.hsb[1]-L.c.hsp[0])}">HS <small>actuel · nouveau</small></div>${col('cnt','En état')}${col('rem','Remarque')}</div>
       ${rows||'<p class="empty">Aucun produit dans le stock</p>'}
@@ -1699,6 +1725,7 @@ VIEWS.set=()=>{const cals=S.cfg.cals;
 
   <h3 class="seth">Apparence</h3>
   ${setRow('home','Nom de l\'entreprise','Affiché dans la barre de titre',`<input class="in" id="s-co" data-cfg="company" value="${esc(S.cfg.company||'')}" placeholder="Ex : Location Martin" style="width:220px">`)}
+  ${setRow('img','Logo',S.cfg.logo?'Affiché sur la feuille d\'inventaire et la liste de chargement':'Récupère-le depuis ton site, ou choisis une image',`<div class="logorow">${S.cfg.logo?`<span class="lprev"><img src="${S.cfg.logo}" alt="Logo"></span>`:''}<input class="in" id="s-site" value="${esc(S.cfg.site||'')}" placeholder="ton-site.fr" style="width:170px"><button class="btn sm" data-act="logofind">Chercher sur le site</button><label class="btn sm">Image…<input type="file" accept="image/*" data-in="logofile" hidden></label>${S.cfg.logo?`<button class="btn sm" data-act="logodel">Retirer</button>`:''}</div>`)}
   ${setRow('sun','Thème','',`<div class="seg">${[['auto','Auto'],['light','Clair'],['dark','Sombre']].map(([v,l])=>`<button class="${S.theme===v?'on':''}" data-act="theme" data-v="${v}">${l}</button>`).join('')}</div>`)}
 
   <h3 class="seth">Données</h3>
@@ -1874,6 +1901,27 @@ function drawRet(){const ev=S.events.find(e=>e.id===MD.id);
     <div class="retsum">${retSumTxt()}</div></div>
     <div class="df"><button class="btn l" data-act="retall">Tout est revenu en bon état</button><button class="btn" data-act="retback" data-id="${ev.id}">Annuler</button><button class="btn pri" data-act="retok">Valider le retour</button></div>
   </div></div>`}
+// ---- logo de l'entreprise ----
+function logoNormalize(src){return new Promise((res,rej)=>{const im=new Image();im.onload=()=>{const k=Math.min(1,600/im.naturalWidth,240/im.naturalHeight)||1,w=Math.max(1,Math.round((im.naturalWidth||240)*k)),h=Math.max(1,Math.round((im.naturalHeight||240)*k));
+  const cv=document.createElement('canvas');cv.width=w;cv.height=h;const c=cv.getContext('2d');c.drawImage(im,0,0,w,h);
+  let sum=0,n=0;try{const d=c.getImageData(0,0,w,h).data;for(let i=0;i<d.length;i+=16){if(d[i+3]<40)continue;sum+=(d[i]*.3+d[i+1]*.59+d[i+2]*.11);n++}}catch(e){}
+  res({data:cv.toDataURL('image/png'),w,h,light:n>0&&sum/n>232})};im.onerror=()=>rej(new Error('image illisible'));im.src=src})}
+async function logoSearch(site,auto){
+  if(!API||!API.fetchLogo){toast('Ferme l\'app et relance Lancer.bat pour activer la recherche de logo');return}
+  if(!auto){MD={k:'logo',busy:true,site};drawLogo()}
+  try{const list=await API.fetchLogo(site),ok=[];for(const c of list){try{ok.push({...c,...await logoNormalize(c.data)})}catch(e){}}
+    if(!ok.length)throw new Error('aucune image utilisable');
+    S.cfg.site=site;
+    if(auto){const best=ok.find(c=>!c.light)||ok[0];S.cfg.logo=best.data;save();render();toast('Logo récupéré depuis ton site : vérifie-le dans Paramètres');return}
+    if(MD&&MD.k==='logo'){MD.busy=false;MD.list=ok;drawLogo()}}
+  catch(e){const m=String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,'');if(auto){toast('Logo non trouvé ('+m+') : tu peux le choisir dans Paramètres');return}if(MD&&MD.k==='logo'){MD.busy=false;MD.err=m;drawLogo()}}}
+function drawLogo(){const L=MD;
+  $('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(640px,100%)"><div class="dh"><h3 id="mt">Choisir le logo</h3><button class="ib" data-act="close" aria-label="Fermer">${ic('x')}</button></div>
+  <div class="wel">${L.busy?`<div class="invbusy" style="padding:24px"><span class="spin"></span><b>Recherche du logo sur ${esc(L.site)}…</b></div>`:L.err?`<div class="inverr">${ic('alert')}<div>${esc(L.err)}</div></div><p class="note" style="margin:0">Tu peux choisir une image sur ton PC à la place.</p>`
+    :`<p class="note" style="margin:0">Voici les images trouvées sur ${esc(L.site)}. Clique sur ton logo (il est montré sur fond blanc, comme sur les feuilles imprimées).</p>
+      <div class="lgrid">${L.list.map((c,i)=>`<button class="lcand" data-act="logopick" data-i="${i}"><span class="lim"><img src="${c.data}" alt=""></span><small>${esc(c.why)}${c.light?' · très clair, peu visible sur papier':''}</small></button>`).join('')}</div>`}</div>
+  <div class="df"><label class="btn l">${ic('ul')}Choisir une image sur le PC<input type="file" accept="image/*" data-in="logofile" hidden></label><button class="btn" data-act="close">Annuler</button></div></div></div>`}
+function logoHTML(cls){return S.cfg.logo?`<img class="${cls}" src="${S.cfg.logo}" alt="">`:''}
 function printLoad(id,mode){const ev=S.events.find(e=>e.id===id),r=rng(ev),p=P(ev),co=(S.cfg.company||'').trim();
   const items=Object.entries(p.items).map(([pid,q])=>({pr:byId(pid),q})).filter(x=>x.pr).sort((a,b)=>(a.pr.cat||'~').localeCompare(b.pr.cat||'~','fr')||a.pr.name.localeCompare(b.pr.name,'fr'));
   const cats=new Set(items.map(x=>x.pr.cat||'')).size>1;let cat=null,k=0,rows='';
@@ -1883,7 +1931,7 @@ function printLoad(id,mode){const ev=S.events.find(e=>e.id===id),r=rng(ev),p=P(e
   const kits=[...Object.entries(p.packs||{}),...Object.entries(p.mpacks||{})].filter(([id])=>byPack(id)).map(([id,q])=>`${esc(byPack(id).name)} ×${q}`).join(', ');
   const F=d=>fmt(d,{weekday:'short',day:'numeric',month:'short'}),nb=items.reduce((n,x)=>n+x.q,0);
   $('#print').innerHTML=`<div class="ld">
-    <div class="lhead"><div class="lco">${co?esc(co):'&nbsp;'}</div><div class="ldate">Imprimé le ${fmt(TODAY,{day:'numeric',month:'long',year:'numeric'})}</div></div>
+    <div class="lhead"><div class="lco">${logoHTML('plogo')}<span>${co?esc(co):'&nbsp;'}</span></div><div class="ldate">Imprimé le ${fmt(TODAY,{day:'numeric',month:'long',year:'numeric'})}</div></div>
     <div class="ltitle"><h1>Liste de chargement</h1><h2>${esc(ev.title)}</h2></div>
     <div class="linfo"><div><span>Dates</span><b>${F(r.s)}${r.e!==r.s?` → ${F(r.e)}`:''}</b></div><div><span>Lieu</span><b>${esc(ev.lieu||'—')}</b></div><div><span>Retour au dépôt</span><b>${F(r.back)}</b></div><div class="tot"><span>À charger</span><b>${nb} article${nb>1?'s':''} · ${items.length} produit${items.length>1?'s':''}</b></div></div>
     ${kits?`<p class="lkits"><span>Kits</span>${kits}</p>`:''}
@@ -2033,6 +2081,9 @@ document.addEventListener('mouseup',()=>{if(!DRAG.on)return;DRAG.on=false;const 
 /* ---------- actions ---------- */
 function setView(v){U.view=v;U.reset=false;try{history.replaceState(null,'','#'+VH[v])}catch(e){location.hash=VH[v]}render();$('#main').scrollTop=0}
 const A={
+  logofind:()=>{const v=($('#s-site')?.value||'').trim();if(!v){toast('Écris d\'abord l\'adresse de ton site');return}logoSearch(v,false)},
+  logopick:b=>{const c=MD.list[+b.dataset.i];S.cfg.logo=c.data;save();closeM();render();toast('Logo enregistré')},
+  logodel:()=>{delete S.cfg.logo;save();render();toast('Logo retiré')},
   essaiadd:()=>{const pr=S.products.filter(p=>p.qty>0).sort((a,b)=>b.qty-a.qty);if(!pr.length)return;
     const P=k=>pr[k%pr.length],q=(p,f)=>Math.max(1,Math.ceil(p.qty*f)),D=n=>add(TODAY,n);
     const mk=(title,a,b,lieu,items)=>{const m={};items.forEach(([p,n])=>{m[p.id]=(m[p.id]||0)+n});return{id:'e'+uid(),title:'Essai · '+title,start:D(a),end:D(b),lieu,desc:'Chantier d\'essai créé par StockInfos (Paramètres › Chantiers d\'essai).',src:'manuel',ci:S.events.length%COLORS.length,man:{packs:{},items:m},created:Date.now(),used:Date.now(),essai:true}};
@@ -2101,7 +2152,7 @@ const A={
   calvis:b=>{const v=b.dataset.v,H=S.ui.hide=S.ui.hide||[];const i=H.indexOf(v);if(i<0)H.push(v);else H.splice(i,1);save();render()},
   'co-ok':()=>{S.cfg.company=($('#w-co').value||'').trim();S.cfg.coAsked=true;save();closeM();render()},
   'co-skip':()=>{S.cfg.company='';S.cfg.coAsked=true;save();closeM();render()},
-  welcome:b=>{const co=($('#w-co')?.value||'').trim();if(b.dataset.v==='vide'){S={...S,products:[],packs:[],events:[]}}S.cfg.company=co;S.cfg.coAsked=true;save();closeM();U.view=b.dataset.v==='vide'?'set':'dash';render()},
+  welcome:b=>{const co=($('#w-co')?.value||'').trim(),site=($('#w-site')?.value||'').trim();if(site)setTimeout(()=>logoSearch(site,true),300);if(b.dataset.v==='vide'){S={...S,products:[],packs:[],events:[]}}S.cfg.company=co;S.cfg.coAsked=true;save();closeM();U.view=b.dataset.v==='vide'?'set':'dash';render()},
   close:closeM,
   addto:b=>openA(b.dataset.id),
   aq:b=>{MD.q=Math.max(1,(parseInt($('#a-q').value)||1)+(+b.dataset.n));drawA()},
@@ -2177,6 +2228,7 @@ document.addEventListener('input',e=>{
   if(t.dataset.ev&&MD&&MD.k==='e'){MD.d[t.dataset.ev]=t.value;MD.mk=-1;redrawRead()}
 });
 document.addEventListener('change',e=>{
+  if(e.target.dataset&&e.target.dataset.in==='logofile'&&e.target.files[0]){const f=e.target.files[0],rd=new FileReader();rd.onload=async()=>{try{const r=await logoNormalize(rd.result);S.cfg.logo=r.data;save();if(MD&&MD.k==='logo')closeM();render();toast(r.light?'Logo enregistré (attention : très clair, peu visible sur papier)':'Logo enregistré')}catch(er){toast('Image illisible')}};rd.readAsDataURL(f);return}
   const t=e.target;
   if(t.id==='d'&&t.value){U.date=t.value;U.ym=t.value.slice(0,7);render()}
   if(t.dataset.in==='cat'){U.cat=t.value;render()}
@@ -2204,7 +2256,7 @@ U.view=HV[location.hash.slice(1)]||'dash';
 if(!S.packs)S.packs=[];
 U.sort=S.ui.sort||'az';
 render();
-if(FIRST){MD={k:'w'};$('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(460px,100%)"><div class="dh"><h3 id="mt">Bienvenue dans StockInfos</h3></div><div class="wel"><div class="f" style="margin:0"><label for="w-co">Nom de ton entreprise</label><input class="in" id="w-co" placeholder="Ex : Location Martin" autocomplete="off"><span class="h">Il s'affichera en haut de l'app. Tu pourras le changer dans Paramètres.</span></div><p style="margin:8px 0 0">Comment veux-tu commencer ?</p><button class="btn" data-act="welcome" data-v="ex"><span><b>Avec des exemples</b><small>Du matériel, des kits et des chantiers fictifs pour tout essayer. Tu pourras les effacer dans Paramètres.</small></span></button><button class="btn" data-act="welcome" data-v="vide"><span><b>Avec un stock vide</b><small>Pour saisir directement ton vrai matériel et relier Google Agenda.</small></span></button></div></div></div>`}
+if(FIRST){MD={k:'w'};$('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(460px,100%)"><div class="dh"><h3 id="mt">Bienvenue dans StockInfos</h3></div><div class="wel"><div class="f" style="margin:0"><label for="w-co">Nom de ton entreprise</label><input class="in" id="w-co" placeholder="Ex : Location Martin" autocomplete="off"><span class="h">Il s'affichera en haut de l'app. Tu pourras le changer dans Paramètres.</span></div><div class="f" style="margin:0"><label for="w-site">Site web <span class="h">facultatif · pour récupérer ton logo</span></label><input class="in" id="w-site" placeholder="Ex : location-martin.fr" autocomplete="off"></div><p style="margin:8px 0 0">Comment veux-tu commencer ?</p><button class="btn" data-act="welcome" data-v="ex"><span><b>Avec des exemples</b><small>Du matériel, des kits et des chantiers fictifs pour tout essayer. Tu pourras les effacer dans Paramètres.</small></span></button><button class="btn" data-act="welcome" data-v="vide"><span><b>Avec un stock vide</b><small>Pour saisir directement ton vrai matériel et relier Google Agenda.</small></span></button></div></div></div>`}
 else{if(!S.cfg.coAsked){MD={k:'co'};$('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(420px,100%)"><div class="dh"><h3 id="mt">Nom de ton entreprise</h3></div><div class="wel"><p style="margin:0">L'app s'appelle maintenant <b>StockInfos</b>. Quel nom d'entreprise veux-tu afficher en haut ?</p><input class="in" id="w-co" value="${esc(S.cfg.company||'')}" placeholder="Ex : Location Martin" autocomplete="off"><span class="h">Tu pourras le changer dans Paramètres.</span></div><div class="df"><button class="btn" data-act="co-skip">Ne rien afficher</button><button class="btn pri" data-act="co-ok">Valider</button></div></div></div>`;setTimeout(()=>$('#w-co')?.focus(),50)}
   if(S.cfg.cals.length)syncNow(false);}
 }
