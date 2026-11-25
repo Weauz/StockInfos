@@ -950,7 +950,7 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .tgagrid{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:3px 0;padding-top:4px;position:relative;min-height:34px}
 .tgab{border-left:1px solid var(--line);cursor:copy;z-index:0}.tgab:first-child{border-left:0}.tgab.today{background:color-mix(in srgb,var(--acc) 5%,transparent)}
 .tga .cev{z-index:1}
-.tgb{height:min(62vh,600px);overflow-y:auto;position:relative;overscroll-behavior:contain}
+.tgb{height:min(62vh,600px);overflow-y:auto;position:relative;overscroll-behavior:contain}.tgb>.tgh{position:sticky;top:0;z-index:5;background:var(--card)}
 .tgin{display:grid;grid-template-columns:56px minmax(0,1fr);position:relative}
 .tgl span{position:absolute;right:8px;transform:translateY(-50%);font-size:11px;color:var(--mute)}
 .tgcols{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));background:repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px 44px)}
@@ -1381,13 +1381,12 @@ function timeGrid(days){
     let grp=[],end=-1;const fin=()=>{const ln=[];grp.forEach(x=>{let k=0;while(ln[k]!==undefined&&ln[k]>x.s0)k++;ln[k]=x.e0;x.k=k});grp.forEach(x=>x.nk=ln.length);grp=[]};
     es.forEach(x=>{if(x.s0>=end&&grp.length){fin();end=-1}grp.push(x);end=Math.max(end,x.e0)});if(grp.length)fin();
     const blocks=es.map(x=>{const p=P(x.ev),it=Object.entries(p.items).slice(0,4).map(([id,q])=>byId(id)?`${esc(byId(id).name)} ×${q}`:'').filter(Boolean).join(' · '),h=(x.e0-x.s0)/60*TGH;
-      return `<button class="tge${evShort(x.ev)?' short':''}${h<40?' tiny':''}${x.s0===0&&x.r.s<d?' ct':''}${x.e0===1440&&x.r.e>d?' cb':''}" style="--c:${evColor(x.ev)};top:${x.s0/60*TGH}px;height:${Math.max(20,h-2)}px;left:calc(${x.k/x.nk*88}% + 2px);width:calc(${88/x.nk}% - 4px)" data-act="openev" data-id="${x.ev.id}" title="${esc(x.ev.title)} · ${esc(x.lab)}"><span class="tgt"><small class="tt">${esc(x.lab)}</small><b>${esc(x.ev.title)}</b>${h>=58?`<small>${x.ev.lieu?esc(x.ev.lieu)+' · ':''}${it}</small>`:''}</span></button>`}).join('');
+      return `<button class="tge${evShort(x.ev)?' short':''}${h<40?' tiny':''}${x.s0===0&&x.r.s<d?' ct':''}${x.e0===1440&&x.r.e>d?' cb':''}" style="--c:${evColor(x.ev)};top:${x.s0/60*TGH}px;height:${Math.max(20,h-2)}px;left:calc((100% - 14px) * ${x.k/x.nk} + 2px);width:calc((100% - 14px) / ${x.nk} - 4px)" data-act="openev" data-id="${x.ev.id}" title="${esc(x.ev.title)} · ${esc(x.lab)}"><span class="tgt"><small class="tt">${esc(x.lab)}</small><b>${esc(x.ev.title)}</b>${h>=58?`<small>${x.ev.lieu?esc(x.ev.lieu)+' · ':''}${it}</small>`:''}</span></button>`}).join('');
     const now=d===TODAY?(()=>{const t=new Date(),m=t.getHours()*60+t.getMinutes();return `<i class="tgnow" style="top:${m/60*TGH}px"></i>`})():'';
     return `<div class="tgc${d===TODAY?' today':''}" data-dd="${d}" title="Clique sur une heure pour créer un chantier, ou glisse sur plusieurs jours">${blocks}${now}</div>`}).join('');
   const hours=[...Array(24)].map((_,h)=>`<span style="top:${h*TGH}px">${h?h+'h':''}</span>`).join('');
   return `<div class="tg" style="--n:${n}">
-    <div class="tgh"><div class="tgg"></div><div class="tgdays">${head}</div></div>
-    <div class="tgb" id="tgb"><div class="tgin" style="height:${24*TGH}px"><div class="tgg tgl">${hours}</div><div class="tgcols">${cols}</div></div></div>
+    <div class="tgb" id="tgb"><div class="tgh"><div class="tgg"></div><div class="tgdays">${head}</div></div><div class="tgin" style="height:${24*TGH}px"><div class="tgg tgl">${hours}</div><div class="tgcols">${cols}</div></div></div>
   </div>`;
 }
 function tgFollow(el){const st=el.scrollTop;el.querySelectorAll('.tge').forEach(b=>{const t=b.querySelector('.tgt');if(!t)return;const top=parseFloat(b.style.top),room=b.clientHeight-t.offsetHeight-6;t.style.transform=st>top&&room>0?`translateY(${Math.min(st-top,room)}px)`:''})}
