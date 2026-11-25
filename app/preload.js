@@ -12,7 +12,6 @@ contextBridge.exposeInMainWorld('api', {
   saveFile: o => ipcRenderer.invoke('save-file', o),
   savePdf: o => ipcRenderer.invoke('save-pdf', o),
   print: () => ipcRenderer.invoke('print'),
-  fetchLogo: site => ipcRenderer.invoke('fetch-logo', site),
   theme: dark => ipcRenderer.send('theme', dark),
   updateCheck: () => ipcRenderer.invoke('update-check'),
   updateInstall: () => ipcRenderer.invoke('update-install'),

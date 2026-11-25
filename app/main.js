@@ -153,60 +153,6 @@ ipcMain.handle('fetch-ics', async (e, url) => {
   return await res.text();
 });
 
-// ---- logo de l'entreprise : cherche les images probables sur la page d'accueil du site ----
-ipcMain.handle('fetch-logo', async (e, site) => {
-  let base = String(site || '').trim();
-  if (!base) throw new Error('adresse vide');
-  if (!/^https?:\/\//i.test(base)) base = 'https://' + base;
-  let u;
-  try { u = new URL(base); } catch (err) { throw new Error('adresse invalide'); }
-  if (!/^https?:$/.test(u.protocol)) throw new Error('adresse invalide');
-  const UA = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) StockInfos' };
-  let html = '', page = u.href;
-  try {
-    const r = await net.fetch(u.href, { headers: UA });
-    if (!r.ok) throw new Error('réponse ' + r.status);
-    page = r.url || u.href;
-    html = (await r.text()).slice(0, 1500000);
-  } catch (err) { throw new Error('site injoignable : ' + (err.message || err)); }
-  const abs = v => { try { return new URL(v.trim().split(/\s+/)[0], page).href; } catch (er) { return null; } };
-  const attr = (tag, a) => { const m = tag.match(new RegExp('\\s' + a + '\\s*=\\s*("([^"]*)"|\'([^\']*)\'|([^\\s>]+))', 'i')); return m ? (m[2] ?? m[3] ?? m[4] ?? '') : ''; };
-  const cand = [];
-  const push = (src, why) => { const a = src && abs(src); if (a && /^https?:/i.test(a) && !cand.some(c => c.url === a)) cand.push({ url: a, why }); };
-  // 1. images dont le nom, la classe, l'id ou le texte alternatif parlent de logo
-  for (const m of html.matchAll(/<img\b[^>]*>/gi)) {
-    const t = m[0], src = [attr(t, 'data-lazy-src'), attr(t, 'data-src'), (attr(t, 'data-srcset') || '').split(',')[0], attr(t, 'src'), (attr(t, 'srcset') || '').split(',')[0]].find(v => v && !/^data:/i.test(v.trim()));
-    if (/logo/i.test(t) && src) push(src, 'logo');
-  }
-  // 2. balises meta / icônes
-  for (const m of html.matchAll(/<meta\b[^>]*>/gi)) { const t = m[0]; if (/(og:logo|itemprop=["']?logo)/i.test(t)) push(attr(t, 'content'), 'logo'); }
-  const icons = [];
-  for (const m of html.matchAll(/<link\b[^>]*>/gi)) {
-    const t = m[0], rel = attr(t, 'rel').toLowerCase();
-    if (/apple-touch-icon|icon/.test(rel)) { const sz = parseInt((attr(t, 'sizes') || '0').split('x')[0], 10) || (/apple/.test(rel) ? 180 : /svg/.test(attr(t, 'type')) ? 512 : 16); icons.push({ src: attr(t, 'href'), sz }); }
-  }
-  icons.sort((a, b) => b.sz - a.sz).forEach(i => push(i.src, 'icône'));
-  for (const m of html.matchAll(/<meta\b[^>]*>/gi)) { const t = m[0]; if (/property=["']?og:image/i.test(t)) push(attr(t, 'content'), 'image de partage'); }
-  push('/favicon.ico', 'icône');
-  // télécharge les premières images valides
-  const out = [];
-  for (const c of cand.slice(0, 10)) {
-    if (out.length >= 5) break;
-    try {
-      const r = await net.fetch(c.url, { headers: UA });
-      if (!r.ok) continue;
-      const type = (r.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
-      const buf = Buffer.from(await r.arrayBuffer());
-      if (buf.length < 100 || buf.length > 4000000) continue;
-      const mime = /^image\//.test(type) ? type : /\.svg(\?|$)/i.test(c.url) ? 'image/svg+xml' : /\.png(\?|$)/i.test(c.url) ? 'image/png' : /\.ico(\?|$)/i.test(c.url) ? 'image/x-icon' : '';
-      if (!mime) continue;
-      out.push({ url: c.url, why: c.why, data: `data:${mime};base64,${buf.toString('base64')}` });
-    } catch (err) { /* image suivante */ }
-  }
-  if (!out.length) throw new Error('aucune image trouvée sur ce site');
-  return out;
-});
-
 ipcMain.handle('export', async (e, json) => {
   const day = new Date().toISOString().slice(0, 10);
   const r = await dialog.showSaveDialog(win, {
