@@ -687,6 +687,25 @@ button.ret:hover strong{color:var(--acc)}
 .updbar span{display:flex;flex-direction:column;gap:2px;font-size:13px}
 .updbar small{color:var(--mute);font-size:12px}
 .updrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px}
+.impdrop{display:flex;flex-direction:column;align-items:center;gap:6px;padding:34px 20px;border:2px dashed var(--line);border-radius:12px;cursor:pointer;text-align:center;color:var(--mute)}
+.impdrop b{color:var(--ink);font-size:15px}
+.impdrop svg{width:30px;height:30px;color:var(--acc)}
+.impdrop:hover,.impdrop.drag,.impdrop:focus{border-color:var(--acc);background:var(--accbg);outline:none}
+.improw{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;font-size:13px}
+.improw select{max-width:260px}
+.impwrap{overflow:auto;border:1px solid var(--line);border-radius:10px;max-height:320px}
+.imptbl{border-collapse:collapse;font-size:12.5px;min-width:100%}
+.imptbl th{position:sticky;top:0;background:var(--card2);padding:8px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);min-width:130px}
+.imptbl th select{width:100%;font-size:12.5px}
+.imptbl th select.on{border-color:var(--acc);color:var(--acc);font-weight:600}
+.imptbl th small{display:block;color:var(--mute);font-weight:400;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.imptbl td{padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis}
+.imptbl td.off{color:var(--mute);opacity:.55}
+.impsum{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px}
+.impsum b{font-size:15px}
+.impsum .w{color:var(--orange,#c77700)}
+.impwarn{display:flex;align-items:center;gap:8px;color:var(--red);margin:0;font-weight:600}
+.impwarn svg{width:16px;height:16px}
 </style>
 </head>
 <body>
@@ -722,7 +741,7 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 const $=s=>document.querySelector(s);
 const COLORS=['#2563eb','#c2410c','#15803d','#7c3aed','#b45309','#be185d','#0e7490'];
 const CATC={'Chapiteaux':'#0e7490','Plancher':'#78716c','Mobilier':'#2563eb','Éclairage':'#b45309','Chauffage':'#c2410c','Scène':'#7c3aed','Décoration':'#be185d','Électroportatif':'#c2410c','Accès':'#2563eb','Gros matériel':'#52525b','Électricité':'#b45309','Mesure':'#7c3aed'};
-const IC={home:'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',box:'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',cal:'M4 5h16v16H4zM4 9h16M8 3v4M16 3v4',gear:'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM19.4 13a7.5 7.5 0 0 0 0-2l2-1.5-2-3.4-2.3 1a7.6 7.6 0 0 0-1.7-1L15 3.6h-4l-.4 2.5a7.6 7.6 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.5a7.5 7.5 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7.6 7.6 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.6 7.6 0 0 0 1.7-1l2.3 1 2-3.4z',plus:'M12 5v14M5 12h14',search:'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4',sync:'M20 12a8 8 0 0 1-14 5.3M4 12a8 8 0 0 1 14-5.3M18 3v4h-4M6 21v-4h4',sun:'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',moon:'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z',alert:'M12 3 2 20h20zM12 10v4M12 17v.5',back:'M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3',cam:'M4 8h3l2-3h6l2 3h3v11H4zM12 10a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z',l:'M15 5l-7 7 7 7',r:'M9 5l7 7-7 7',pin:'M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4z',check:'M5 12l5 5 9-10',x:'M6 6l12 12M18 6 6 18',eye:'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',link:'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',trash:'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',pack:'M12 3 3 7.5l9 4.5 9-4.5zM3 12l9 4.5 9-4.5M3 16.5 12 21l9-4.5',chart:'M4 20V10M10 20V4M16 20v-7M2 20h20',dl:'M12 4v11M7 10l5 5 5-5M5 20h14',tool:'M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z',print:'M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z',hand:'M7 11V6a1.5 1.5 0 0 1 3 0v4M10 10V4.5a1.5 1.5 0 0 1 3 0V10M13 10V5.5a1.5 1.5 0 0 1 3 0V12M16 9a1.5 1.5 0 0 1 3 0v4a8 8 0 0 1-8 8 6 6 0 0 1-5-3l-2.5-4.5a1.5 1.5 0 0 1 2.6-1.5L7 14'};
+const IC={home:'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',box:'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',cal:'M4 5h16v16H4zM4 9h16M8 3v4M16 3v4',gear:'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM19.4 13a7.5 7.5 0 0 0 0-2l2-1.5-2-3.4-2.3 1a7.6 7.6 0 0 0-1.7-1L15 3.6h-4l-.4 2.5a7.6 7.6 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.5a7.5 7.5 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7.6 7.6 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.6 7.6 0 0 0 1.7-1l2.3 1 2-3.4z',plus:'M12 5v14M5 12h14',search:'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4',sync:'M20 12a8 8 0 0 1-14 5.3M4 12a8 8 0 0 1 14-5.3M18 3v4h-4M6 21v-4h4',sun:'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',moon:'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z',alert:'M12 3 2 20h20zM12 10v4M12 17v.5',back:'M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3',cam:'M4 8h3l2-3h6l2 3h3v11H4zM12 10a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z',l:'M15 5l-7 7 7 7',r:'M9 5l7 7-7 7',pin:'M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4z',check:'M5 12l5 5 9-10',x:'M6 6l12 12M18 6 6 18',eye:'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',link:'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',trash:'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',pack:'M12 3 3 7.5l9 4.5 9-4.5zM3 12l9 4.5 9-4.5M3 16.5 12 21l9-4.5',chart:'M4 20V10M10 20V4M16 20v-7M2 20h20',dl:'M12 4v11M7 10l5 5 5-5M5 20h14',ul:'M12 15V4M7 9l5-5 5 5M5 20h14',tool:'M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z',print:'M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z',hand:'M7 11V6a1.5 1.5 0 0 1 3 0v4M10 10V4.5a1.5 1.5 0 0 1 3 0V10M13 10V5.5a1.5 1.5 0 0 1 3 0V12M16 9a1.5 1.5 0 0 1 3 0v4a8 8 0 0 1-8 8 6 6 0 0 1-5-3l-2.5-4.5a1.5 1.5 0 0 1 2.6-1.5L7 14'};
 const ic=n=>`<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="${IC[n]}"/></svg>`;
 
 /* ---------- données ---------- */
@@ -992,7 +1011,7 @@ function plistHTML(){
 VIEWS.stock=()=>{
   const cats=[...new Set(S.products.map(p=>p.cat).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
   const all=S.products.map(p=>({p,I:stockInfo(p)})),miss=all.filter(x=>x.I.a<0),out=all.reduce((n,x)=>n+x.I.u,0);
-  return `<div class="tools"><label class="search">${ic('search')}<input id="q" data-in="q" placeholder="Rechercher un produit" value="${esc(U.q)}" autocomplete="off"></label><select id="sort" data-in="sort" aria-label="Trier par">${[['az','Nom A → Z'],['za','Nom Z → A'],['dispo','Le moins dispo d\'abord'],['qty','Plus grand stock d\'abord']].map(([v,l])=>`<option value="${v}"${U.sort===v?' selected':''}>${l}</option>`).join('')}</select><span class="sp"></span><button class="btn" data-act="invopen">${ic('dl')}Inventaire</button><button class="btn pri" data-act="addp">${ic('plus')}Ajouter un produit</button></div>
+  return `<div class="tools"><label class="search">${ic('search')}<input id="q" data-in="q" placeholder="Rechercher un produit" value="${esc(U.q)}" autocomplete="off"></label><select id="sort" data-in="sort" aria-label="Trier par">${[['az','Nom A → Z'],['za','Nom Z → A'],['dispo','Le moins dispo d\'abord'],['qty','Plus grand stock d\'abord']].map(([v,l])=>`<option value="${v}"${U.sort===v?' selected':''}>${l}</option>`).join('')}</select><span class="sp"></span><button class="btn" data-act="impopen">${ic('ul')}Importer Excel</button><button class="btn" data-act="invopen">${ic('dl')}Inventaire</button><button class="btn pri" data-act="addp">${ic('plus')}Ajouter un produit</button></div>
   ${cats.length?`<div class="cchips"><button class="${!U.cat?'on':''}" data-act="catf" data-v="">Tout <small>${S.products.length}</small></button>${cats.map(c=>`<button class="${U.cat===c?'on':''}" data-act="catf" data-v="${esc(c)}">${esc(c)} <small>${S.products.filter(p=>p.cat===c).length}</small></button>`).join('')}</div>`:''}
   <p class="note">${U.mode==='periode'?`Du <b>${fmt(U.a,{weekday:'long',day:'numeric',month:'long'})}</b> au <b>${fmt(U.b,{weekday:'long',day:'numeric',month:'long'})}</b> : en grand, ce que tu auras une fois les retours faits ; en dessous, le jour le plus juste`:`Le <b>${fmt(U.date,{weekday:'long',day:'numeric',month:'long'})}</b> : ${out} article${out>1?'s':''} sorti${out>1?'s':''}`}${miss.length?` · <b style="color:var(--red)">${miss.length} produit${miss.length>1?'s':''} en manque</b>`:' · aucun manque'}. <span class="h">Clique sur la date en haut pour choisir un jour ou une période.</span></p>
   <div id="plist">${plistHTML()}</div>`};
@@ -1075,6 +1094,145 @@ function calAddHTML(){const cals=S.cfg.cals;return `<div class="setr add"><div c
 function hsList(p){return (p.hs||[]).filter(h=>(+h.q||0)>0&&(!h.until||h.until>=TODAY))}
 function hsTxt(h){const F=d=>fmt(d,{day:'numeric',month:'short',year:'numeric'}),d=[];if(h.from)d.push('depuis le '+F(h.from));d.push(h.until?"jusqu'au "+F(h.until):'sans date de fin');return `${h.q}${h.note?' – '+h.note:''} (${d.join(', ')})`}
 function invRows(){return S.products.slice().sort((a,b)=>a.name.localeCompare(b.name,'fr',{sensitivity:'base'})).map(p=>{const hl=hsList(p),hs=hl.reduce((n,h)=>n+(+h.q||0),0);return {p,hl,hs,rest:Math.max(0,p.qty-hs)}})}
+// ---- import d'un fichier Excel (.xlsx) ou CSV ----
+async function unzipFiles(buf,want){
+  const v=new DataView(buf),u8=new Uint8Array(buf);let e=-1;
+  for(let i=buf.byteLength-22;i>=Math.max(0,buf.byteLength-66000);i--)if(v.getUint32(i,true)===0x06054b50){e=i;break}
+  if(e<0)throw new Error('pas un fichier Excel (.xlsx)');
+  const n=v.getUint16(e+10,true);let p=v.getUint32(e+16,true);const out={},td=new TextDecoder();
+  for(let k=0;k<n;k++){
+    if(v.getUint32(p,true)!==0x02014b50)break;
+    const meth=v.getUint16(p+10,true),csz=v.getUint32(p+20,true),nl=v.getUint16(p+28,true),xl=v.getUint16(p+30,true),cl=v.getUint16(p+32,true),off=v.getUint32(p+42,true);
+    const name=td.decode(u8.subarray(p+46,p+46+nl));p+=46+nl+xl+cl;
+    if(!want(name))continue;
+    const ds=off+30+v.getUint16(off+26,true)+v.getUint16(off+28,true),raw=u8.slice(ds,ds+csz);
+    if(meth===0)out[name]=td.decode(raw);
+    else if(meth===8)out[name]=await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+  }
+  return out;
+}
+function colIdx(ref){let n=0;for(const ch of ref.replace(/\d+/g,''))n=n*26+ch.charCodeAt(0)-64;return n-1}
+async function readXlsx(buf){
+  const F=await unzipFiles(buf,n=>/^xl\/(workbook\.xml|_rels\/workbook\.xml\.rels|sharedStrings\.xml|worksheets\/[^/]+\.xml)$/.test(n));
+  const X=s=>new DOMParser().parseFromString(s||'<x/>','application/xml'),T=(el,tag)=>[...el.getElementsByTagNameNS('*',tag)];
+  const ss=T(X(F['xl/sharedStrings.xml']),'si').map(si=>T(si,'t').map(t=>t.textContent).join(''));
+  const rels={};T(X(F['xl/_rels/workbook.xml.rels']),'Relationship').forEach(r=>{rels[r.getAttribute('Id')]=r.getAttribute('Target')});
+  let sheets=T(X(F['xl/workbook.xml']),'sheet').map(s=>{const id=s.getAttribute('r:id')||[...s.attributes].find(a=>/(^|:)id$/.test(a.name)&&a.name!=='sheetId')?.value;let t=(rels[id]||'').replace(/^\/?xl\//,'').replace(/^\//,'');return{name:s.getAttribute('name')||'Feuille',file:'xl/'+t}});
+  if(!sheets.length)sheets=Object.keys(F).filter(k=>/^xl\/worksheets\//.test(k)).sort().map((f,i)=>({name:'Feuille '+(i+1),file:f}));
+  return sheets.filter(s=>F[s.file]).map(s=>{
+    const rows=[];T(X(F[s.file]),'row').forEach(r=>{const ri=(parseInt(r.getAttribute('r'))||rows.length+1)-1,line=[];let ci=0;
+      T(r,'c').forEach(c=>{const ref=c.getAttribute('r');if(ref)ci=colIdx(ref);const t=c.getAttribute('t'),vv=T(c,'v')[0]?.textContent??'';
+        let val=t==='s'?(ss[+vv]??''):t==='inlineStr'?T(c,'t').map(x=>x.textContent).join(''):t==='b'?(vv==='1'?'VRAI':'FAUX'):vv;
+        line[ci++]=String(val).trim()});
+      rows[ri]=line});
+    return{name:s.name,rows:Array.from(rows,r=>Array.from(r||[],x=>x??''))};
+  });
+}
+function readCSV(buf){
+  let txt;try{txt=new TextDecoder('utf-8',{fatal:true}).decode(buf)}catch(e){txt=new TextDecoder('windows-1252').decode(buf)}
+  txt=txt.replace(/^﻿/,'');const head=txt.split(/\r?\n/).slice(0,10).join('\n');
+  const sep=[';','\t',','].map(c=>[c,head.split(c).length]).sort((a,b)=>b[1]-a[1])[0][0];
+  const rows=[];let row=[],cur='',q=false;
+  for(let i=0;i<txt.length;i++){const ch=txt[i];
+    if(q){if(ch==='"'){if(txt[i+1]==='"'){cur+='"';i++}else q=false}else cur+=ch}
+    else if(ch==='"')q=true;else if(ch===sep){row.push(cur.trim());cur=''}
+    else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&txt[i+1]==='\n')i++;row.push(cur.trim());rows.push(row);row=[];cur=''}
+    else cur+=ch}
+  if(cur||row.length){row.push(cur.trim());rows.push(row)}
+  return[{name:'Fichier',rows}];
+}
+const IMPF=[['','Ignorer'],['name','Nom du produit'],['qty','Quantité'],['hs','Hors service'],['unit','Unité'],['usize','Taille d\'une pièce'],['cat','Catégorie'],['kw','Autres noms']];
+const IMPW={name:['nom','nom du produit','designation','article','articles','produit','produits','materiel','libelle','intitule','objet','equipement','item','reference','description','nom article','nom produit'],
+  qty:['quantite','quantites','qte','qt','qtt','stock','en stock','nombre','nb','total','quantite totale','qte totale','stock total','nombre total','quantite en stock','qte stock','dispo','disponible'],
+  hs:['hs','hors service','casse','casses','en reparation','reparation','defectueux','abime','abimes','hors-service','qte hs','quantite hs'],
+  unit:['unite','unites','u'],usize:['taille','taille piece','taille d une piece','surface','surface piece'],
+  cat:['categorie','categories','famille','type','rayon','groupe','gamme'],kw:['mots cles','mots-cles','alias','synonymes','autres noms']};
+function impKey(h){const n=norm(String(h||'')).replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();if(!n)return '';
+  for(const k in IMPW)if(IMPW[k].includes(n))return k;
+  for(const k in IMPW)if(IMPW[k].some(w=>w.length>2&&(' '+n+' ').includes(' '+w+' ')))return k;return ''}
+const impNum=v=>{const m=String(v??'').replace(/\s| /g,'').replace(',','.').match(/^-?\d+(\.\d+)?/);return m?parseFloat(m[0]):null};
+function impGuess(rows,force){
+  let hr=-1,best=0;
+  if(force!==undefined)hr=force;else for(let i=0;i<Math.min(rows.length,20);i++){const keys=(rows[i]||[]).map(impKey).filter(Boolean);const sc=new Set(keys).size;if(sc>best){best=sc;hr=i}}
+  const width=Math.max(0,...rows.map(r=>r.length));const map=Array(width).fill('');
+  if(hr>=0)(rows[hr]||[]).forEach((h,c)=>{const k=impKey(h);if(k&&!map.includes(k))map[c]=k});
+  const body=rows.slice(hr+1).filter(r=>r&&r.some(x=>String(x).trim()));
+  const stat=c=>{const vals=body.map(r=>String(r[c]??'').trim()).filter(Boolean);return{n:vals.length,num:vals.filter(x=>impNum(x)!==null&&/^[-\d\s.,]+$/.test(x.replace(/ /g,''))).length,uniq:new Set(vals.map(x=>norm(x))).size}};
+  if(!map.includes('name')){let bc=-1,bs=0;for(let c=0;c<width;c++){if(map[c])continue;const s=stat(c);const txt=s.n-s.num;if(txt>bs&&s.uniq>=s.n*.6){bs=txt;bc=c}}if(bc>=0)map[bc]='name'}
+  if(!map.includes('qty')){let bc=-1,bs=0;for(let c=0;c<width;c++){if(map[c])continue;const s=stat(c);if(s.num>bs&&s.num>=s.n*.6){bs=s.num;bc=c}}if(bc>=0)map[bc]='qty'}
+  return{hr,map};
+}
+function impPlan(){
+  const I=MD.imp,sh=I.sheets[I.si],rows=sh.rows.slice(I.hr+1),col=k=>I.map.indexOf(k);
+  const cn=col('name');const res={add:[],upd:[],skip:0,dup:0};if(cn<0)return res;
+  const seen={};
+  rows.forEach(r=>{if(!r)return;const name=String(r[cn]??'').trim();
+    if(!name||/^(sous[- ]?)?total\b/i.test(norm(name))){if(r.some(x=>String(x).trim()))res.skip++;return}
+    const g=k=>col(k)>=0?String(r[col(k)]??'').trim():'';
+    const it={name,qty:Math.max(0,Math.round(impNum(g('qty'))??0)),hasQ:col('qty')>=0&&impNum(g('qty'))!==null,hs:Math.max(0,Math.round(impNum(g('hs'))??0)),
+      unit:UL[unitKey(g('unit'))]&&['m²','m','kg','L'].includes(UL[unitKey(g('unit'))])?UL[unitKey(g('unit'))]:'',usize:impNum(g('usize')),cat:g('cat'),kw:g('kw').split(/[,;]/).map(s=>s.trim()).filter(Boolean)};
+    const key=norm(name);
+    if(seen[key]){seen[key].qty+=it.qty;seen[key].hs+=it.hs;res.dup++;return}
+    seen[key]=it;const ex=S.products.find(p=>norm(p.name)===key);
+    if(ex){it.p=ex;res.upd.push(it)}else res.add.push(it)});
+  return res;
+}
+function openImp(){MD={k:'imp',step:1};drawImp()}
+function drawImp(){
+  const I=MD.imp;let body,foot;
+  if(MD.step===1){
+    body=`<div class="wel"><label class="impdrop" id="impdrop" tabindex="0">${ic('ul')}<b>Glisse ton fichier ici</b><span>ou clique pour le choisir · Excel (.xlsx) ou CSV</span><input type="file" id="impfile" accept=".xlsx,.xlsm,.csv,.txt,.tsv" hidden></label>
+      <p class="note" style="margin:0">Pas besoin d'un format précis : une ligne par produit, avec au moins son nom. StockInfos devine les colonnes (nom, quantité, hors service, unité…) et te montre ce qu'il a compris avant d'importer. Rien n'est envoyé sur internet.</p>
+      <p class="note" style="margin:0">Fichier en .xls ou .ods ? Ouvre-le dans Excel et enregistre-le en .xlsx. <button class="lnk" data-act="impmodel">Télécharger un modèle vide</button></p></div>`;
+    foot=`<button class="btn" data-act="close">Annuler</button>`;
+  }else{
+    const sh=I.sheets[I.si],width=Math.max(0,...sh.rows.map(r=>r?r.length:0)),cols=[...Array(width).keys()].filter(c=>sh.rows.some(r=>r&&String(r[c]??'').trim()));
+    const prev=sh.rows.slice(I.hr+1).filter(r=>r&&r.some(x=>String(x).trim())).slice(0,6),pl=impPlan(),hasName=I.map.includes('name');
+    body=`<div class="wel">
+      <div class="improw"><span class="h">Fichier</span><b>${esc(I.file)}</b>${I.sheets.length>1?`<select data-in="impsheet" aria-label="Onglet">${I.sheets.map((s,i)=>`<option value="${i}"${i===I.si?' selected':''}>${esc(s.name)}</option>`).join('')}</select>`:''}
+        <span class="h">Titres en ligne</span><select data-in="imphr" aria-label="Ligne des titres"><option value="-1"${I.hr<0?' selected':''}>Pas de titres</option>${sh.rows.slice(0,20).map((r,i)=>r&&r.some(x=>String(x).trim())?`<option value="${i}"${i===I.hr?' selected':''}>${i+1} · ${esc(r.filter(Boolean).slice(0,3).join(', ').slice(0,40))}</option>`:'').join('')}</select></div>
+      <p class="note" style="margin:0">Vérifie ce que représente chaque colonne :</p>
+      <div class="impwrap"><table class="imptbl"><thead><tr>${cols.map(c=>`<th><select data-in="impmap" data-c="${c}" class="${I.map[c]?'on':''}">${IMPF.map(([v,l])=>`<option value="${v}"${(I.map[c]||'')===v?' selected':''}>${l}</option>`).join('')}</select>${I.hr>=0&&sh.rows[I.hr]?`<small>${esc(String(sh.rows[I.hr][c]??''))}</small>`:''}</th>`).join('')}</tr></thead>
+        <tbody>${prev.map(r=>`<tr>${cols.map(c=>`<td class="${I.map[c]?'':'off'}">${esc(String(r[c]??''))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+      ${hasName?`<div class="impsum"><span><b>${pl.add.length}</b> nouveau${pl.add.length>1?'x':''} produit${pl.add.length>1?'s':''}</span><span><b>${pl.upd.length}</b> déjà dans le stock</span>${pl.skip?`<span>${pl.skip} ligne${pl.skip>1?'s':''} ignorée${pl.skip>1?'s':''} (sans nom ou total)</span>`:''}${pl.dup?`<span class="w">${pl.dup} doublon${pl.dup>1?'s':''} additionné${pl.dup>1?'s':''}</span>`:''}</div>
+        ${pl.upd.length?`<div class="f" style="margin:0"><label for="impmode">Pour les ${pl.upd.length} produit${pl.upd.length>1?'s':''} déjà dans le stock</label><select id="impmode" data-in="impmode"><option value="set"${I.mode==='set'?' selected':''}>Remplacer par les quantités du fichier</option><option value="add"${I.mode==='add'?' selected':''}>Ajouter les quantités du fichier</option><option value="skip"${I.mode==='skip'?' selected':''}>Ne pas y toucher</option></select></div>`:''}`
+      :`<p class="impwarn">${ic('alert')}Choisis quelle colonne contient le nom des produits.</p>`}</div>`;
+    foot=`<button class="btn l" data-act="impback">Autre fichier</button><button class="btn" data-act="close">Annuler</button><button class="btn pri" data-act="impgo"${hasName&&(pl.add.length||(pl.upd.length&&I.mode!=='skip'))?'':' disabled'}>Importer</button>`;
+  }
+  $('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(${MD.step===1?520:860}px,100%)"><div class="dh"><h3 id="mt">Importer un fichier Excel</h3><button class="ib" data-act="close" aria-label="Fermer">${ic('x')}</button></div>${body}<div class="df">${foot}</div></div></div>`;
+  if(MD.step===1){const box=$('#impdrop'),inp=$('#impfile');
+    inp.addEventListener('change',()=>{if(inp.files[0])impLoad(inp.files[0])});
+    box.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inp.click()}});
+    box.addEventListener('dragover',e=>{e.preventDefault();box.classList.add('drag')});
+    box.addEventListener('dragleave',()=>box.classList.remove('drag'));
+    box.addEventListener('drop',e=>{e.preventDefault();box.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)impLoad(f)})}
+}
+async function impLoad(f){
+  try{
+    const buf=await f.arrayBuffer(),ext=(f.name.split('.').pop()||'').toLowerCase();
+    if(ext==='xls'||ext==='ods')throw new Error('enregistre-le d\'abord en .xlsx depuis Excel');
+    const u=new Uint8Array(buf.slice(0,4)),isZip=u[0]===0x50&&u[1]===0x4b;
+    const sheets=(isZip?await readXlsx(buf):readCSV(buf)).filter(s=>s.rows.some(r=>r&&r.some(x=>String(x).trim())));
+    if(!sheets.length)throw new Error('le fichier est vide');
+    // choisit l'onglet qui ressemble le plus à une liste de stock
+    let si=0,g=null,bs=-1;sheets.forEach((s,i)=>{const t=impGuess(s.rows),hk=t.hr>=0?new Set((s.rows[t.hr]||[]).map(impKey).filter(Boolean)).size:0,n=s.rows.filter(r=>r&&r.some(x=>String(x).trim())).length;
+      const sc=hk*1000+(t.map.includes('name')?100:0)+(t.map.includes('qty')?100:0)+Math.min(n,99);if(sc>bs){bs=sc;g=t;si=i}});
+    MD.imp={file:f.name,sheets,si,hr:g.hr,map:g.map,mode:'set'};MD.step=2;drawImp();
+  }catch(e){toast('Lecture impossible : '+String(e.message||e))}
+}
+function impApply(){
+  const I=MD.imp,pl=impPlan(),col=k=>I.map.includes(k);let na=0,nu=0;
+  pl.add.forEach(it=>{const p={id:'p'+uid(),name:it.name,cat:it.cat,qty:it.qty,kw:it.kw,photo:'',unit:it.unit,hs:[],log:[]};
+    if(it.unit&&it.usize>0)p.usize=it.usize;if(it.hs>0)p.hs=[{q:Math.min(it.hs,it.qty),from:TODAY,until:'',note:'Importé'}];
+    logP(p,'new',`Produit importé depuis ${I.file} avec ${it.qty} en stock`);S.products.push(p);na++});
+  if(I.mode!=='skip')pl.upd.forEach(it=>{const p=it.p,old=p.qty;
+    if(it.hasQ)p.qty=I.mode==='add'?old+it.qty:it.qty;
+    if(col('cat')&&it.cat)p.cat=it.cat;if(col('unit')&&it.unit){p.unit=it.unit;if(it.usize>0)p.usize=it.usize}
+    if(col('kw')&&it.kw.length)p.kw=[...new Set([...(p.kw||[]),...it.kw])];
+    if(col('hs')){p.hs=(p.hs||[]).filter(h=>h.note!=='Importé');if(it.hs>0)p.hs.push({q:Math.min(it.hs,p.qty),from:TODAY,until:'',note:'Importé'})}
+    logP(p,'qty',it.hasQ&&old!==p.qty?`Import ${I.file} : ${old} → ${p.qty}`:`Mis à jour par l'import ${I.file}`);nu++});
+  save();closeM();U.view='stock';render();toast(`Import terminé : ${na} ajouté${na>1?'s':''}, ${nu} mis à jour`);
+}
 function openInv(){const R2=invRows(),tq=R2.reduce((n,r)=>n+r.p.qty,0),th=R2.reduce((n,r)=>n+r.hs,0);MD={k:'inv'};
   $('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(460px,100%)"><div class="dh"><h3 id="mt">Exporter l'inventaire</h3><button class="ib" data-act="close" aria-label="Fermer">${ic('x')}</button></div>
   <div class="wel"><p style="margin:0">${R2.length} produits · ${tq} pièces · <b>${th} hors service</b> · ${tq-th} restantes</p>
@@ -1111,6 +1269,7 @@ VIEWS.set=()=>{const cals=S.cfg.cals;
 
   <h3 class="seth">Données</h3>
   ${setRow('box','Mes données',`${S.products.length} produits · ${(S.packs||[]).length} kits · ${S.events.length} chantiers`,`<button class="btn sm" data-act="folder">Ouvrir le dossier</button>`)}
+  ${setRow('ul','Importer un stock','Depuis un fichier Excel (.xlsx) ou CSV : les colonnes sont reconnues automatiquement',`<button class="btn sm" data-act="impopen">Importer un fichier</button>`)}
   ${setRow('back','Sauvegarde','Une copie est faite automatiquement chaque jour (30 jours gardés)',`<button class="btn sm" data-act="export">Exporter</button><button class="btn sm" data-act="import">Importer</button>`)}
   ${setRow('trash','Repartir de zéro',U.reset==='ex'?'<b style="color:var(--red)">Remplacer tout par les exemples ?</b>':U.reset==='vide'?'<b style="color:var(--red)">Tout effacer définitivement ?</b>':'Les agendas reliés sont gardés',U.reset?`<button class="btn sm" data-act="reset-no">Non</button><button class="btn sm pri" data-act="reset-yes">Oui</button>`:`<button class="btn sm" data-act="reset" data-v="ex">Remettre les exemples</button><button class="btn sm dan" data-act="reset" data-v="vide">Tout effacer</button>`)}
   <div class="updrow"><span class="note">StockInfos ${API?'v'+esc(API.version):''} · logiciel libre · ${updTxt()}</span>${API&&API.updateCheck?`<button class="btn sm" data-act="updcheck"${UPDS.state==='checking'||UPDS.state==='downloading'?' disabled':''}>${ic('sync')}Rechercher une mise à jour</button>`:''}${UPDS.state==='ready'?`<button class="btn sm pri" data-act="updgo">Redémarrer et mettre à jour</button>`:''}</div>
@@ -1399,6 +1558,10 @@ document.addEventListener('mouseup',()=>{if(!DRAG.on)return;DRAG.on=false;const 
 /* ---------- actions ---------- */
 function setView(v){U.view=v;U.reset=false;try{history.replaceState(null,'','#'+VH[v])}catch(e){location.hash=VH[v]}render();$('#main').scrollTop=0}
 const A={
+  impopen:()=>openImp(),impback:()=>{MD.step=1;drawImp()},impgo:()=>impApply(),
+  impmodel:async()=>{const c='﻿'+['Nom;Quantité;Hors service;Unité;Catégorie','Chaise pliante;120;3;;Mobilier','Table 180 x 80;30;0;;Mobilier','Plancher;60;0;m²;Structure'].join('\r\n');
+    if(!API||!API.saveFile){toast('Disponible dans l\'app installée');return}
+    try{const f=await API.saveFile({name:'Modele-stock-StockInfos.csv',content:c,ext:'csv',label:'Fichier Excel (CSV)',open:true});if(f)toast('Modèle enregistré et ouvert dans Excel')}catch(e){toast('Enregistrement impossible')}},
   updcheck:()=>{API.updateCheck();UPDS.state='checking';render()},
   updgo:()=>{toast('Installation de la mise à jour…');API.updateInstall()},
   updhide:()=>{$('#updbar').hidden=true},
@@ -1524,6 +1687,12 @@ document.addEventListener('change',e=>{
   if(t.dataset.in==='cat'){U.cat=t.value;render()}
   if(t.dataset.in==='sort'){U.sort=t.value;S.ui.sort=t.value;save();render()}
   if(t.classList.contains('rf')&&MD&&MD.k==='ret'){MD.rows[+t.dataset.i].fate=t.value}
+  if(MD&&MD.k==='imp'&&MD.imp&&t.dataset.in){const I=MD.imp,v=t.value;
+    if(t.dataset.in==='impmap'){const c=+t.dataset.c;if(v)I.map=I.map.map(x=>x===v?'':x);I.map[c]=v}
+    else if(t.dataset.in==='imphr'){I.hr=+v;I.map=impGuess(I.sheets[I.si].rows,I.hr).map}
+    else if(t.dataset.in==='impsheet'){I.si=+v;const g=impGuess(I.sheets[I.si].rows);I.hr=g.hr;I.map=g.map}
+    else if(t.dataset.in==='impmode')I.mode=v;
+    drawImp();return}
   if(t.matches('[data-punit]')&&MD&&MD.k==='p'){readP();if(!MD.d.usize)MD.d.usize=1;drawP();$('.adv')?.setAttribute('open','')}
   if(t.dataset.calf){const c=calById(t.dataset.id);if(c){const f=t.dataset.calf;c[f]=f==='count'?t.checked:f==='name'?(t.value.trim()||c.name):t.value;save();render();if(f==='count')toast(t.checked?'Ses événements sortent du matériel':'Ses événements ne sortent plus de matériel')}}
   if(t.dataset.cfg){S.cfg[t.dataset.cfg]=t.type==='checkbox'?t.checked:t.value;save();render();planSync();toast('Réglage enregistré')}
