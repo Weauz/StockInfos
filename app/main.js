@@ -285,7 +285,17 @@ function runInstaller(relaunch) {
 }
 
 ipcMain.handle('update-check', () => checkUpdate(true));
-ipcMain.handle('update-install', () => { if (runInstaller(true)) setTimeout(() => app.quit(), 300); });
+ipcMain.handle('update-install', () => {
+  if (!UPD.file || UPD.installing || !fs.existsSync(UPD.file)) return;
+  if (process.platform === 'win32') {
+    // Electron lance l'installateur une fois l'app vraiment fermée (il n'est pas tué avec elle),
+    // puis l'installateur rouvre StockInfos tout seul (/RELANCER)
+    UPD.installing = true;
+    try { app.relaunch({ execPath: UPD.file, args: ['/S', '/RELANCER'] }); journal('mise à jour lancée avec redémarrage'); }
+    catch (e) { UPD.installing = false; journal('relance impossible : ' + e); if (!runInstaller(true)) return; }
+    setTimeout(() => app.quit(), 200);
+  } else if (runInstaller(true)) setTimeout(() => app.quit(), 300);
+});
 ipcMain.on('update-state', e => { e.returnValue = { state: UPD.state, version: UPD.version, notes: UPD.notes, error: UPD.error }; });
 
 // Si une mise à jour est prête quand on ferme l'app, elle s'installe toute seule

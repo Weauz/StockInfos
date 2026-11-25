@@ -2218,7 +2218,12 @@ function gBody(ev){const r=rng(ev),p=P(ev),its=Object.entries(p.items).map(([id,
     else end={dateTime:`${r.e}T23:59:00`,timeZone:TZ}}
   const description=[its.length?'Matériel :\n'+its.join('\n'):'',(ev.desc||'').trim(),'— Envoyé par StockInfos'].filter(Boolean).join('\n\n');
   const b={summary:ev.title||'(Sans titre)',location:ev.lieu||'',description,start,end};
-  b.extendedProperties={private:{si:ev.id,h:hashId(JSON.stringify(b))}};return b}
+  const j=JSON.stringify({title:ev.title||'',start:ev.start,end:ev.end,t0:ev.t0||'',t1:ev.t1||'',lieu:ev.lieu||'',desc:ev.desc||'',man:ev.man||{packs:{},items:{}},ci:ev.ci||0}),pr={si:ev.id,h:hashId(JSON.stringify(b)+j)};
+  for(let i=0,k=0;i<j.length&&k<28;i+=900,k++)pr['j'+k]=j.slice(i,i+900);
+  b.extendedProperties={private:pr};return b}
+function gReadJ(it){const pr=(it.extendedProperties&&it.extendedProperties.private)||{};let j='';for(let k=0;pr['j'+k]!==undefined;k++)j+=pr['j'+k];
+  if(j){try{return JSON.parse(j)}catch(e){}}
+  const f=gToLocal(it);if(!f)return null;f.desc=f.desc.replace(/\n*— Envoyé par StockInfos\s*$/,'').trim();return f}
 function gToLocal(it){const S0=it.start||{},E0=it.end||{};let start,end,t0='',t1='';
   if(S0.date){start=S0.date;end=E0.date?add(E0.date,-1):start}
   else if(S0.dateTime){start=S0.dateTime.slice(0,10);t0=S0.dateTime.slice(11,16);if(E0.dateTime){end=E0.dateTime.slice(0,10);t1=E0.dateTime.slice(11,16);if(t1==='00:00'&&end>start){end=add(end,-1);t1=''}}else end=start}
@@ -2245,12 +2250,20 @@ async function gSync(manual){
     do{const r=await call('GET',base+'?maxResults=2500&showDeleted=false'+(tok?'&pageToken='+encodeURIComponent(tok):''));
       for(const it of (r.json&&r.json.items)||[]){const si=it.extendedProperties&&it.extendedProperties.private&&it.extendedProperties.private.si;if(si&&!remote.has(si))remote.set(si,it);else extra.push(it)}
       tok=r.json&&r.json.nextPageToken}while(tok);
-    const local=S.events.filter(gSyncable);
-    for(const ev of local){const b=gBody(ev),ex=remote.get(ev.id);remote.delete(ev.id);
-      if(ex){ev.gid=ex.id;if(ex.extendedProperties.private.h!==b.extendedProperties.private.h){const r=await call('PATCH',base+'/'+encodeURIComponent(ex.id),b);if(r.status<300)nU++;else{const r2=await call('POST',base,b);ev.gid=r2.json.id;nA++}}}
-      else{const r=await call('POST',base,b);ev.gid=r.json.id;nA++}}
-    // chantiers d'origine StockInfos supprimés dans l'appli : on les retire de Google
-    for(const it of remote.values()){if(S.events.some(e=>e.id===it.extendedProperties.private.si))continue;await call('DELETE',base+'/'+encodeURIComponent(it.id));nD++}
+    const del=new Set(S.cfg.gdel||[]);
+    for(const ev of S.events.filter(gSyncable)){const b=gBody(ev),lh=b.extendedProperties.private.h,ex=remote.get(ev.id);remote.delete(ev.id);
+      if(ex){ev.gid=ex.id;const rh=ex.extendedProperties.private.h;
+        if(rh===lh){ev.gh=lh;ev.gcal=cal;continue}
+        if(ev.gh&&ev.gh===lh&&ev.gcal===cal){const d=gReadJ(ex);if(d){Object.assign(ev,d);if(!ev.man)ev.man={packs:{},items:{}};ev.gh=rh;nI++;continue}}
+        const r=await call('PATCH',base+'/'+encodeURIComponent(ex.id),b);if(r.status<300){ev.gh=lh;ev.gcal=cal;nU++}else{const r2=await call('POST',base,b);ev.gid=r2.json.id;ev.gh=lh;ev.gcal=cal;nA++}}
+      else if(ev.gh&&ev.gcal===cal){ev.__gone=true;nI++} // supprimé dans Google ou sur un autre PC
+      else{const r=await call('POST',base,b);ev.gid=r.json.id;ev.gh=lh;ev.gcal=cal;nA++}}
+    S.events=S.events.filter(e=>!e.__gone);
+    for(const it of remote.values()){const si=it.extendedProperties.private.si;
+      if(del.has(si)){await call('DELETE',base+'/'+encodeURIComponent(it.id));del.delete(si);nD++;continue}
+      // chantier créé sur un autre PC : on le récupère ici
+      const d=gReadJ(it);if(!d)continue;S.events.push({...d,man:d.man||{packs:{},items:{}},id:si,src:'manuel',gid:it.id,gh:it.extendedProperties.private.h,gcal:cal,created:Date.now()});nI++}
+    S.cfg.gdel=[...del].slice(-500);
     // rendez-vous ajoutés directement dans Google sur cet agenda : on les ramène dans l'appli
     const seenG=new Set();
     for(const it of extra){if(it.status==='cancelled'||!it.start)continue;const f=gToLocal(it);if(!f)continue;const id='gs'+it.id;seenG.add(id);
@@ -2402,7 +2415,7 @@ const A={
   delyes:()=>{let undo;if(MD.k==='p'){const i=S.products.findIndex(p=>p.id===MD.d.id),o=S.products[i];S.products.splice(i,1);undo=()=>{S.products.splice(i,0,o)}}
     else if(MD.k==='k'){const i=S.packs.findIndex(k=>k.id===MD.d.id),o=S.packs[i],refs=[];S.packs.splice(i,1);for(const ev of S.events)if(ev.man?.packs&&ev.man.packs[o.id]){refs.push([ev,ev.man.packs[o.id]]);delete ev.man.packs[o.id]}undo=()=>{S.packs.splice(i,0,o);for(const [ev,q] of refs)ev.man.packs[o.id]=q}}
     else{const i=S.events.findIndex(e=>e.id===MD.d.id),o=S.events[i];S.events.splice(i,1);undo=()=>{S.events.splice(i,0,o)}}
-    const wasEv=MD.k!=='p'&&MD.k!=='k';save();closeM();render();if(wasEv)gSoon();toast('Supprimé',()=>{undo();save();render();if(wasEv)gSoon();toast('Suppression annulée')})},
+    const wasEv=MD.k!=='p'&&MD.k!=='k',did=wasEv&&MD.d.id;if(did){S.cfg.gdel=[...(S.cfg.gdel||[]),did]}save();closeM();render();if(wasEv)gSoon();toast('Supprimé',()=>{undo();if(did)S.cfg.gdel=(S.cfg.gdel||[]).filter(x=>x!==did);save();render();if(wasEv)gSoon();toast('Suppression annulée')})},
   savee:()=>{const d=MD.d;if(!d.title.trim()){toast('Donne un nom au chantier');$('#e-title').focus();return}if(d.end<d.start)d.end=d.start;
     const {mk,...rest}=d;let nid=d.id;if(d.id)Object.assign(S.events.find(e=>e.id===d.id),rest);else{nid='e'+uid();S.events.push({...rest,id:nid,created:Date.now()})}S.events.find(e=>e.id===nid).used=Date.now();save();render();openR(nid);gSoon();toast('Chantier enregistré')},
   ecancel:()=>{if(MD&&MD.d&&MD.d.id)openR(MD.d.id);else closeM()},
