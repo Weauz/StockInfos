@@ -2539,6 +2539,8 @@ document.addEventListener('keydown',e=>{
 });
 document.addEventListener('input',e=>{
   const t=e.target;
+  // « 50chaises » : on sépare tout de suite le nombre du mot pour que l'appli le comprenne
+  if(t.dataset.qc==='txt'||t.dataset.ev==='desc'){const re=/(\d)(?=[a-zà-ÿœA-ZÀ-Ÿ]{3,})/g;if(re.test(t.value)){const c=t.selectionStart,before=t.value.slice(0,c),nb=(before.match(re)||[]).length;t.value=t.value.replace(re,'$1 ');t.setSelectionRange(c+nb,c+nb)}}
   if(t.dataset.qc){U.qc[t.dataset.qc]=t.value;if(t.dataset.qc==='txt'){qcSuggest();qcGrow()}if(t.dataset.qc==='a'&&U.qc.b<U.qc.a){U.qc.b=U.qc.a;const bb=document.querySelector('[data-qc=b]');if(bb)bb.value=U.qc.a}clearTimeout(window.__qct);window.__qct=setTimeout(()=>{const r=$('#qcr');if(r)r.innerHTML=qcRes()},180);return}
   if(MD&&MD.k==='imp'&&MD.inv&&MD.inv.rows&&/^inv(cnt|hs|rem)$/.test(t.dataset.in||'')){const r=MD.inv.rows[+t.dataset.k],f={invcnt:'ucnt',invhs:'uhs',invrem:'urem'}[t.dataset.in];r[f]=t.value;const e=document.querySelector(`.invtot[data-k="${t.dataset.k}"]`);if(e)e.innerHTML=invTotTxt(r);return}
   if(t.id==='palq'){PAL.q=t.value;PAL.i=0;drawPal();return}
