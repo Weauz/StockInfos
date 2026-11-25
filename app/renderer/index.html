@@ -992,7 +992,8 @@ function P(ev){const man=ev.man||{},key='§'+(S.cfg.read?1:0)+(S.cfg.kits?1:0)+'
   PC.set(key,r);return r}
 function rng(ev){const p=P(ev);let s=p.dates?.start||ev.start,e=p.dates?.end||ev.end;if(!e||e<s)e=s;return {s,e,re:e,back:e,free:add(e,1)}}
 function hsQty(p,d){let n=0;for(const h of (p&&p.hs)||[])if((!h.from||d>=h.from)&&(!h.until||d<=h.until))n+=+h.q||0;return n}
-function usage(pid,d,skip){let u=hsQty(byId(pid),d);for(const ev of S.events){if(skip&&ev.id===skip)continue;if(!counts(ev))continue;const r=rng(ev);if(d>=r.s&&d<=r.re)u+=P(ev).items[pid]||0}return u}
+const evOut=(ev,d)=>{const r=rng(ev);return d>=r.s&&d<=r.re&&!(ev.checked&&ev.checked.date&&d>=ev.checked.date)};
+function usage(pid,d,skip){let u=hsQty(byId(pid),d);for(const ev of S.events){if(skip&&ev.id===skip)continue;if(!counts(ev))continue;if(evOut(ev,d))u+=P(ev).items[pid]||0}return u}
 function shortages(){
   const out=[];if(!S.events.length)return out;const to=S.events.map(e=>rng(e).re).sort().pop();
   for(const p of S.products){let cur=null;for(let d=TODAY;d<=to;d=add(d,1)){const u=usage(p.id,d);if(u>p.qty){if(cur&&cur.to===add(d,-1)){cur.to=d;cur.miss=Math.max(cur.miss,u-p.qty)}else{cur={p,from:d,to:d,miss:u-p.qty};out.push(cur)}}}}
@@ -1072,9 +1073,9 @@ function topHTML30(){
     return `<button class="toprow" data-act="openp" data-id="${x.p.id}"><span class="tn">${i+1}</span><span class="tbx"><span class="tl"><b>${esc(x.p.name)}</b><span class="h">${x.nb} chantier${x.nb>1?'s':''}</span></span><span class="bar"><i style="width:${x.total/mx*100}%;background:var(--acc)"></i></span></span><span class="tv"><b>${x.total}</b><small class="${st}">${st==='ko'?'manque':st==='lo'?'juste':''} pic ${x.peak}/${x.p.qty}</small></span></button>`}).join('');
 }
 VIEWS.dash=()=>{
-  const d=TODAY,act=S.events.filter(ev=>counts(ev)&&(()=>{const r=rng(ev);return d>=r.s&&d<=r.re})());
+  const d=TODAY,act=S.events.filter(ev=>counts(ev)&&evOut(ev,d));
   const out=S.products.reduce((n,p)=>n+usage(p.id,d),0),tot=S.products.reduce((n,p)=>n+(+p.qty||0),0),pct=tot?Math.round(out/tot*100):0;
-  const rets=S.events.filter(counts).map(ev=>({ev,r:rng(ev)})).filter(x=>x.r.back>=TODAY&&Object.keys(P(x.ev).items).length).sort((a,b)=>a.r.back<b.r.back?-1:1).slice(0,5);
+  const rets=S.events.filter(counts).filter(ev=>!ev.checked).map(ev=>({ev,r:rng(ev)})).filter(x=>x.r.back>=TODAY&&Object.keys(P(x.ev).items).length).sort((a,b)=>a.r.back<b.r.back?-1:1).slice(0,5);
   const unk=S.events.filter(ev=>rng(ev).e>=TODAY&&(P(ev).unknown.length||P(ev).amb.length||(P(ev).umiss||[]).length));
   const evs=S.events.filter(ev=>rng(ev).e>=TODAY).sort((a,b)=>rng(a).s<rng(b).s?-1:1).slice(0,6);
   const nAl=SH.length+unk.length;
@@ -1107,13 +1108,14 @@ function stockInfo(p){
   const days=spanDays(),a0=days[0],b0=days[days.length-1];let u=0,wd=a0;
   for(const d of days){const x=usage(p.id,d);if(x>u){u=x;wd=d}}
   const a=p.qty-u;
-  const who=S.events.filter(ev=>{const r=rng(ev);return counts(ev)&&r.s<=b0&&r.re>=a0&&P(ev).items[p.id]});
-  const ref=b0,act=who.filter(ev=>{const r=rng(ev);return ref>=r.s&&ref<=r.re});
+  const who=S.events.filter(ev=>{const r=rng(ev);return counts(ev)&&r.s<=b0&&r.re>=a0&&P(ev).items[p.id]&&!(ev.checked&&ev.checked.date<=a0)});
+  const ref=b0,act=who.filter(ev=>evOut(ev,ref));
   const backs=act.map(ev=>rng(ev).back).sort();
+  const rday={};act.forEach(ev=>{const d=rng(ev).back;rday[d]=(rday[d]||0)+(P(ev).items[p.id]||0)});
   const per={};if(days.length>1){const av=days.map(d=>({d,a:p.qty-usage(p.id,d)}));let best=av[0];for(const v of av)if(v.a>best.a)best=v;per.best=best.a;per.bestDay=best.d;
     const segs=[];let cur=null;for(const v of av){if(v.a===a){if(cur&&cur.e===add(v.d,-1))cur.e=v.d;else{cur={s:v.d,e:v.d};segs.push(cur)}}}per.segs=segs;
-    const rt={};for(const ev of who){const r=rng(ev);if(r.back>=a0&&r.back<=b0)rt[r.back]=(rt[r.back]||0)+(P(ev).items[p.id]||0)}per.rets=Object.entries(rt).sort((x,y)=>x[0]<y[0]?-1:1)}
-  return {u,a,who,wd,per,back:backs[0]||null,nb:new Set(backs).size,nOut:act.reduce((n,ev)=>n+(P(ev).items[p.id]||0),0)};
+    const rt={};for(const ev of who){const r=rng(ev);if(r.back>=a0&&r.back<=b0&&!ev.checked)rt[r.back]=(rt[r.back]||0)+(P(ev).items[p.id]||0)}per.rets=Object.entries(rt).sort((x,y)=>x[0]<y[0]?-1:1)}
+  return {u,a,who,wd,per,back:backs[0]||null,nb:new Set(backs).size,nOut:act.reduce((n,ev)=>n+(P(ev).items[p.id]||0),0),rday:Object.entries(rday).sort((x,y)=>x[0]<y[0]?-1:1)};
 }
 function perBlock(p,I,cls){
   const P2=I.per,dd=d=>dt(d).getDate(),dw=d=>fmt(d,{weekday:'short',day:'numeric'}),seg=P2.segs.length?(P2.segs[0].s===P2.segs[0].e?'le '+dw(P2.segs[0].s):`du ${dw(P2.segs[0].s)} au ${dw(P2.segs[0].e)}`)+(P2.segs.length>1?' (et d\'autres jours)':''):'';
@@ -1129,7 +1131,7 @@ function pcard(p,I){
     <span class="pcb">
       ${U.mode==='periode'&&I.per.best!==undefined?perBlock(p,I,cls):`<span class="pcv"><b>${I.a}</b><span>/ ${p.qty} dispo</span></span>
       <span class="bar"><i class="${cls}" style="width:${pct}%"></i></span>`}
-      ${hsQty(p,U.mode==='periode'?U.a:U.date)?`<span class="pchs">${ic('tool')}${hsQty(p,U.mode==='periode'?U.a:U.date)} hors service</span>`:''}<span class="pcf" ${whoT?`title="${esc(whoT)}"`:''}>${U.mode==='periode'?(I.per.rets&&I.per.rets.length?`<span class="pcr">${I.per.rets.slice(0,3).map(([d,q])=>`<span>${ic('back')}Retour de ${q} le ${fmt(d,{weekday:'short',day:'numeric'})}</span>`).join('')}${I.per.rets.length>3?`<span class="h">+ ${I.per.rets.length-3} autre(s) retour(s)</span>`:''}</span>`:I.u?'<span class="h">Pas de retour sur la période</span>':'<span class="h">Tout est dispo sur la période</span>'):I.back?`<span class="pcr"><span>${ic('back')}Retour de ${I.nOut} le ${fmt(I.back,{weekday:'short',day:'numeric',month:'short'})}</span></span>`:'<span class="h">Tout est au dépôt</span>'}</span>
+      ${hsQty(p,U.mode==='periode'?U.a:U.date)?`<span class="pchs">${ic('tool')}${hsQty(p,U.mode==='periode'?U.a:U.date)} hors service</span>`:''}<span class="pcf" ${whoT?`title="${esc(whoT)}"`:''}>${U.mode==='periode'?(I.per.rets&&I.per.rets.length?`<span class="pcr">${I.per.rets.slice(0,3).map(([d,q])=>`<span>${ic('back')}Retour de ${q} le ${fmt(d,{weekday:'short',day:'numeric'})}</span>`).join('')}${I.per.rets.length>3?`<span class="h">+ ${I.per.rets.length-3} autre(s) retour(s)</span>`:''}</span>`:I.u?'<span class="h">Pas de retour sur la période</span>':'<span class="h">Tout est dispo sur la période</span>'):I.back?`<span class="pcr">${I.rday.slice(0,2).map(([d,q],k)=>`<span>${ic('back')}${k?'':'Retour de '}${q} le ${fmt(d,{weekday:'short',day:'numeric',month:'short'})}</span>`).join('')}${I.rday.length>2?`<span class="h">+ ${I.rday.length-2} autre(s) retour(s)</span>`:''}</span>`:'<span class="h">Tout est au dépôt</span>'}</span>
     </span>
   </div>`;
 }
