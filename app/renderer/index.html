@@ -840,6 +840,44 @@ b.brk{color:#c77700}b.lost{color:var(--red)}.okt{color:var(--ok)}
 .rlost{text-align:center;color:var(--mute);font-size:13px}.rlost.on{color:var(--red);font-weight:700}
 .rtr .rnote{grid-column:2/-1;font-size:12.5px;height:30px}
 .retsum{font-size:13px;padding:2px 2px}
+@media print{
+  #print:has(.ld){padding:0}
+  #print .ld{font:9.5pt/1.35 "Segoe UI",Arial,sans-serif;color:#1d1d1f;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #print .ld .lhead{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:.6pt solid #d0d0d0;padding-bottom:1.5mm}
+  #print .ld .lco{font-size:13pt;font-weight:700}
+  #print .ld .ldate{font-size:8.5pt;color:#6b6b6b}
+  #print .ld .ltitle{text-align:center;margin:6mm 0 5mm}
+  #print .ld .ltitle h1{margin:0;font-size:17pt;font-weight:700;letter-spacing:2.5px;text-transform:uppercase}
+  #print .ld .ltitle h1::after{content:"";display:block;width:44px;height:2.5px;background:#c2410c;margin:5px auto 0;border-radius:2px}
+  #print .ld .ltitle h2{margin:3mm 0 0;font-size:13pt;font-weight:600;text-align:center;display:block}
+  #print .ld .linfo{display:grid;grid-template-columns:1.2fr 1.3fr 1fr 1.2fr;gap:2.5mm;margin-bottom:4mm}
+  #print .ld .linfo div{border:.6pt solid #e2e2e2;border-radius:2mm;padding:2mm 3mm;background:#fafafa}
+  #print .ld .linfo div.tot{border-color:#c2410c;background:#fff7f2}
+  #print .ld .linfo span,#print .ld .lkits span,#print .ld .lnotes span,#print .ld .lsign span{display:block;font-size:6.8pt;text-transform:uppercase;letter-spacing:.5px;color:#8a8a8a;margin-bottom:.8mm}
+  #print .ld .linfo b{font-size:9.5pt;font-weight:600}
+  #print .ld .lkits{margin:0 0 4mm;font-size:9pt}#print .ld .lkits span{display:inline;margin-right:2mm}
+  #print .ld .ltbl{width:100%;border-collapse:collapse;table-layout:fixed}
+  #print .ld .ltbl thead{display:table-header-group}
+  #print .ld .ltbl th{font-size:7pt;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6b6b6b;text-align:left;padding:1.5mm 2mm;border-bottom:1pt solid #1d1d1f;white-space:nowrap}
+  #print .ld .ltbl td{padding:1.6mm 2mm;border-bottom:.5pt solid #e4e4e4;vertical-align:middle}
+  #print .ld .ltbl tbody tr:nth-child(even):not(.cat) td{background:#f7f7f7}
+  #print .ld .ltbl tr{page-break-inside:avoid}
+  #print .ld .ltbl tr.cat td{background:none;border-bottom:.6pt solid #c9c9c9;padding-top:3mm;font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#c2410c}
+  #print .ld .ltbl .n{width:7mm;text-align:right;color:#9a9a9a;font-size:7.5pt}
+  #print .ld .ltbl .pr b{font-weight:600}
+  #print .ld .ltbl .pr .meta{display:block;font-size:7pt;color:#8a8a8a}
+  #print .ld .ltbl .q{width:14mm;text-align:right;font-size:11pt;font-weight:700;font-variant-numeric:tabular-nums}
+  #print .ld .ltbl th.q{font-size:7pt}
+  #print .ld .ltbl .ck{width:16mm;text-align:center}
+  #print .ld .ltbl td.ck i{display:inline-block;width:4.5mm;height:4.5mm;border:.8pt solid #6b6b6b;border-radius:1mm;background:#fff}
+  #print .ld .ltbl .rm{width:42mm}
+  #print .ld .ltbl td.rm{border-left:.5pt solid #e4e4e4}
+  #print .ld .ltbl .empty{text-align:center;color:#888;padding:8mm}
+  #print .ld .lnotes{margin-top:5mm;border:.6pt solid #d0d0d0;border-radius:2mm;padding:2mm 3mm;page-break-inside:avoid}
+  #print .ld .lnotes i{display:block;height:7mm;border-bottom:.5pt solid #e0e0e0}
+  #print .ld .lsign{display:flex;gap:4mm;margin-top:4mm;page-break-inside:avoid}
+  #print .ld .lsign div{flex:1;height:16mm;border:.6pt solid #d0d0d0;border-radius:2mm;padding:1.5mm 3mm}
+}
 </style>
 </head>
 <body>
@@ -1604,7 +1642,7 @@ function invCSV(){const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
   const lines=[['Produit','Référence','Quantité totale','Hors service','Restant','Détail hors service','En état'].map(q).join(';')];
   for(const r of invRows())lines.push([q(r.p.name),q(r.p.ref||''),r.p.qty,r.hs,r.rest,q(r.hl.map(hsTxt).join(' / ')),''].join(';'));
   return '﻿'+lines.join('\r\n')}
-async function outPrint(mode,name){if(mode==='pdf'){if(!API||!API.savePdf){toast('Ferme complètement l\'app et relance Lancer.bat pour activer l\'export PDF');return}try{const f=await API.savePdf({name});if(f)toast('PDF enregistré et ouvert')}catch(e){toast('PDF impossible : '+String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,'').replace(/No handler registered.*/,'ferme complètement l\'app et relance Lancer.bat'))}}else setTimeout(()=>window.print(),50)}
+async function outPrint(mode,name){if(mode==='pdf'){if(!API||!API.savePdf){toast('Ferme complètement l\'app et relance Lancer.bat pour activer l\'export PDF');return}try{const f=await API.savePdf({name});if(f)toast('PDF enregistré et ouvert')}catch(e){toast('PDF impossible : '+String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,'').replace(/No handler registered.*/,'ferme complètement l\'app et relance Lancer.bat'))}}else setTimeout(()=>{if(API&&API.print)API.print();else window.print()},50)}
 // ---- feuille d'inventaire lisible par l'app (QR code + repères aux coins) ----
 // Toutes les positions sont en mm dans la zone imprimable (186 x 273 mm, marges de 12 mm)
 const INVL={W:186,H:273,mk:5,qr:{x:164,y:0,s:16},rows0:46,rowH:7.6,perPage:26,boxH:5.6,
@@ -1836,16 +1874,23 @@ function drawRet(){const ev=S.events.find(e=>e.id===MD.id);
     <div class="retsum">${retSumTxt()}</div></div>
     <div class="df"><button class="btn l" data-act="retall">Tout est revenu en bon état</button><button class="btn" data-act="retback" data-id="${ev.id}">Annuler</button><button class="btn pri" data-act="retok">Valider le retour</button></div>
   </div></div>`}
-function printLoad(id,mode){const ev=S.events.find(e=>e.id===id),r=rng(ev),p=P(ev);
+function printLoad(id,mode){const ev=S.events.find(e=>e.id===id),r=rng(ev),p=P(ev),co=(S.cfg.company||'').trim();
   const items=Object.entries(p.items).map(([pid,q])=>({pr:byId(pid),q})).filter(x=>x.pr).sort((a,b)=>(a.pr.cat||'~').localeCompare(b.pr.cat||'~','fr')||a.pr.name.localeCompare(b.pr.name,'fr'));
-  let cat=null,rows='';for(const x of items){if(x.pr.cat!==cat){cat=x.pr.cat;rows+=`<tr class="pc-cat"><td colspan="4">${esc(cat||'Sans catégorie')}</td></tr>`}rows+=`<tr><td class="box"></td><td>${esc(x.pr.name)}</td><td class="q">${x.q}${x.pr.unit?` <small>(${String(+(x.q*usz(x.pr)).toFixed(2)).replace('.',',')} ${esc(unitLabel(x.pr))})</small>`:''}</td><td class="box"></td></tr>`}
+  const cats=new Set(items.map(x=>x.pr.cat||'')).size>1;let cat=null,k=0,rows='';
+  for(const x of items){if(cats&&(x.pr.cat||'')!==cat){cat=x.pr.cat||'';rows+=`<tr class="cat"><td colspan="6">${esc(cat||'Sans catégorie')}</td></tr>`}k++;
+    const meta=[x.pr.ref?`Réf. ${esc(x.pr.ref)}`:'',x.pr.unit?`${String(+(x.q*usz(x.pr)).toFixed(2)).replace('.',',')} ${esc(unitLabel(x.pr))}`:''].filter(Boolean).join(' · ');
+    rows+=`<tr><td class="n">${k}</td><td class="pr"><b>${esc(x.pr.name)}</b>${meta?`<span class="meta">${meta}</span>`:''}</td><td class="q">${x.q}</td><td class="ck"><i></i></td><td class="ck"><i></i></td><td class="rm"></td></tr>`}
   const kits=[...Object.entries(p.packs||{}),...Object.entries(p.mpacks||{})].filter(([id])=>byPack(id)).map(([id,q])=>`${esc(byPack(id).name)} ×${q}`).join(', ');
-  $('#print').innerHTML=`<div class="ph1"><div><h1>Liste de chargement</h1><h2>${esc(ev.title)}</h2></div><div class="pco">${esc(S.cfg.company||'')}<br><small>StockInfos · imprimé le ${fmt(TODAY,{day:'numeric',month:'long',year:'numeric'})}</small></div></div>
-    <table class="pinfo"><tr><td><b>Dates</b><br>${fmt(r.s,{weekday:'long',day:'numeric',month:'long'})} → ${fmt(r.e,{weekday:'long',day:'numeric',month:'long'})}</td><td><b>Lieu</b><br>${esc(ev.lieu||'—')}</td><td><b>Retour au dépôt</b><br>${fmt(r.back,{weekday:'long',day:'numeric',month:'long'})}</td></tr></table>
-    ${kits?`<p><b>Kits :</b> ${kits}</p>`:''}
-    <table class="ptbl"><thead><tr><th>Chargé</th><th>Matériel</th><th>Qté</th><th>Revenu</th></tr></thead><tbody>${rows}</tbody></table>
-    <p class="ptot">${items.reduce((n,x)=>n+x.q,0)} articles · ${items.length} produits</p>
-    <div class="psign"><div>Préparé par :<br><br>Date :</div><div>Vérifié au retour par :<br><br>Date :</div></div>`;
+  const F=d=>fmt(d,{weekday:'short',day:'numeric',month:'short'}),nb=items.reduce((n,x)=>n+x.q,0);
+  $('#print').innerHTML=`<div class="ld">
+    <div class="lhead"><div class="lco">${co?esc(co):'&nbsp;'}</div><div class="ldate">Imprimé le ${fmt(TODAY,{day:'numeric',month:'long',year:'numeric'})}</div></div>
+    <div class="ltitle"><h1>Liste de chargement</h1><h2>${esc(ev.title)}</h2></div>
+    <div class="linfo"><div><span>Dates</span><b>${F(r.s)}${r.e!==r.s?` → ${F(r.e)}`:''}</b></div><div><span>Lieu</span><b>${esc(ev.lieu||'—')}</b></div><div><span>Retour au dépôt</span><b>${F(r.back)}</b></div><div class="tot"><span>À charger</span><b>${nb} article${nb>1?'s':''} · ${items.length} produit${items.length>1?'s':''}</b></div></div>
+    ${kits?`<p class="lkits"><span>Kits</span>${kits}</p>`:''}
+    <table class="ltbl"><thead><tr><th class="n">#</th><th class="pr">Matériel</th><th class="q">Qté</th><th class="ck">Chargé</th><th class="ck">Revenu</th><th class="rm">Remarque</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="empty">Aucun matériel sur ce chantier</td></tr>'}</tbody></table>
+    <div class="lnotes"><span>Notes</span><i></i><i></i></div>
+    <div class="lsign"><div><span>Préparé par</span></div><div><span>Chargé par · date</span></div><div><span>Vérifié au retour par · date</span></div></div>
+  </div>`;
   outPrint(mode,`Chargement-${short(ev.title).replace(/[^\w\-]+/g,'_')}-${r.s}.pdf`)}
 function openE(id,d0,d1){const ev=id&&S.events.find(e=>e.id===id);MD={k:'e',d:ev?{...ev,man:JSON.parse(JSON.stringify(ev.man||{packs:{},items:{}}))}:{man:{packs:{},items:{}},id:null,title:'',start:d0||U.date,end:d1||add(d0||U.date,2),lieu:'',desc:'',src:'manuel',ci:S.events.length%COLORS.length},confirm:false,mk:-1};drawE()}
 function readHTML(){

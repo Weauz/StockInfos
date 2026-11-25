@@ -195,13 +195,25 @@ ipcMain.handle('save-pdf', async (e, o) => {
     filters: [{ name: 'PDF', extensions: ['pdf'] }]
   });
   if (r.canceled || !r.filePath) return false;
-  const data = await win.webContents.printToPDF({ pageSize: 'A4', printBackground: true, preferCSSPageSize: true });
+  // fond blanc pendant l'export (sinon la couleur de la fenêtre apparaît dans les marges)
+  const bg = win.getBackgroundColor();
+  win.setBackgroundColor('#ffffff');
+  let data;
+  try { data = await win.webContents.printToPDF({ pageSize: 'A4', printBackground: true, preferCSSPageSize: true }); }
+  finally { win.setBackgroundColor(bg); }
   fs.writeFileSync(r.filePath, data);
   shell.openPath(r.filePath);
   return r.filePath;
 });
 
 ipcMain.handle('open-data-folder', () => shell.openPath(dataDir()));
+
+// impression papier avec fond blanc
+ipcMain.handle('print', () => new Promise(res => {
+  const bg = win.getBackgroundColor();
+  win.setBackgroundColor('#ffffff');
+  win.webContents.print({ printBackground: true }, ok => { win.setBackgroundColor(bg); res(ok); });
+}));
 
 ipcMain.on('theme', (e, dark) => {
   if (!win) return;

@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('api', {
   openDataFolder: () => ipcRenderer.invoke('open-data-folder'),
   saveFile: o => ipcRenderer.invoke('save-file', o),
   savePdf: o => ipcRenderer.invoke('save-pdf', o),
+  print: () => ipcRenderer.invoke('print'),
   theme: dark => ipcRenderer.send('theme', dark),
   updateCheck: () => ipcRenderer.invoke('update-check'),
   updateInstall: () => ipcRenderer.invoke('update-install'),
