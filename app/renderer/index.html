@@ -967,6 +967,13 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .tgab{border-left:1px solid var(--line);cursor:copy;z-index:0}.tgab:first-child{border-left:0}.tgab.today{background:color-mix(in srgb,var(--acc) 5%,transparent)}
 .tga .cev{z-index:1}
 .tgb{height:min(62vh,600px);overflow-y:auto;position:relative;overscroll-behavior:contain}.tgb>.tgh{position:sticky;top:0;z-index:5;background:var(--card)}
+.tgal{display:flex;align-items:flex-start;justify-content:flex-end;padding:6px 6px 0;border-top:1px solid var(--line)}.tgal small{font-size:10.5px;color:var(--mute)}
+.tgband{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:3px 0;padding:4px 0;border-top:1px solid var(--line);position:relative;max-height:120px;overflow-y:auto}
+.tgband .tgab{border-left:1px solid var(--line);cursor:copy}.tgband .tgab:first-child{border-left:0}.tgband .tgab.today{background:color-mix(in srgb,var(--acc) 5%,transparent)}
+.tgbar{z-index:1;margin:0 3px;border:0;border-radius:6px;padding:3px 8px;text-align:left;cursor:pointer;background:var(--c);color:#fff;font:inherit;display:flex;align-items:baseline;gap:8px;min-width:0;overflow:hidden;white-space:nowrap}
+.tgbar b{font-size:12.5px;overflow:hidden;text-overflow:ellipsis}.tgbar small{font-size:11px;opacity:.85;overflow:hidden;text-overflow:ellipsis}
+.tgbar.cl{border-top-left-radius:0;border-bottom-left-radius:0;margin-left:0}.tgbar.cr{border-top-right-radius:0;border-bottom-right-radius:0;margin-right:0}
+.tgbar.short{box-shadow:inset 0 0 0 2px var(--red)}.tgbar:hover{filter:brightness(1.07)}
 .tgin{display:grid;grid-template-columns:56px minmax(0,1fr);position:relative}
 .tgl span{position:absolute;right:8px;transform:translateY(-50%);font-size:11px;color:var(--mute)}
 .tgcols{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));background:repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px 44px)}
@@ -1391,7 +1398,13 @@ const TGH=44; // hauteur d'une heure en pixels
 const tmin=t=>t?(+t.slice(0,2))*60+(+t.slice(3,5)):null;
 function timeGrid(days){
   const n=days.length;
-  const all=S.events.filter(VIS).map(ev=>({ev,r:rng(ev)})).filter(x=>x.r.s<=days[n-1]&&x.r.e>=days[0]);
+  const all0=S.events.filter(VIS).map(ev=>({ev,r:rng(ev)})).filter(x=>x.r.s<=days[n-1]&&x.r.e>=days[0]);
+  const all=all0.filter(x=>x.ev.t0||x.ev.t1),top=all0.filter(x=>!x.ev.t0&&!x.ev.t1).sort((x,y)=>x.r.s<y.r.s?-1:x.r.s>y.r.s?1:(y.r.e>x.r.e?1:-1));
+  const lanes=[];for(const x of top){let l=0;while(lanes[l]&&lanes[l]>=x.r.s)l++;lanes[l]=x.r.e;x.l=l}
+  const a0=days[0],b0=days[n-1],L=Math.max(1,lanes.length);
+  const bars=top.map(x=>{const si=Math.max(0,diff(a0,x.r.s)),ei=Math.min(n-1,diff(a0,x.r.e)),p=P(x.ev),it=Object.entries(p.items).slice(0,3).map(([id,q])=>byId(id)?`${esc(byId(id).name)} ×${q}`:'').filter(Boolean).join(' · ');
+    return `<button class="tgbar${evShort(x.ev)?' short':''}${x.r.s<a0?' cl':''}${x.r.e>b0?' cr':''}" style="--c:${evColor(x.ev)};grid-column:${si+1}/${ei+2};grid-row:${x.l+1}" data-act="openev" data-id="${x.ev.id}" title="${esc(x.ev.title)}"><b>${esc(x.ev.title)}</b>${it?`<small>${it}</small>`:''}</button>`}).join('');
+  const bandBg=days.map((d,i)=>`<div class="tgab${d===TODAY?' today':''}" data-dd="${d}" style="grid-column:${i+1};grid-row:1/${L+1}" title="Clique ou glisse pour un chantier sur la journée entière"></div>`).join('');
   const head=days.map(d=>`<button class="ch${d===TODAY?' today':''}" data-act="pvday" data-d="${d}"><small>${fmt(d,{weekday:'short'})}</small><b>${dt(d).getDate()}</b></button>`).join('');
   const sd=d=>fmt(d,{weekday:'short',day:'numeric'});
   // chaque chantier est découpé jour par jour : 1er jour à partir de son heure, jours du milieu en entier, dernier jour jusqu'à son heure de fin
@@ -1412,7 +1425,7 @@ function timeGrid(days){
     return `<div class="tgc${d===TODAY?' today':''}" data-dd="${d}" title="Clique sur une heure pour créer un chantier, ou glisse sur plusieurs jours">${blocks}${now}</div>`}).join('');
   const hours=[...Array(24)].map((_,h)=>`<span style="top:${h*TGH}px">${h?h+'h':''}</span>`).join('');
   return `<div class="tg" style="--n:${n}">
-    <div class="tgb" id="tgb"><div class="tgh"><div class="tgg"></div><div class="tgdays">${head}</div></div><div class="tgin" style="height:${24*TGH}px"><div class="tgg tgl">${hours}</div><div class="tgcols">${cols}</div></div></div>
+    <div class="tgb" id="tgb"><div class="tgh"><div class="tgg"></div><div class="tgdays">${head}</div><div class="tgg tgal"><small>Journée</small></div><div class="tgband" style="grid-template-rows:repeat(${L},minmax(26px,auto))">${bandBg}${bars}</div></div><div class="tgin" style="height:${24*TGH}px"><div class="tgg tgl">${hours}</div><div class="tgcols">${cols}</div></div></div>
   </div>`;
 }
 function tgFollow(el){const st=el.scrollTop;el.querySelectorAll('.tge').forEach(b=>{const t=b.querySelector('.tgt');if(!t)return;const top=parseFloat(b.style.top),room=b.clientHeight-t.offsetHeight-6;t.style.transform=st>top&&room>0?`translateY(${Math.min(st-top,room)}px)`:''})}
@@ -1447,7 +1460,7 @@ VIEWS.plan=()=>{
     <button class="btn" data-act="sync" id="syncb" title="${!S.cfg.cals.length?'Ajoute un agenda dans Paramètres':'Synchroniser maintenant'}">${ic('sync')}Synchroniser</button><button class="btn pri" data-act="newev">${ic('plus')}Nouveau chantier</button></div>
   ${calFilter()}
   ${body}
-  <p class="note" style="margin-top:10px">${U.pv!=='planning'?'Astuce : clique sur une heure pour créer un chantier à cette heure, ou glisse sur plusieurs jours pour un chantier long. ':''}${!(GS.st&&GS.st.connected)?'Google Agenda pas connecté (voir Paramètres)':GS.last?'Google Agenda synchronisé à '+new Date(GS.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'Google Agenda connecté'}</p>`};
+  <p class="note" style="margin-top:10px">${U.pv!=='planning'?'Astuce : clique sur une heure pour créer un chantier à cette heure, ou dans la ligne « Journée » (glisse sur plusieurs jours) pour un chantier sans heure. ':''}${!(GS.st&&GS.st.connected)?'Google Agenda pas connecté (voir Paramètres)':GS.last?'Google Agenda synchronisé à '+new Date(GS.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'Google Agenda connecté'}</p>`};
 function kitCap(k,days,skip){const its=Object.entries(k.items||{}).filter(([id])=>byId(id));if(!its.length)return {n:0,lim:[]};
   const per=its.map(([id,n])=>{const pr=byId(id);let a=Infinity;for(const d of days)a=Math.min(a,pr.qty-usage(id,d,skip));a=Math.max(0,a);return {pr,n,a,c:Math.floor(a/n)}});
   const m=Math.min(...per.map(x=>x.c));return {n:m,lim:per.filter(x=>x.c===m),per}}
@@ -2352,7 +2365,7 @@ function closePal(){PAL.on=false;drawPal()}
 let DPANELS=null;
 const DRAG={on:false,a:null,b:null,moved:false,skip:false};
 function dragPaint(){const x=DRAG.a<DRAG.b?DRAG.a:DRAG.b,y=DRAG.a<DRAG.b?DRAG.b:DRAG.a;document.querySelectorAll('[data-dd]').forEach(el=>el.classList.toggle('dsel',DRAG.on&&el.dataset.dd>=x&&el.dataset.dd<=y))}
-document.addEventListener('mousedown',e=>{if(e.button!==0||MD||PAL.on)return;const t=e.target.closest('[data-dd]');if(!t||e.target.closest('.ev,.cev,.tge'))return;DRAG.on=true;DRAG.a=DRAG.b=t.dataset.dd;DRAG.moved=false;DRAG.cell=t.matches('.cbg,.tgab,.tgc');DRAG.t=null;if(t.classList.contains('tgc')){const m=Math.floor((e.clientY-t.getBoundingClientRect().top)/TGH*2)*30,f=x=>String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');DRAG.t=[f(Math.min(m,1410)),f(Math.min(m+120,1439))]}dragPaint();e.preventDefault()});
+document.addEventListener('mousedown',e=>{if(e.button!==0||MD||PAL.on)return;const t=e.target.closest('[data-dd]');if(!t||e.target.closest('.ev,.cev,.tge,.tgbar'))return;DRAG.on=true;DRAG.a=DRAG.b=t.dataset.dd;DRAG.moved=false;DRAG.cell=t.matches('.cbg,.tgab,.tgc');DRAG.t=null;if(t.classList.contains('tgc')){const m=Math.floor((e.clientY-t.getBoundingClientRect().top)/TGH*2)*30,f=x=>String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');DRAG.t=[f(Math.min(m,1410)),f(Math.min(m+120,1439))]}dragPaint();e.preventDefault()});
 document.addEventListener('mouseover',e=>{if(!DRAG.on)return;const t=e.target.closest('[data-dd]');if(t&&t.dataset.dd!==DRAG.b){DRAG.b=t.dataset.dd;DRAG.moved=DRAG.b!==DRAG.a;dragPaint()}});
 document.addEventListener('mouseup',()=>{if(!DRAG.on)return;DRAG.on=false;const x=DRAG.a<DRAG.b?DRAG.a:DRAG.b,y=DRAG.a<DRAG.b?DRAG.b:DRAG.a;dragPaint();if(DRAG.moved||DRAG.cell){DRAG.skip=true;setTimeout(()=>{DRAG.skip=false},0);openE(null,x,y,DRAG.moved?null:DRAG.t)}});
 
