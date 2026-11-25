@@ -2229,7 +2229,7 @@ async function gSync(manual){
   try{
     let cal=S.cfg.gcal;
     if(cal){const r=await call('GET','/calendars/'+encodeURIComponent(cal));if(r.status===404||r.status===410)cal=null}
-    if(!cal){const r=await call('POST','/calendars',{summary:'Chantiers StockInfos',description:'Chantiers créés dans StockInfos',timeZone:TZ});cal=r.json.id;S.cfg.gcal=cal}
+    if(!cal){const r=await call('POST','/calendars',{summary:'Chantiers StockInfos',description:'Chantiers créés dans StockInfos',timeZone:TZ});cal=r.json.id;S.cfg.gcal=cal;save()}
     const base='/calendars/'+encodeURIComponent(cal)+'/events';
     const remote=new Map(),extra=[];let tok='';
     do{const r=await call('GET',base+'?maxResults=2500&showDeleted=false'+(tok?'&pageToken='+encodeURIComponent(tok):''));
