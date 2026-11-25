@@ -929,6 +929,8 @@ i.brk{color:#c77700}i.lost{color:var(--red)}
 i.tm{font-style:normal;font-weight:700;font-size:.85em;margin-right:5px;opacity:.85}
 i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .rrow i.tm{color:var(--amb)}
+.qca{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px}.qca>span{font-size:12.5px;color:var(--amb);font-weight:600;margin-right:2px}
+.qcp{cursor:pointer;border:1px solid var(--line);display:inline-flex;align-items:baseline;gap:6px}.qcp:hover{border-color:var(--acc);color:var(--acc)}.qcp small{font-size:10.5px;color:var(--mute)}
 .wks{margin-left:auto}.wks button{height:28px;padding:0 12px;font-size:12.5px}.wkn{display:inline-block;min-width:18px;margin-left:4px;padding:0 5px;border-radius:9px;background:var(--line);font-size:11px;font-weight:700;line-height:17px}.wks button.on .wkn{background:var(--acc);color:var(--accink)}
 .wkt{font-style:normal;text-transform:none;letter-spacing:0;font-size:11.5px;margin-left:auto;padding-left:8px;color:var(--ink);font-weight:700}
 .wki span{width:100%}
@@ -1194,15 +1196,18 @@ function qcHTML(){const Q=U.qc||(U.qc={a:TODAY,b:add(TODAY,2),txt:''});
 function qcRes(){const Q=U.qc;if(!Q||!Q.txt.trim())return '<p class="h" style="margin:0">Le résultat s\'affiche ici au fur et à mesure.</p>';
   const a=Q.a<=Q.b?Q.a:Q.b,b=Q.a<=Q.b?Q.b:Q.a,days=[];for(let d=a;d<=b&&days.length<92;d=add(d,1))days.push(d);
   const p=P({desc:Q.txt,man:{packs:{},items:{}}}),its=Object.entries(p.items).map(([id,q])=>({pr:byId(id),q})).filter(x=>x.pr);
-  if(!its.length)return `<p class="h" style="margin:0">Aucun produit reconnu${p.unknown.length?' : '+p.unknown.map(u=>esc(u.name)).join(', '):'.'} Vérifie l'orthographe ou ajoute ce nom dans les mots-clés du produit.</p>`;
-  let ok=true;const rows=its.map(x=>{let mn=1e9,wd=a;for(const d of days){const v=x.pr.qty-usage(x.pr.id,d);if(v<mn){mn=v;wd=d}}const good=mn>=x.q;if(!good)ok=false;
-    return `<div class="qcl ${good?'ok':'ko'}">${ic(good?'check':'alert')}<b>${esc(x.pr.name)} ×${x.q}</b><span>${good?`OK · ${mn} dispo au plus juste`:`Il en manque ${x.q-Math.max(0,mn)} le ${fmt(wd,{weekday:'short',day:'numeric',month:'short'})} (${Math.max(0,mn)} dispo)`}</span></div>`}).join('');
-  // mots qui ne correspondent à aucun produit (même sans quantité) : on regarde ce qui n'est couvert par aucune détection
+  // mots qui ne correspondent à aucun produit : soit plusieurs produits possibles (on propose de choisir), soit inconnu
   const tn=norm(Q.txt),cov=new Uint8Array(tn.length);(parse(Q.txt).hits||[]).forEach(h=>cov.fill(1,h.s,h.e));
   const STOP=/^(de|des|du|la|le|les|un|une|pour|avec|sans|plus|et|en|au|aux|metre|metres|carre|carres|m2|piece|pieces|x)$/;
-  const miss=[];for(const m of tn.matchAll(/[a-zœ]{3,}/g)){if(cov[m.index]||STOP.test(m[0])||NUMWS.test(m[0]))continue;if(!miss.includes(m[0]))miss.push(m[0])}
-  const amb=[],miss2=[];miss.forEach(w=>{const st=w.replace(/(s|x)$/,''),c=S.products.filter(p=>norm(p.name).startsWith(st));if(c.length>1)amb.push(`« ${esc(w)} » : précise lequel (${c.slice(0,4).map(p=>esc(p.name)).join(', ')})`);else miss2.push(esc(w))});
-  const unk=(amb.length?`<p class="h" style="margin:4px 0 0;color:#b45309">${amb.join('<br>')}</p>`:'')+(miss2.length?`<p class="h" style="margin:4px 0 0">Pas reconnu : ${miss2.join(', ')}</p>`:'');
+  const amb=[],miss2=[],seen=new Set();
+  for(const m of tn.matchAll(/[a-zœ]{3,}/g)){const w=m[0];if(cov[m.index]||STOP.test(w)||NUMWS.test(w)||seen.has(w))continue;seen.add(w);
+    const st=w.replace(/(s|x)$/,''),c=S.products.filter(p=>norm(p.name).split(/[^a-z0-9œ]+/).some(x=>x.startsWith(st)||(st.length>=4&&x.replace(/(s|x)$/,'')===st)));
+    if(c.length)amb.push({w,i:m.index,orig:Q.txt.slice(m.index,m.index+w.length),c});else miss2.push(esc(w))}
+  const unk=amb.map(x=>`<div class="qca"><span>${x.c.length>1?`« ${esc(x.orig)} » : lequel ?`:`« ${esc(x.orig)} » : tu veux dire ?`}</span>${x.c.slice(0,8).map(p=>`<button class="chip qcp" data-act="qcpick" data-i="${x.i}" data-l="${x.w.length}" data-id="${p.id}">${esc(p.name)}<small>${p.qty} en stock</small></button>`).join('')}</div>`).join('')
+    +(miss2.length?`<p class="h" style="margin:6px 0 0">Pas reconnu : ${miss2.join(', ')}. Vérifie l'orthographe ou ajoute ce nom dans les mots-clés du produit.</p>`:'');
+  if(!its.length)return amb.length?`<p class="h" style="margin:0 0 4px">Choisis le bon produit :</p>${unk}`:`<p class="h" style="margin:0">Aucun produit reconnu${miss2.length?' : '+miss2.join(', '):'.'} Vérifie l'orthographe ou ajoute ce nom dans les mots-clés du produit.</p>`;
+  let ok=true;const rows=its.map(x=>{let mn=1e9,wd=a;for(const d of days){const v=x.pr.qty-usage(x.pr.id,d);if(v<mn){mn=v;wd=d}}const good=mn>=x.q;if(!good)ok=false;
+    return `<div class="qcl ${good?'ok':'ko'}">${ic(good?'check':'alert')}<b>${esc(x.pr.name)} ×${x.q}</b><span>${good?`OK · ${mn} dispo au plus juste`:`Il en manque ${x.q-Math.max(0,mn)} le ${fmt(wd,{weekday:'short',day:'numeric',month:'short'})} (${Math.max(0,mn)} dispo)`}</span></div>`}).join('');
   return `<div class="qcv ${ok?'ok':'ko'}">${ok?'Tout est disponible':'Pas assez de matériel'} <small>${days.length>1?`du ${fmt(a,{day:'numeric',month:'short'})} au ${fmt(b,{day:'numeric',month:'short'})}`:`le ${fmt(a,{day:'numeric',month:'short'})}`}</small></div>${rows}${unk}
     <button class="btn sm" data-act="qcnew" style="margin-top:8px">${ic('plus')}Créer un chantier avec ce matériel</button>`}
 function wkList(d){const L=[];S.events.filter(ev=>counts(ev)&&retItems(ev)).forEach(ev=>{const r=rng(ev);if(r.s===d)L.push({ev,k:'out',t:ev.t0||''});if(r.e===d&&!ev.checked)L.push({ev,k:'in',t:ev.t1||''})});return L}
@@ -2202,6 +2207,7 @@ document.addEventListener('mouseup',()=>{if(!DRAG.on)return;DRAG.on=false;const 
 function setView(v){U.view=v;U.reset=false;try{history.replaceState(null,'','#'+VH[v])}catch(e){location.hash=VH[v]}render();$('#main').scrollTop=0}
 const A={
   wkm:e=>{U.wkm=e.dataset.v;render()},
+  qcpick:e=>{const Q=U.qc,i=+e.dataset.i,l=+e.dataset.l,pr=byId(e.dataset.id);if(!Q||!pr)return;Q.txt=Q.txt.slice(0,i)+pr.name+Q.txt.slice(i+l);const t=document.querySelector('[data-qc=txt]');if(t)t.value=Q.txt;const r=$('#qcr');if(r)r.innerHTML=qcRes()},
   qcnew:()=>{const Q=U.qc;openE(null,Q.a<=Q.b?Q.a:Q.b,Q.a<=Q.b?Q.b:Q.a);if(MD&&MD.d){MD.d.desc=Q.txt;drawE()}},
   essaiadd:()=>{const pr=S.products.filter(p=>p.qty>0).sort((a,b)=>b.qty-a.qty);if(!pr.length)return;
     const P=k=>pr[k%pr.length],q=(p,f)=>Math.max(1,Math.ceil(p.qty*f)),D=n=>add(TODAY,n);
