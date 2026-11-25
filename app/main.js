@@ -96,7 +96,7 @@ function createWindow() {
   // Ctrl+R : recharger après une modification · F12 : outils de développement
   win.webContents.on('before-input-event', (e, input) => {
     if (input.type !== 'keyDown') return;
-    if (input.control && input.key.toLowerCase() === 'r') { win.webContents.reload(); e.preventDefault(); }
+    if (input.control && input.key.toLowerCase() === 'r') { win.webContents.reloadIgnoringCache(); e.preventDefault(); }
     if (input.key === 'F12') { win.webContents.toggleDevTools(); e.preventDefault(); }
   });
   // Affiche la fenêtre dès qu'elle est prête, et au plus tard après 5 secondes
