@@ -1924,7 +1924,7 @@ VIEWS.set=()=>{const cals=S.cfg.cals;
   return `<div class="setw">
   <h3 class="seth">Google Agenda</h3>
   ${gSetHTML()}
-  ${setRow('sync','Synchronisation automatique',(GS.st&&GS.st.connected)||cals.length?(GS.err||SYNC.err?`<span style="color:var(--red)">${esc(GS.err||SYNC.err)}</span>`:'Aussi à l\'ouverture de l\'app et à chaque chantier créé ou modifié'):'',`<select id="s-au" data-cfg="auto" aria-label="Fréquence">${[['5','Toutes les 5 min'],['15','Toutes les 15 min'],['60','Toutes les heures'],['0','Seulement à la main']].map(([v,l])=>`<option value="${v}"${S.cfg.auto===v?' selected':''}>${l}</option>`).join('')}</select>`)}
+  ${setRow('sync','Synchronisation automatique',(GS.st&&GS.st.connected)||cals.length?(GS.err||SYNC.err?`<span style="color:var(--red)">${esc(GS.err||SYNC.err)}</span>`:'Google Agenda : en direct (changements vus en 15 secondes environ). Ce réglage sert pour les anciens liens iCal.'):'',`<select id="s-au" data-cfg="auto" aria-label="Fréquence">${[['5','Toutes les 5 min'],['15','Toutes les 15 min'],['60','Toutes les heures'],['0','Seulement à la main']].map(([v,l])=>`<option value="${v}"${S.cfg.auto===v?' selected':''}>${l}</option>`).join('')}</select>`)}
   ${cals.length?`<h3 class="seth">Anciens liens iCal</h3><p class="note" style="margin:-4px 0 8px">Ces liens marchent encore, mais ne sont plus nécessaires : tu peux les retirer. Les chantiers qu'ils ont importés disparaîtront de l'appli.</p>${cals.map(c=>`<div class="setr"><span class="seti" style="color:${esc(c.color)}">${ic('cal')}</span><span class="sett"><b>${esc(c.name)}</b><small>${c.err?`<span style="color:var(--red)">Échec : ${esc(c.err)}</span>`:`${S.events.filter(e=>e.cal===c.id).length} événement(s)`}</small></span><span class="setc">${U.delcal===c.id?`<button class="btn sm" data-act="caldel-no">Annuler</button><button class="btn sm pri" data-act="caldel-yes" data-id="${c.id}">Retirer</button>`:`<button class="btn sm" data-act="caldel" data-id="${c.id}">Retirer</button>`}</span></div>`).join('')}`:''}
   <h3 class="seth">Fonctions</h3>
   ${setRow('pack','Page Kits','Regrouper plusieurs produits (ex. « Chapiteau réception ») et les ajouter d\'un coup',`<input type="checkbox" class="sw" id="s-kits" data-cfg="kits"${S.cfg.kits?' checked':''} aria-label="Page Kits">`)}
@@ -2286,12 +2286,20 @@ function gToLocal(it){const S0=it.start||{},E0=it.end||{};let start,end,t0='',t1
   else if(S0.dateTime){start=S0.dateTime.slice(0,10);t0=S0.dateTime.slice(11,16);if(E0.dateTime){end=E0.dateTime.slice(0,10);t1=E0.dateTime.slice(11,16);if(t1==='00:00'&&end>start){end=add(end,-1);t1=''}}else end=start}
   else return null;if(end<start)end=start;
   return{title:it.summary||'(Sans titre)',start,end,t0,t1,lieu:it.location||'',desc:htmlToText(it.description||'')}}
-function gSoon(ms){clearTimeout(GS.timer);GS.timer=setTimeout(()=>gSync(false),ms??1500)}
+async function gPoll(){
+  if(!API||!API.gApi||GS.busy||!S.cfg.gcal||!(GS.st&&GS.st.connected)||document.hidden)return;
+  if(!GS.mark){gSync(false);return}
+  try{const r=await API.gApi({method:'GET',path:'/calendars/'+encodeURIComponent(S.cfg.gcal)+'/events?updatedMin='+encodeURIComponent(GS.mark)+'&showDeleted=true&maxResults=5&fields=items(id)'});
+    if(r.status===200&&r.json&&r.json.items&&r.json.items.length)gSync(false);else if(r.status===404||r.status===410)gSync(false)}catch(e){}}
+setInterval(gPoll,15000);
+window.addEventListener('focus',()=>{if(Date.now()-(GS.last||0)>5000)gPoll()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)gPoll()});
+function gSoon(ms){clearTimeout(GS.timer);GS.timer=setTimeout(()=>gSync(false),ms??400)}
 async function gSync(manual){
   if(!API||!API.gApi)return;
   if(GS.busy){GS.again=true;return}GS.busy=true;
   const st=GS.st||await gStatus();if(!st||!st.connected){GS.busy=false;if(manual&&st&&st.configured)toast('Connecte d\'abord ton compte Google dans Paramètres');return}
-  GS.err=null;let nA=0,nU=0,nD=0,nI=0;
+  GS.err=null;let nA=0,nU=0,nD=0,nI=0;const t0=new Date(Date.now()-5000).toISOString();
   const call=async(method,path,body)=>{const r=await API.gApi({method,path,body});if(r.status>=400&&r.status!==404&&r.status!==410)throw new Error((r.json&&r.json.error&&r.json.error.message)||('erreur Google '+r.status));return r};
   try{
     let cal=S.cfg.gcal;
@@ -2333,7 +2341,7 @@ async function gSync(manual){
       // chantier créé sur un autre PC : on le récupère ici
       const d=gReadJ(it);if(!d)continue;S.events.push({...d,man:d.man||{packs:{},items:{}},id:si,src:'manuel',gid:it.id,gh:it.extendedProperties.private.h,gcal:cal,created:Date.now()});nI++}
     S.cfg.gdel=[...del].slice(-500);
-    GS.last=Date.now();save();if(nI&&U.view!=='set')render();
+    GS.last=Date.now();GS.mark=t0;save();if(nI&&U.view!=='set')render();
     if(manual)toast(nA||nU||nD||nI?`Google Agenda : ${nA} envoyé${nA>1?'s':''}, ${nU} mis à jour, ${nD} retiré${nD>1?'s':''}${nI?`, ${nI} changement${nI>1?'s':''} reçu${nI>1?'s':''}`:''}`:'Google Agenda : déjà à jour');
   }catch(e){GS.err=String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,'');if(/non connecté|expirée/.test(GS.err))await gStatus();if(manual)toast('Google Agenda : '+GS.err)}
   GS.busy=false;{const a=document.activeElement;if(!MD&&!(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)))render();else{const n=document.querySelector('.gs');if(n)n.outerHTML=navHTML().match(/<div class="gs"[\s\S]*$/)[0]}}planSync();if(GS.again){GS.again=false;gSoon(300)}
