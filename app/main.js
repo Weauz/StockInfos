@@ -68,6 +68,19 @@ function dailyBackup() {
   }
 }
 
+// Copie juste avant une grosse suppression (10 gardées)
+ipcMain.on('backup-now', e => {
+  try {
+    fs.mkdirSync(backupDir(), { recursive: true });
+    const st = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+    const target = path.join(backupDir(), `avant-suppression-${st}.json`);
+    if (fs.existsSync(dataFile())) fs.copyFileSync(dataFile(), target);
+    const files = fs.readdirSync(backupDir()).filter(n => /^avant-suppression-/.test(n)).sort();
+    while (files.length > 10) fs.unlinkSync(path.join(backupDir(), files.shift()));
+    e.returnValue = target;
+  } catch (x) { e.returnValue = null; }
+});
+
 function overlay(dark) {
   return { color: dark ? '#202021' : '#e6e8ec', symbolColor: dark ? '#f2f2f2' : '#1a1a1a', height: 32 };
 }

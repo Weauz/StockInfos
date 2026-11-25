@@ -942,6 +942,11 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .qcbig [data-act=qcnew]{align-self:flex-start;height:34px;padding:0 14px;font-size:13.5px}.qcbig .qcq .chip{padding:5px 11px;font-size:13px}.qcbig .qcdb{height:38px;font-size:14px}
 .qcmain{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
 .qcbig .qcmain .qcr{margin-top:0;max-height:min(46vh,420px);overflow-y:auto;padding:2px 4px 2px 0;position:sticky;top:0}
+.dlg.wipe{width:min(520px,100%);padding:26px 28px;text-align:center;border:2px solid var(--red)}
+.wipe .wpi{width:58px;height:58px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;background:var(--redbg);color:var(--red)}.wipe .wpi svg{width:30px;height:30px}
+.wipe h3{color:var(--red);font-size:19px;margin:0 0 10px;line-height:1.3}.wipe p{margin:0 0 10px;color:var(--ink);font-size:14px;line-height:1.45}
+.wipe label{display:block;margin:14px 0 6px;font-size:14px}.wipe #wpt{text-align:center;font-weight:700;letter-spacing:2px;font-size:16px;height:42px}
+.wpb{display:flex;gap:10px;justify-content:center;margin-top:18px}.wpgo{background:var(--red);color:#fff;border-color:var(--red)}.wpgo:disabled{opacity:.4;cursor:not-allowed}
 .qcbox{display:flex;flex-wrap:wrap;align-items:flex-start;gap:6px;padding:8px;min-height:84px;cursor:text;height:auto}
 .qcbox:focus-within{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 18%,transparent)}
 .qcks{display:contents}
@@ -1957,7 +1962,8 @@ VIEWS.set=()=>{const cals=S.cfg.cals;
   ${setRow('ul','Importer un stock','Depuis un fichier Excel (.xlsx), CSV ou PDF : les colonnes sont reconnues automatiquement',`<button class="btn sm" data-act="impopen">Importer un fichier</button>`)}
   ${setRow('cal','Chantiers d\'essai','Crée quelques chantiers avec tes produits pour voir comment réagit le stock (dates qui se chevauchent, manque, retours). Ils se suppriment en un clic.',S.events.some(e=>e.essai)?`<button class="btn sm" data-act="essaidel">Supprimer les ${S.events.filter(e=>e.essai).length} chantiers d'essai</button>`:`<button class="btn sm" data-act="essaiadd"${S.products.some(p=>p.qty>0)?'':' disabled'}>Créer des chantiers d'essai</button>`)}
   ${setRow('back','Sauvegarde','Une copie est faite automatiquement chaque jour (30 jours gardés)',`<button class="btn sm" data-act="export">Exporter</button><button class="btn sm" data-act="import">Importer</button>`)}
-  ${setRow('trash','Repartir de zéro',U.reset==='ex'?'<b style="color:var(--red)">Remplacer tout par les exemples ?</b>':U.reset==='vide'?'<b style="color:var(--red)">Tout effacer définitivement ?</b>':'Les agendas reliés sont gardés',U.reset?`<button class="btn sm" data-act="reset-no">Non</button><button class="btn sm pri" data-act="reset-yes">Oui</button>`:`<button class="btn sm" data-act="reset" data-v="ex">Remettre les exemples</button><button class="btn sm dan" data-act="reset" data-v="vide">Tout effacer</button>`)}
+  ${setRow('trash','Supprimer tout le stock',`${S.products.length} produit${S.products.length>1?'s':''} et ${(S.packs||[]).length} kit${(S.packs||[]).length>1?'s':''}. Les chantiers restent.`,`<button class="btn sm dan" data-act="wipe" data-v="stock"${S.products.length||(S.packs||[]).length?'':' disabled'}>Supprimer tout le stock</button>`)}
+  ${setRow('trash','Supprimer tous les chantiers',`${S.events.length} chantier${S.events.length>1?'s':''}. Aussi supprimés de Google Agenda (« Chantiers StockInfos ») et des autres PC.`,`<button class="btn sm dan" data-act="wipe" data-v="ev"${S.events.length?'':' disabled'}>Supprimer tous les chantiers</button>`)}
   <div class="updrow"><span class="note">StockInfos ${API?'v'+esc(API.version):''} · ${/app\.asar/.test(location.href)?updTxt():'version de test (Lancer.bat)'}</span>${API&&API.updateCheck?`<button class="btn sm" data-act="updcheck"${UPDS.state==='checking'||UPDS.state==='downloading'?' disabled':''}>${ic('sync')}Rechercher une mise à jour</button>`:''}${UPDS.state==='ready'?`<button class="btn sm pri" data-act="updgo">Redémarrer et mettre à jour</button>`:''}</div>
   </div>`};
 
@@ -2412,6 +2418,15 @@ const A={
   edmon:e=>{const [y,m]=(U.edm||TODAY.slice(0,7)).split('-').map(Number),x=new Date(y,m-1+(+e.dataset.v),1);U.edm=`${x.getFullYear()}-${pad(x.getMonth()+1)}`;edRedraw()},
   edday:e=>{const x=e.dataset.d;if(!U.edpk){U.edpk=x}else{MD.d.start=U.edpk<x?U.edpk:x;MD.d.end=U.edpk<x?x:U.edpk;U.edpk=null;U.edp=false;MD.mk=-1}edRedraw()},
   edq:e=>{MD.d.start=e.dataset.a;MD.d.end=e.dataset.b;U.edp=false;U.edpk=null;MD.mk=-1;edRedraw()},
+  wipe:e=>{const w=e.dataset.v,n=w==='stock'?S.products.length:S.events.length;MD={k:'wipe',w};
+    const t=w==='stock'?`Attention, vous allez supprimer tout votre stock (${n} produit${n>1?'s':''}${(S.packs||[]).length?` et ${S.packs.length} kit${S.packs.length>1?'s':''}`:''})`:`Attention, vous allez supprimer tous vos chantiers (${n})`;
+    const m=w==='stock'?'Les produits, leurs quantités, leur matériel hors service et les kits seront effacés. Les chantiers restent, mais sans matériel reconnu.':`Ils seront aussi supprimés de Google Agenda (agenda « Chantiers StockInfos ») et des autres PC connectés. Tes autres agendas Google ne sont pas touchés.`;
+    $('#modal').innerHTML=`<div class="ov"><div class="dlg wipe" role="alertdialog" aria-modal="true" aria-labelledby="mt"><div class="wpi">${ic('alert')}</div><h3 id="mt">${t}</h3><p>${m}</p><p><b>Cette action est définitive.</b> Une copie de sécurité est faite juste avant (Paramètres › Sauvegarde › Importer pour revenir en arrière).</p><label for="wpt">Pour confirmer, tapez <b>SUPPRIMER</b> :</label><input class="in" id="wpt" autocomplete="off" spellcheck="false"><div class="wpb"><button class="btn" data-act="close">Annuler</button><button class="btn wpgo" data-act="wipego" disabled>Supprimer définitivement</button></div></div></div>`;
+    setTimeout(()=>{const i=$('#wpt');if(i)i.focus()},30)},
+  wipego:()=>{const i=$('#wpt');if(!MD||MD.k!=='wipe'||!i||i.value.trim().toUpperCase()!=='SUPPRIMER')return;const w=MD.w;
+    try{API&&API.backupNow&&API.backupNow()}catch(e){}
+    if(w==='stock'){const n=S.products.length;S.products=[];S.packs=[];save();closeM();render();toast(`${n} produit${n>1?'s':''} supprimé${n>1?'s':''}`)}
+    else{const n=S.events.length,ids=S.events.filter(gSyncable).map(e=>e.id);S.cfg.gdel=[...(S.cfg.gdel||[]),...ids].slice(-2000);S.events=[];save();closeM();render();gSoon(100);toast(`${n} chantier${n>1?'s':''} supprimé${n>1?'s':''}${GS.st&&GS.st.connected?', aussi dans Google Agenda':''}`)}},
   qcnew:()=>{const Q=U.qc;openE(null,Q.a<=Q.b?Q.a:Q.b,Q.a<=Q.b?Q.b:Q.a);if(MD&&MD.d){MD.d.desc=Q.txt;MD.d.man.items={...qcMan()};drawE()}},
   essaiadd:()=>{const pr=S.products.filter(p=>p.qty>0).sort((a,b)=>b.qty-a.qty);if(!pr.length)return;
     const P=k=>pr[k%pr.length],q=(p,f)=>Math.max(1,Math.ceil(p.qty*f)),D=n=>add(TODAY,n);
@@ -2476,7 +2491,10 @@ const A={
   glogout:async()=>{await API.gLogout();await gStatus();GS.err=null;render();toast('Déconnecté de Google sur ce PC. Reconnecte-toi avec le même compte pour retrouver le même agenda.')},
   folder:()=>API?API.openDataFolder():toast('Disponible dans l\'app installée'),
   export:async()=>{if(!API)return toast('Disponible dans l\'app installée');const f=await API.exportData(JSON.stringify(S,null,1));if(f)toast('Données exportées')},
-  import:async()=>{if(!API)return toast('Disponible dans l\'app installée');const t=await API.importData();if(!t)return;try{const o=JSON.parse(t);if(!Array.isArray(o.products)||!Array.isArray(o.events))throw 0;S=o;S.cfg=Object.assign({read:true,auto:'15',kits:true},S.cfg||{});migrateCals();S.ui=S.ui||{};S.packs=S.packs||[];save();render();toast('Données importées')}catch(e){toast('Ce fichier n\'est pas une sauvegarde StockInfos')}},
+  import:async()=>{if(!API)return toast('Disponible dans l\'app installée');const t=await API.importData();if(!t)return;try{const o=JSON.parse(t);if(!Array.isArray(o.products)||!Array.isArray(o.events))throw 0;S=o;S.cfg=Object.assign({read:true,auto:'15',kits:true},S.cfg||{});migrateCals();S.ui=S.ui||{};S.packs=S.packs||[];
+    // une sauvegarde remise : ses chantiers sont renvoyés vers Google (et non pris pour des chantiers supprimés)
+    {const ids=new Set(S.events.map(e=>e.id));S.events.forEach(e=>{delete e.gh;delete e.gcal});S.cfg.gdel=(S.cfg.gdel||[]).filter(x=>!ids.has(x))}
+    save();render();gSoon(300);toast('Données importées')}catch(e){toast('Ce fichier n\'est pas une sauvegarde StockInfos')}},
   reset:b=>{U.reset=b.dataset.v;render()},'reset-no':()=>{U.reset=false;render()},
   'reset-yes':()=>{const keep={cals:S.cfg.cals,auto:S.cfg.auto,read:S.cfg.read,kits:S.cfg.kits};if(U.reset==='ex')S=seed();else S={...seed(),products:[],packs:[],events:[]};S.cfg=Object.assign(S.cfg,keep);U.reset=false;U.date=TODAY;save();render();toast(S.products.length?'Exemples remis':'Tout est effacé')},
   'ical-show':()=>{const i=$('#c-url');if(i)i.type=i.type==='password'?'text':'password'},
@@ -2559,6 +2577,7 @@ document.addEventListener('keydown',e=>{
 document.addEventListener('input',e=>{
   const t=e.target;
   // « 50chaises » : on sépare tout de suite le nombre du mot pour que l'appli le comprenne
+  if(t.id==='wpt'){const g=document.querySelector('.wpgo');if(g)g.disabled=t.value.trim().toUpperCase()!=='SUPPRIMER';return}
   if(t.dataset.qk!==undefined&&U.qc&&U.qc.items){const x=U.qc.items[+t.dataset.qk];if(x){x.q=Math.max(0,parseInt(t.value)||0);const r=$('#qcr');if(r)r.innerHTML=qcRes()}return}
   if(t.dataset.qc==='txt'||t.dataset.ev==='desc'){const re=/(\d)(?=[a-zà-ÿœA-ZÀ-Ÿ]{3,})/g;if(re.test(t.value)){const c=t.selectionStart,before=t.value.slice(0,c),nb=(before.match(re)||[]).length;t.value=t.value.replace(re,'$1 ');t.setSelectionRange(c+nb,c+nb)}}
   if(t.dataset.qc){U.qc[t.dataset.qc]=t.value;if(t.dataset.qc==='txt'){qcSuggest();qcGrow()}if(t.dataset.qc==='a'&&U.qc.b<U.qc.a){U.qc.b=U.qc.a;const bb=document.querySelector('[data-qc=b]');if(bb)bb.value=U.qc.a}clearTimeout(window.__qct);window.__qct=setTimeout(()=>{const r=$('#qcr');if(r)r.innerHTML=qcRes()},180);return}

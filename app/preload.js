@@ -17,6 +17,7 @@ contextBridge.exposeInMainWorld('api', {
   updateInstall: () => ipcRenderer.invoke('update-install'),
   updateState: () => ipcRenderer.sendSync('update-state'),
   onUpdate: cb => ipcRenderer.on('update', (e, d) => cb(d)),
+  backupNow: () => ipcRenderer.sendSync('backup-now'),
   gStatus: () => ipcRenderer.invoke('g-status'),
   gLogin: () => ipcRenderer.invoke('g-login'),
   gLogout: () => ipcRenderer.invoke('g-logout'),
