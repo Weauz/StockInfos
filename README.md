@@ -22,7 +22,7 @@ Téléchargez **`StockInfos-Installation.exe`** dans la [dernière version](http
 - Choix d'un jour ou d'une période dans le calendrier : on voit ce qui reste, en comptant ce qui revient pendant la période.
 - Unités de mesure (m², mètre…) : « 5 m² » de plancher = 5 dalles de 1 m².
 - Matériel hors service ou en réparation, historique de chaque produit, disponibilité sur 14 jours.
-- Import de votre stock depuis un fichier Excel ou CSV, sans format imposé : les colonnes sont reconnues automatiquement.
+- Import de votre stock depuis un fichier Excel, CSV ou PDF, sans format imposé : les colonnes sont reconnues automatiquement.
 - Inventaire (total, hors service, restant, compté) en PDF ou Excel.
 
 **Planning**

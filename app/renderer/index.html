@@ -1011,7 +1011,7 @@ function plistHTML(){
 VIEWS.stock=()=>{
   const cats=[...new Set(S.products.map(p=>p.cat).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
   const all=S.products.map(p=>({p,I:stockInfo(p)})),miss=all.filter(x=>x.I.a<0),out=all.reduce((n,x)=>n+x.I.u,0);
-  return `<div class="tools"><label class="search">${ic('search')}<input id="q" data-in="q" placeholder="Rechercher un produit" value="${esc(U.q)}" autocomplete="off"></label><select id="sort" data-in="sort" aria-label="Trier par">${[['az','Nom A → Z'],['za','Nom Z → A'],['dispo','Le moins dispo d\'abord'],['qty','Plus grand stock d\'abord']].map(([v,l])=>`<option value="${v}"${U.sort===v?' selected':''}>${l}</option>`).join('')}</select><span class="sp"></span><button class="btn" data-act="impopen">${ic('ul')}Importer Excel</button><button class="btn" data-act="invopen">${ic('dl')}Inventaire</button><button class="btn pri" data-act="addp">${ic('plus')}Ajouter un produit</button></div>
+  return `<div class="tools"><label class="search">${ic('search')}<input id="q" data-in="q" placeholder="Rechercher un produit" value="${esc(U.q)}" autocomplete="off"></label><select id="sort" data-in="sort" aria-label="Trier par">${[['az','Nom A → Z'],['za','Nom Z → A'],['dispo','Le moins dispo d\'abord'],['qty','Plus grand stock d\'abord']].map(([v,l])=>`<option value="${v}"${U.sort===v?' selected':''}>${l}</option>`).join('')}</select><span class="sp"></span><button class="btn" data-act="impopen">${ic('ul')}Importer</button><button class="btn" data-act="invopen">${ic('dl')}Inventaire</button><button class="btn pri" data-act="addp">${ic('plus')}Ajouter un produit</button></div>
   ${cats.length?`<div class="cchips"><button class="${!U.cat?'on':''}" data-act="catf" data-v="">Tout <small>${S.products.length}</small></button>${cats.map(c=>`<button class="${U.cat===c?'on':''}" data-act="catf" data-v="${esc(c)}">${esc(c)} <small>${S.products.filter(p=>p.cat===c).length}</small></button>`).join('')}</div>`:''}
   <p class="note">${U.mode==='periode'?`Du <b>${fmt(U.a,{weekday:'long',day:'numeric',month:'long'})}</b> au <b>${fmt(U.b,{weekday:'long',day:'numeric',month:'long'})}</b> : en grand, ce que tu auras une fois les retours faits ; en dessous, le jour le plus juste`:`Le <b>${fmt(U.date,{weekday:'long',day:'numeric',month:'long'})}</b> : ${out} article${out>1?'s':''} sorti${out>1?'s':''}`}${miss.length?` · <b style="color:var(--red)">${miss.length} produit${miss.length>1?'s':''} en manque</b>`:' · aucun manque'}. <span class="h">Clique sur la date en haut pour choisir un jour ou une période.</span></p>
   <div id="plist">${plistHTML()}</div>`};
@@ -1128,6 +1128,30 @@ async function readXlsx(buf){
     return{name:s.name,rows:Array.from(rows,r=>Array.from(r||[],x=>x??''))};
   });
 }
+async function readPDF(buf){
+  const pdfjs=await import('./vendor/pdfjs/pdf.min.mjs');
+  pdfjs.GlobalWorkerOptions.workerSrc=new URL('./vendor/pdfjs/pdf.worker.min.mjs',location.href).href;
+  const doc=await pdfjs.getDocument({data:new Uint8Array(buf),isEvalSupported:false,disableFontFace:true}).promise;
+  const lines=[];let chars=0;
+  for(let pn=1;pn<=Math.min(doc.numPages,60);pn++){
+    const pg=await doc.getPage(pn),tc=await pg.getTextContent();
+    const its=tc.items.filter(i=>i.str&&i.str.trim()).map(i=>({s:i.str,x:i.transform[4],y:i.transform[5],w:i.width||i.str.length*4,h:Math.abs(i.transform[3])||10}));
+    chars+=its.reduce((n,i)=>n+i.s.trim().length,0);
+    its.sort((a,b)=>b.y-a.y||a.x-b.x);
+    const rows=[];its.forEach(i=>{const r=rows.find(r=>Math.abs(r.y-i.y)<=Math.max(2,i.h*.45));if(r)r.it.push(i);else rows.push({y:i.y,it:[i]})});
+    rows.sort((a,b)=>b.y-a.y).forEach(r=>{r.it.sort((a,b)=>a.x-b.x);const cells=[];
+      r.it.forEach(i=>{const c=cells[cells.length-1];if(c&&i.x-(c.x1)<Math.max(1.5,i.h*.25)&&i.x-c.x1>-1){c.s+=(i.x-c.x1>i.h*.15?' ':'')+i.s;c.x1=Math.max(c.x1,i.x+i.w)}else cells.push({s:i.s,x0:i.x,x1:i.x+i.w})});
+      lines.push(cells.map(c=>({...c,s:c.s.trim()})).filter(c=>c.s))});
+    pg.cleanup();
+  }
+  if(chars<5)throw new Error('ce PDF ne contient que des images (scan). StockInfos lit les PDF qui contiennent du texte, par exemple exportés depuis Excel');
+  // colonnes : regroupe les zones horizontales qui se chevauchent (les lignes d'un seul bloc, comme les titres, ne comptent pas)
+  let iv=[];lines.filter(l=>l.length>1).forEach(l=>l.forEach(c=>iv.push([c.x0-.5,c.x1+.5])));
+  iv.sort((a,b)=>a[0]-b[0]);const cols=[];iv.forEach(v=>{const c=cols[cols.length-1];if(c&&v[0]<=c[1])c[1]=Math.max(c[1],v[1]);else cols.push([...v])});
+  const which=c=>{const m=(c.x0+c.x1)/2;let k=cols.findIndex(v=>m>=v[0]&&m<=v[1]);if(k<0)k=cols.reduce((b,v,i)=>Math.abs((v[0]+v[1])/2-m)<Math.abs((cols[b][0]+cols[b][1])/2-m)?i:b,0);return k};
+  const out=lines.map(l=>{const r=Array(Math.max(1,cols.length)).fill('');if(!cols.length||l.length===1){r[0]=l.map(c=>c.s).join(' ');return r}l.forEach(c=>{const k=which(c);r[k]=r[k]?r[k]+' '+c.s:c.s});return r});
+  return[{name:'PDF',rows:out}];
+}
 function readCSV(buf){
   let txt;try{txt=new TextDecoder('utf-8',{fatal:true}).decode(buf)}catch(e){txt=new TextDecoder('windows-1252').decode(buf)}
   txt=txt.replace(/^﻿/,'');const head=txt.split(/\r?\n/).slice(0,10).join('\n');
@@ -1153,20 +1177,20 @@ function impKey(h){const n=norm(String(h||'')).replace(/[^a-z0-9 ]/g,' ').replac
 const impNum=v=>{const m=String(v??'').replace(/\s| /g,'').replace(',','.').match(/^-?\d+(\.\d+)?/);return m?parseFloat(m[0]):null};
 function impGuess(rows,force){
   let hr=-1,best=0;
-  if(force!==undefined)hr=force;else for(let i=0;i<Math.min(rows.length,20);i++){const keys=(rows[i]||[]).map(impKey).filter(Boolean);const sc=new Set(keys).size;if(sc>best){best=sc;hr=i}}
+  if(force!==undefined)hr=force;else for(let i=0;i<Math.min(rows.length,20);i++){const cells=(rows[i]||[]).filter(x=>String(x).trim());if(cells.length<2)continue;const sc=new Set(cells.map(impKey).filter(Boolean)).size;if(sc>best){best=sc;hr=i}}
   const width=Math.max(0,...rows.map(r=>r.length));const map=Array(width).fill('');
   if(hr>=0)(rows[hr]||[]).forEach((h,c)=>{const k=impKey(h);if(k&&!map.includes(k))map[c]=k});
   const body=rows.slice(hr+1).filter(r=>r&&r.some(x=>String(x).trim()));
-  const stat=c=>{const vals=body.map(r=>String(r[c]??'').trim()).filter(Boolean);return{n:vals.length,num:vals.filter(x=>impNum(x)!==null&&/^[-\d\s.,]+$/.test(x.replace(/ /g,''))).length,uniq:new Set(vals.map(x=>norm(x))).size}};
-  if(!map.includes('name')){let bc=-1,bs=0;for(let c=0;c<width;c++){if(map[c])continue;const s=stat(c);const txt=s.n-s.num;if(txt>bs&&s.uniq>=s.n*.6){bs=txt;bc=c}}if(bc>=0)map[bc]='name'}
+  const stat=c=>{const vals=body.map(r=>String(r[c]??'').trim()).filter(Boolean);return{n:vals.length,num:vals.filter(x=>impNum(x)!==null&&/^[-\d\s.,]+$/.test(x.replace(/ /g,''))).length,uniq:new Set(vals.map(x=>norm(x))).size,len:vals.reduce((a,x)=>a+x.length,0)/Math.max(1,vals.length)}};
+  if(!map.includes('name')){let bc=-1,bs=0;for(let c=0;c<width;c++){if(map[c])continue;const s=stat(c);const txt=(s.n-s.num)*Math.min(s.len,30);if(txt>bs&&s.uniq>=s.n*.6&&s.num<s.n*.5){bs=txt;bc=c}}if(bc>=0)map[bc]='name'}
   if(!map.includes('qty')){let bc=-1,bs=0;for(let c=0;c<width;c++){if(map[c])continue;const s=stat(c);if(s.num>bs&&s.num>=s.n*.6){bs=s.num;bc=c}}if(bc>=0)map[bc]='qty'}
   return{hr,map};
 }
 function impPlan(){
   const I=MD.imp,sh=I.sheets[I.si],rows=sh.rows.slice(I.hr+1),col=k=>I.map.indexOf(k);
   const cn=col('name');const res={add:[],upd:[],skip:0,dup:0};if(cn<0)return res;
-  const seen={};
-  rows.forEach(r=>{if(!r)return;const name=String(r[cn]??'').trim();
+  const seen={},hj=I.hr>=0?norm((sh.rows[I.hr]||[]).join('|')):null;
+  rows.forEach(r=>{if(!r)return;const name=String(r[cn]??'').trim();if(hj&&norm(r.join('|'))===hj)return;
     if(!name||/^(sous[- ]?)?total\b/i.test(norm(name))){if(r.some(x=>String(x).trim()))res.skip++;return}
     const g=k=>col(k)>=0?String(r[col(k)]??'').trim():'';
     const it={name,qty:Math.max(0,Math.round(impNum(g('qty'))??0)),hasQ:col('qty')>=0&&impNum(g('qty'))!==null,hs:Math.max(0,Math.round(impNum(g('hs'))??0)),
@@ -1181,9 +1205,9 @@ function openImp(){MD={k:'imp',step:1};drawImp()}
 function drawImp(){
   const I=MD.imp;let body,foot;
   if(MD.step===1){
-    body=`<div class="wel"><label class="impdrop" id="impdrop" tabindex="0">${ic('ul')}<b>Glisse ton fichier ici</b><span>ou clique pour le choisir · Excel (.xlsx) ou CSV</span><input type="file" id="impfile" accept=".xlsx,.xlsm,.csv,.txt,.tsv" hidden></label>
+    body=`<div class="wel"><label class="impdrop" id="impdrop" tabindex="0">${ic('ul')}<b>Glisse ton fichier ici</b><span>ou clique pour le choisir · Excel (.xlsx), CSV ou PDF</span><input type="file" id="impfile" accept=".xlsx,.xlsm,.csv,.txt,.tsv,.pdf" hidden></label>
       <p class="note" style="margin:0">Pas besoin d'un format précis : une ligne par produit, avec au moins son nom. StockInfos devine les colonnes (nom, quantité, hors service, unité…) et te montre ce qu'il a compris avant d'importer. Rien n'est envoyé sur internet.</p>
-      <p class="note" style="margin:0">Fichier en .xls ou .ods ? Ouvre-le dans Excel et enregistre-le en .xlsx. <button class="lnk" data-act="impmodel">Télécharger un modèle vide</button></p></div>`;
+      <p class="note" style="margin:0">Fichier en .xls ou .ods ? Ouvre-le dans Excel et enregistre-le en .xlsx. Les PDF scannés (photos) ne sont pas lus, seulement ceux qui contiennent du texte. <button class="lnk" data-act="impmodel">Télécharger un modèle vide</button></p></div>`;
     foot=`<button class="btn" data-act="close">Annuler</button>`;
   }else{
     const sh=I.sheets[I.si],width=Math.max(0,...sh.rows.map(r=>r?r.length:0)),cols=[...Array(width).keys()].filter(c=>sh.rows.some(r=>r&&String(r[c]??'').trim()));
@@ -1199,7 +1223,7 @@ function drawImp(){
       :`<p class="impwarn">${ic('alert')}Choisis quelle colonne contient le nom des produits.</p>`}</div>`;
     foot=`<button class="btn l" data-act="impback">Autre fichier</button><button class="btn" data-act="close">Annuler</button><button class="btn pri" data-act="impgo"${hasName&&(pl.add.length||(pl.upd.length&&I.mode!=='skip'))?'':' disabled'}>Importer</button>`;
   }
-  $('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(${MD.step===1?520:860}px,100%)"><div class="dh"><h3 id="mt">Importer un fichier Excel</h3><button class="ib" data-act="close" aria-label="Fermer">${ic('x')}</button></div>${body}<div class="df">${foot}</div></div></div>`;
+  $('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(${MD.step===1?520:860}px,100%)"><div class="dh"><h3 id="mt">Importer un stock</h3><button class="ib" data-act="close" aria-label="Fermer">${ic('x')}</button></div>${body}<div class="df">${foot}</div></div></div>`;
   if(MD.step===1){const box=$('#impdrop'),inp=$('#impfile');
     inp.addEventListener('change',()=>{if(inp.files[0])impLoad(inp.files[0])});
     box.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inp.click()}});
@@ -1211,8 +1235,9 @@ async function impLoad(f){
   try{
     const buf=await f.arrayBuffer(),ext=(f.name.split('.').pop()||'').toLowerCase();
     if(ext==='xls'||ext==='ods')throw new Error('enregistre-le d\'abord en .xlsx depuis Excel');
-    const u=new Uint8Array(buf.slice(0,4)),isZip=u[0]===0x50&&u[1]===0x4b;
-    const sheets=(isZip?await readXlsx(buf):readCSV(buf)).filter(s=>s.rows.some(r=>r&&r.some(x=>String(x).trim())));
+    const u=new Uint8Array(buf.slice(0,4)),isZip=u[0]===0x50&&u[1]===0x4b,isPdf=u[0]===0x25&&u[1]===0x50&&u[2]===0x44&&u[3]===0x46;
+    if(isPdf)toast('Lecture du PDF…');
+    const sheets=(isPdf?await readPDF(buf):isZip?await readXlsx(buf):readCSV(buf)).filter(s=>s.rows.some(r=>r&&r.some(x=>String(x).trim())));
     if(!sheets.length)throw new Error('le fichier est vide');
     // choisit l'onglet qui ressemble le plus à une liste de stock
     let si=0,g=null,bs=-1;sheets.forEach((s,i)=>{const t=impGuess(s.rows),hk=t.hr>=0?new Set((s.rows[t.hr]||[]).map(impKey).filter(Boolean)).size:0,n=s.rows.filter(r=>r&&r.some(x=>String(x).trim())).length;
@@ -1269,7 +1294,7 @@ VIEWS.set=()=>{const cals=S.cfg.cals;
 
   <h3 class="seth">Données</h3>
   ${setRow('box','Mes données',`${S.products.length} produits · ${(S.packs||[]).length} kits · ${S.events.length} chantiers`,`<button class="btn sm" data-act="folder">Ouvrir le dossier</button>`)}
-  ${setRow('ul','Importer un stock','Depuis un fichier Excel (.xlsx) ou CSV : les colonnes sont reconnues automatiquement',`<button class="btn sm" data-act="impopen">Importer un fichier</button>`)}
+  ${setRow('ul','Importer un stock','Depuis un fichier Excel (.xlsx), CSV ou PDF : les colonnes sont reconnues automatiquement',`<button class="btn sm" data-act="impopen">Importer un fichier</button>`)}
   ${setRow('back','Sauvegarde','Une copie est faite automatiquement chaque jour (30 jours gardés)',`<button class="btn sm" data-act="export">Exporter</button><button class="btn sm" data-act="import">Importer</button>`)}
   ${setRow('trash','Repartir de zéro',U.reset==='ex'?'<b style="color:var(--red)">Remplacer tout par les exemples ?</b>':U.reset==='vide'?'<b style="color:var(--red)">Tout effacer définitivement ?</b>':'Les agendas reliés sont gardés',U.reset?`<button class="btn sm" data-act="reset-no">Non</button><button class="btn sm pri" data-act="reset-yes">Oui</button>`:`<button class="btn sm" data-act="reset" data-v="ex">Remettre les exemples</button><button class="btn sm dan" data-act="reset" data-v="vide">Tout effacer</button>`)}
   <div class="updrow"><span class="note">StockInfos ${API?'v'+esc(API.version):''} · logiciel libre · ${updTxt()}</span>${API&&API.updateCheck?`<button class="btn sm" data-act="updcheck"${UPDS.state==='checking'||UPDS.state==='downloading'?' disabled':''}>${ic('sync')}Rechercher une mise à jour</button>`:''}${UPDS.state==='ready'?`<button class="btn sm pri" data-act="updgo">Redémarrer et mettre à jour</button>`:''}</div>
