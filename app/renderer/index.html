@@ -2234,6 +2234,11 @@ async function gSync(manual){
   try{
     let cal=S.cfg.gcal;
     if(cal){const r=await call('GET','/calendars/'+encodeURIComponent(cal));if(r.status===404||r.status===410)cal=null}
+    // pas d'agenda connu : on reprend un « Chantiers StockInfos » existant (celui qui a le plus de chantiers) avant d'en créer un
+    if(!cal){try{const L=await API.gApi({method:'GET',path:'/users/me/calendarList?minAccessRole=owner&maxResults=250'});
+        const cands=((L.json&&L.json.items)||[]).filter(c=>/chantiers stockinfos/i.test(c.summary||'')||/Chantiers créés dans StockInfos/.test(c.description||''));let best=null,bn=-1;
+        for(const c of cands){const r=await API.gApi({method:'GET',path:'/calendars/'+encodeURIComponent(c.id)+'/events?maxResults=2500&showDeleted=false'});if(r.status!==200)continue;const n=((r.json&&r.json.items)||[]).length;if(n>bn){bn=n;best=c.id}}
+        if(best){cal=best;S.cfg.gcal=cal;save()}}catch(e){}}
     if(!cal){const r=await call('POST','/calendars',{summary:'Chantiers StockInfos',description:'Chantiers créés dans StockInfos',timeZone:TZ});cal=r.json.id;S.cfg.gcal=cal;save()}
     const base='/calendars/'+encodeURIComponent(cal)+'/events';
     const remote=new Map(),extra=[];let tok='';
