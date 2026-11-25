@@ -714,6 +714,8 @@ button.ret:hover strong{color:var(--acc)}
 .implist label span{color:var(--mute);white-space:nowrap}
 .implist label small{color:var(--mute);font-size:11.5px;white-space:nowrap}
 .implist label.off b{text-decoration:line-through;color:var(--mute)}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield;appearance:textfield}
 </style>
 </head>
 <body>
@@ -999,7 +1001,7 @@ function pcard(p,I){
   const lo=Math.max(1,Math.round(p.qty*.2)),cls=I.a<0||I.a===0?'ko':I.a<=lo&&I.u>0?'lo':'ok',pct=p.qty?Math.max(0,Math.min(100,I.a/p.qty*100)):0;
   const whoT=I.who.map(ev=>`${short(ev.title)} ×${P(ev).items[p.id]}`).join(', ');
   return `<div class="pc ${cls}" role="button" tabindex="0" data-act="openp" data-id="${p.id}">
-    <span class="pctop"><span class="pcth" style="--k:${catCol(p.cat)}">${p.photo?`<img src="${p.photo}" alt="">`:esc(ini(p.name))}</span><span class="pct"><b class="pcn">${esc(p.name)}</b><small>${esc(p.cat||'Sans catégorie')}${p.unit?` · ${String(usz(p)).replace('.',',')} ${esc(unitLabel(p))}/pièce`:''}${I.a<0?` · <span class="pcbad2">Manque ${-I.a}</span>`:''}</small></span><button class="ib addto" data-act="addto" data-id="${p.id}" title="Ajouter à un chantier" aria-label="Ajouter ${esc(p.name)} à un chantier">${ic('plus')}</button></span>
+    <span class="pctop"><span class="pcth" style="--k:${catCol(p.cat)}">${p.photo?`<img src="${p.photo}" alt="">`:esc(ini(p.name))}</span><span class="pct"><b class="pcn">${esc(p.name)}</b><small>${p.ref?`Réf. ${esc(p.ref)} · `:''}${esc(p.cat||'Sans catégorie')}${p.unit?` · ${String(usz(p)).replace('.',',')} ${esc(unitLabel(p))}/pièce`:''}${I.a<0?` · <span class="pcbad2">Manque ${-I.a}</span>`:''}</small></span><button class="ib addto" data-act="addto" data-id="${p.id}" title="Ajouter à un chantier" aria-label="Ajouter ${esc(p.name)} à un chantier">${ic('plus')}</button></span>
     <span class="pcb">
       ${U.mode==='periode'&&I.per.best!==undefined?perBlock(p,I,cls):`<span class="pcv"><b>${I.a}</b><span>/ ${p.qty} dispo</span></span>
       <span class="bar"><i class="${cls}" style="width:${pct}%"></i></span>`}
@@ -1009,7 +1011,7 @@ function pcard(p,I){
 }
 function plistHTML(){
   const q=norm(U.q).trim();
-  const l=S.products.filter(p=>(!U.cat||p.cat===U.cat)&&(!q||norm(p.name+' '+p.cat+' '+(p.kw||[]).join(' ')).includes(q))).map(p=>({p,I:stockInfo(p)}));
+  const l=S.products.filter(p=>(!U.cat||p.cat===U.cat)&&(!q||norm(p.name+' '+(p.ref||'')+' '+p.cat+' '+(p.kw||[]).join(' ')).includes(q))).map(p=>({p,I:stockInfo(p)}));
   const az=(x,y)=>x.p.name.localeCompare(y.p.name,'fr',{sensitivity:'base'});
   const F={az,za:(x,y)=>-az(x,y),qty:(x,y)=>y.p.qty-x.p.qty||az(x,y),dispo:(x,y)=>(x.I.a/(x.p.qty||1))-(y.I.a/(y.p.qty||1))||az(x,y)};
   l.sort(F[U.sort]||az);
@@ -1019,7 +1021,7 @@ function plistHTML(){
 VIEWS.stock=()=>{
   const cats=[...new Set(S.products.map(p=>p.cat).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
   const all=S.products.map(p=>({p,I:stockInfo(p)})),miss=all.filter(x=>x.I.a<0),out=all.reduce((n,x)=>n+x.I.u,0);
-  return `<div class="tools"><label class="search">${ic('search')}<input id="q" data-in="q" placeholder="Rechercher un produit" value="${esc(U.q)}" autocomplete="off"></label><select id="sort" data-in="sort" aria-label="Trier par">${[['az','Nom A → Z'],['za','Nom Z → A'],['dispo','Le moins dispo d\'abord'],['qty','Plus grand stock d\'abord']].map(([v,l])=>`<option value="${v}"${U.sort===v?' selected':''}>${l}</option>`).join('')}</select><span class="sp"></span><button class="btn" data-act="impopen">${ic('ul')}Importer</button><button class="btn" data-act="invopen">${ic('dl')}Inventaire</button><button class="btn pri" data-act="addp">${ic('plus')}Ajouter un produit</button></div>
+  return `<div class="tools"><label class="search">${ic('search')}<input id="q" data-in="q" placeholder="Rechercher un produit ou une référence" value="${esc(U.q)}" autocomplete="off"></label><select id="sort" data-in="sort" aria-label="Trier par">${[['az','Nom A → Z'],['za','Nom Z → A'],['dispo','Le moins dispo d\'abord'],['qty','Plus grand stock d\'abord']].map(([v,l])=>`<option value="${v}"${U.sort===v?' selected':''}>${l}</option>`).join('')}</select><span class="sp"></span><button class="btn" data-act="impopen">${ic('ul')}Importer</button><button class="btn" data-act="invopen">${ic('dl')}Inventaire</button><button class="btn pri" data-act="addp">${ic('plus')}Ajouter un produit</button></div>
   ${cats.length?`<div class="cchips"><button class="${!U.cat?'on':''}" data-act="catf" data-v="">Tout <small>${S.products.length}</small></button>${cats.map(c=>`<button class="${U.cat===c?'on':''}" data-act="catf" data-v="${esc(c)}">${esc(c)} <small>${S.products.filter(p=>p.cat===c).length}</small></button>`).join('')}</div>`:''}
   <p class="note">${U.mode==='periode'?`Du <b>${fmt(U.a,{weekday:'long',day:'numeric',month:'long'})}</b> au <b>${fmt(U.b,{weekday:'long',day:'numeric',month:'long'})}</b> : en grand, ce que tu auras une fois les retours faits ; en dessous, le jour le plus juste`:`Le <b>${fmt(U.date,{weekday:'long',day:'numeric',month:'long'})}</b> : ${out} article${out>1?'s':''} sorti${out>1?'s':''}`}${miss.length?` · <b style="color:var(--red)">${miss.length} produit${miss.length>1?'s':''} en manque</b>`:' · aucun manque'}. <span class="h">Clique sur la date en haut pour choisir un jour ou une période.</span></p>
   <div id="plist">${plistHTML()}</div>`};
@@ -1173,11 +1175,12 @@ function readCSV(buf){
   if(cur||row.length){row.push(cur.trim());rows.push(row)}
   return[{name:'Fichier',rows}];
 }
-const IMPF=[['','Ignorer'],['name','Nom du produit'],['qty','Quantité'],['hs','Hors service'],['unit','Unité'],['usize','Taille d\'une pièce'],['cat','Catégorie'],['kw','Autres noms']];
-const IMPW={name:['nom','nom du produit','designation','article','articles','produit','produits','materiel','libelle','intitule','objet','equipement','item','reference','description','nom article','nom produit'],
+const IMPF=[['','Ignorer'],['name','Nom du produit'],['ref','Référence'],['qty','Quantité'],['hs','Hors service'],['unit','Unité'],['usize','Taille d\'une pièce'],['cat','Catégorie'],['kw','Autres noms']];
+const IMPW={name:['nom','nom du produit','designation','article','articles','produit','produits','materiel','libelle','intitule','objet','equipement','item','description','nom article','nom produit'],
   qty:['quantite','quantites','qte','qt','qtt','stock','en stock','nombre','nb','total','quantite totale','qte totale','stock total','nombre total','quantite en stock','qte stock','dispo','disponible'],
   hs:['hs','hors service','casse','casses','en reparation','reparation','defectueux','abime','abimes','hors-service','qte hs','quantite hs'],
   unit:['unite','unites','u'],usize:['taille','taille piece','taille d une piece','surface','surface piece'],
+  ref:['ref','reference','references','code','code article','ref article','reference article','ref fournisseur','reference fournisseur','sku','ean','code barre','n serie','numero de serie'],
   cat:['categorie','categories','famille','type','rayon','groupe','gamme'],kw:['mots cles','mots-cles','alias','synonymes','autres noms']};
 function impKey(h){const n=norm(String(h||'')).replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();if(!n)return '';
   for(const k in IMPW)if(IMPW[k].includes(n))return k;
@@ -1203,7 +1206,7 @@ function impPlan(){
     if(!name&&filled.length===1&&impNum(filled[0])===null&&filled[0].length<40){sect=filled[0];res.sect=(res.sect||0)+1;return}
     if(!name||/^(sous[- ]?)?total\b/i.test(norm(name))){if(r.some(x=>String(x).trim()))res.skip++;return}
     const g=k=>col(k)>=0?String(r[col(k)]??'').trim():'';
-    const it={name,qty:Math.max(0,Math.round(impNum(g('qty'))??0)),hasQ:col('qty')>=0&&impNum(g('qty'))!==null,hs:Math.max(0,Math.round(impNum(g('hs'))??0)),
+    const it={name,ref:g('ref'),qty:Math.max(0,Math.round(impNum(g('qty'))??0)),hasQ:col('qty')>=0&&impNum(g('qty'))!==null,hs:Math.max(0,Math.round(impNum(g('hs'))??0)),
       unit:UL[unitKey(g('unit'))]&&['m²','m','kg','L'].includes(UL[unitKey(g('unit'))])?UL[unitKey(g('unit'))]:'',usize:impNum(g('usize')),cat:g('cat')||(!hasCat&&sect?sect.charAt(0)+sect.slice(1).toLowerCase():''),kw:g('kw').split(/[,;]/).map(s=>s.trim()).filter(Boolean)};
     const key=norm(name);
     if(seen[key]){seen[key].qty+=it.qty;seen[key].hs+=it.hs;res.dup++;return}
@@ -1229,7 +1232,7 @@ function drawImp(){
       <div class="impwrap"><table class="imptbl"><thead><tr>${cols.map(c=>`<th><select data-in="impmap" data-c="${c}" class="${I.map[c]?'on':''}">${IMPF.map(([v,l])=>`<option value="${v}"${(I.map[c]||'')===v?' selected':''}>${l}</option>`).join('')}</select>${I.hr>=0&&sh.rows[I.hr]?`<small>${esc(String(sh.rows[I.hr][c]??''))}</small>`:''}</th>`).join('')}</tr></thead>
         <tbody>${prev.map(r=>`<tr>${cols.map(c=>`<td class="${I.map[c]?'':'off'}">${esc(String(r[c]??''))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
       ${hasName?`<div class="impsum"><span><b>${pl.add.length}</b> nouveau${pl.add.length>1?'x':''} produit${pl.add.length>1?'s':''}</span><span><b>${pl.upd.length}</b> déjà dans le stock</span>${pl.skip?`<span>${pl.skip} ligne${pl.skip>1?'s':''} ignorée${pl.skip>1?'s':''} (sans nom ou total)</span>`:''}${pl.dup?`<span class="w">${pl.dup} doublon${pl.dup>1?'s':''} additionné${pl.dup>1?'s':''}</span>`:''}${pl.off.length?`<span>${pl.off.length} décoché${pl.off.length>1?'s':''}</span>`:''}</div>
-        <details class="impdet"${I.open?' open':''}><summary>Voir et décocher les produits</summary><div class="implist">${[...pl.add.map(i=>[i,'Nouveau']),...pl.upd.map(i=>[i,'Déjà dans le stock']),...pl.off.map(i=>[i,''])].map(([i,t])=>`<label class="${t?'':'off'}"><input type="checkbox" data-in="impex" data-k="${esc(i.key)}"${t?' checked':''}><b>${esc(i.name)}</b><span>${i.hasQ?i.qty:'?'}${i.unit?' '+i.unit:''}${i.hs?` · ${i.hs} HS`:''}${i.cat?` · ${esc(i.cat)}`:''}</span><small>${t||'Ignoré'}</small></label>`).join('')}</div></details>
+        <details class="impdet"${I.open?' open':''}><summary>Voir et décocher les produits</summary><div class="implist">${[...pl.add.map(i=>[i,'Nouveau']),...pl.upd.map(i=>[i,'Déjà dans le stock']),...pl.off.map(i=>[i,''])].map(([i,t])=>`<label class="${t?'':'off'}"><input type="checkbox" data-in="impex" data-k="${esc(i.key)}"${t?' checked':''}><b>${esc(i.name)}</b><span>${i.hasQ?i.qty:'?'}${i.unit?' '+i.unit:''}${i.hs?` · ${i.hs} HS`:''}${i.ref?` · Réf. ${esc(i.ref)}`:''}${i.cat?` · ${esc(i.cat)}`:''}</span><small>${t||'Ignoré'}</small></label>`).join('')}</div></details>
         ${pl.upd.length?`<div class="f" style="margin:0"><label for="impmode">Pour les ${pl.upd.length} produit${pl.upd.length>1?'s':''} déjà dans le stock</label><select id="impmode" data-in="impmode"><option value="set"${I.mode==='set'?' selected':''}>Remplacer par les quantités du fichier</option><option value="add"${I.mode==='add'?' selected':''}>Ajouter les quantités du fichier</option><option value="skip"${I.mode==='skip'?' selected':''}>Ne pas y toucher</option></select></div>`:''}`
       :`<p class="impwarn">${ic('alert')}Choisis quelle colonne contient le nom des produits.</p>`}</div>`;
     foot=`<button class="btn l" data-act="impback">Autre fichier</button><button class="btn" data-act="close">Annuler</button><button class="btn pri" data-act="impgo"${hasName&&(pl.add.length||(pl.upd.length&&I.mode!=='skip'))?'':' disabled'}>Importer</button>`;
@@ -1259,12 +1262,12 @@ async function impLoad(f){
 }
 function impApply(){
   const I=MD.imp,pl=impPlan(),col=k=>I.map.includes(k);let na=0,nu=0;
-  pl.add.forEach(it=>{const p={id:'p'+uid(),name:it.name,cat:it.cat,qty:it.qty,kw:it.kw,photo:'',unit:it.unit,hs:[],log:[]};
+  pl.add.forEach(it=>{const p={id:'p'+uid(),name:it.name,ref:it.ref,cat:it.cat,qty:it.qty,kw:it.kw,photo:'',unit:it.unit,hs:[],log:[]};
     if(it.unit&&it.usize>0)p.usize=it.usize;if(it.hs>0)p.hs=[{q:Math.min(it.hs,it.qty),from:TODAY,until:'',note:'Importé'}];
     logP(p,'new',`Produit importé depuis ${I.file} avec ${it.qty} en stock`);S.products.push(p);na++});
   if(I.mode!=='skip')pl.upd.forEach(it=>{const p=it.p,old=p.qty;
     if(it.hasQ)p.qty=I.mode==='add'?old+it.qty:it.qty;
-    if(col('cat')&&it.cat)p.cat=it.cat;if(col('unit')&&it.unit){p.unit=it.unit;if(it.usize>0)p.usize=it.usize}
+    if(col('cat')&&it.cat)p.cat=it.cat;if(col('ref')&&it.ref)p.ref=it.ref;if(col('unit')&&it.unit){p.unit=it.unit;if(it.usize>0)p.usize=it.usize}
     if(col('kw')&&it.kw.length)p.kw=[...new Set([...(p.kw||[]),...it.kw])];
     if(col('hs')){p.hs=(p.hs||[]).filter(h=>h.note!=='Importé');if(it.hs>0)p.hs.push({q:Math.min(it.hs,p.qty),from:TODAY,until:'',note:'Importé'})}
     logP(p,'qty',it.hasQ&&old!==p.qty?`Import ${I.file} : ${old} → ${p.qty}`:`Mis à jour par l'import ${I.file}`);nu++});
@@ -1277,12 +1280,12 @@ function openInv(){const R2=invRows(),tq=R2.reduce((n,r)=>n+r.p.qty,0),th=R2.red
   <button class="btn" data-act="invprint"><span><b>${ic('print')} Imprimer</b><small>Envoie la même feuille à l'imprimante.</small></span></button>
   <button class="btn" data-act="invcsv"><span><b>${ic('dl')} Fichier Excel (CSV)</b><small>S'ouvre dans Excel : une ligne par produit.</small></span></button></div></div></div>`}
 function invCSV(){const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-  const lines=[['Produit','Quantité totale','Hors service','Restant','Détail hors service','Compté'].map(q).join(';')];
-  for(const r of invRows())lines.push([q(r.p.name),r.p.qty,r.hs,r.rest,q(r.hl.map(hsTxt).join(' / ')),''].join(';'));
+  const lines=[['Produit','Référence','Quantité totale','Hors service','Restant','Détail hors service','Compté'].map(q).join(';')];
+  for(const r of invRows())lines.push([q(r.p.name),q(r.p.ref||''),r.p.qty,r.hs,r.rest,q(r.hl.map(hsTxt).join(' / ')),''].join(';'));
   return '﻿'+lines.join('\r\n')}
 async function outPrint(mode,name){if(mode==='pdf'){if(!API||!API.savePdf){toast('Ferme complètement l\'app et relance Lancer.bat pour activer l\'export PDF');return}try{const f=await API.savePdf({name});if(f)toast('PDF enregistré et ouvert')}catch(e){toast('PDF impossible : '+String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,'').replace(/No handler registered.*/,'ferme complètement l\'app et relance Lancer.bat'))}}else setTimeout(()=>window.print(),50)}
 function printInv(mode){const R2=invRows(),tq=R2.reduce((n,r)=>n+r.p.qty,0),th=R2.reduce((n,r)=>n+r.hs,0);
-  const rows=R2.map(r=>`<tr${r.hs?' class="hsl"':''}><td>${esc(r.p.name)}</td><td class="q">${r.p.qty}</td><td class="q">${r.hs||''}</td><td class="q">${r.rest}</td><td class="hsd">${r.hl.map(h=>esc(hsTxt(h))).join('<br>')}</td><td class="cnt"></td></tr>`).join('');
+  const rows=R2.map(r=>`<tr${r.hs?' class="hsl"':''}><td>${esc(r.p.name)}${r.p.ref?`<br><small style="color:#666">Réf. ${esc(r.p.ref)}</small>`:''}</td><td class="q">${r.p.qty}</td><td class="q">${r.hs||''}</td><td class="q">${r.rest}</td><td class="hsd">${r.hl.map(h=>esc(hsTxt(h))).join('<br>')}</td><td class="cnt"></td></tr>`).join('');
   $('#print').innerHTML=`<div class="ph1"><div><h1>Inventaire du matériel</h1><h2>au ${fmt(TODAY,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</h2></div><div class="pco">${esc(S.cfg.company||'')}<br><small>StockInfos</small></div></div>
   <table class="ptbl"><thead><tr><th>Produit</th><th>Quantité totale</th><th>Hors service</th><th>Restant</th><th>Détail du hors service</th><th>Compté</th></tr></thead><tbody>${rows}</tbody></table>
   <p class="ptot">${R2.length} produits · ${tq} pièces · ${th} hors service · ${tq-th} restantes</p><p style="font-size:10pt;color:#555">Colonne « Compté » : à remplir à la main lors de l'inventaire au dépôt.</p>`;outPrint(mode,`Inventaire-${TODAY}.pdf`)}
@@ -1334,7 +1337,7 @@ let tt,TU=null;function toast(m,undo){const t=$('#toast');t.textContent=m;TU=und
 
 /* ---------- fiche produit ---------- */
 let MD=null;
-function openP(id,preset){const p=id&&byId(id);MD={k:'p',oq:p?p.qty:0,d:p?{...p,kw:[...(p.kw||[])],hs:JSON.parse(JSON.stringify(p.hs||[]))}:{id:null,name:preset||'',cat:'',qty:1,kw:[],photo:'',unit:'',hs:[]},confirm:false};drawP()}
+function openP(id,preset){const p=id&&byId(id);MD={k:'p',oq:p?p.qty:0,d:p?{...p,kw:[...(p.kw||[])],hs:JSON.parse(JSON.stringify(p.hs||[]))}:{id:null,name:preset||'',ref:'',cat:'',qty:1,kw:[],photo:'',unit:'',hs:[]},confirm:false};drawP()}
 function drawP(){
   const d=MD.d,cats=[...new Set(S.products.map(p=>p.cat).filter(Boolean))];
   let extra='';
@@ -1349,8 +1352,9 @@ function drawP(){
     <div class="dh"><h3 id="mt">${d.id?'Modifier le produit':'Nouveau produit'}</h3><button class="ib" data-act="close" aria-label="Fermer">${ic('x')}</button></div>
     <div class="db p"><div><button class="photo${d.photo?' has':''}" data-act="pick" id="phbox">${d.photo?`<img src="${d.photo}" alt="Photo du produit">`:`${ic('cam')}<span>Photo</span>`}</button>${d.photo?`<button class="lnk" data-act="rmphoto">Retirer</button>`:''}<input type="file" accept="image/*" id="file" hidden></div>
     <div><div class="f"><label for="p-name">Nom du produit</label><input class="in" id="p-name" value="${esc(d.name)}" placeholder="Ex : Chapiteau 5x10"></div>
+      <div class="f"><label for="p-ref">Référence <span class="h">facultatif</span></label><input class="in" id="p-ref" value="${esc(d.ref||'')}" placeholder="Ex : code fournisseur, n° de série…" autocomplete="off"></div>
       <div class="row2"><div class="f"><label for="p-cat">Catégorie</label><input class="in" id="p-cat" list="cats" value="${esc(d.cat)}" placeholder="Ex : Chapiteaux"><datalist id="cats">${cats.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div>
-      <div class="f"><label for="p-qty">Quantité en stock</label><div class="step"><button class="btn" data-act="qm" aria-label="Moins">−</button><input class="in" id="p-qty" type="number" min="0" value="${d.qty}"><button class="btn" data-act="qp" aria-label="Plus">+</button></div></div></div>
+      <div class="f"><label for="p-qty">Quantité en stock</label><div class="step"><button class="btn" data-act="qm" aria-label="Moins">−</button><input class="in" id="p-qty" inputmode="numeric" autocomplete="off" value="${d.qty}"><button class="btn" data-act="qp" aria-label="Plus">+</button></div></div></div>
       <details class="adv"${d.kw.length||d.unit?' open':''}><summary>Options avancées</summary>
         <div class="row2"><div class="f"><label for="p-unit">Unité de mesure</label><select id="p-unit" data-punit>${[['','À la pièce (pas d\'unité)'],['m²','Mètre carré (m²)'],['m','Mètre (m)'],['kg','Kilogramme (kg)'],['L','Litre (L)']].map(([v,l])=>`<option value="${v}"${(UL[unitKey(d.unit)]||'')===v?' selected':''}>${l}</option>`).join('')}</select></div>
         ${unitKey(d.unit)?`<div class="f"><label for="p-usize">Taille d'une pièce</label><div class="step"><input class="in" id="p-usize" value="${esc(String(d.usize??1).replace('.',','))}" inputmode="decimal" style="text-align:center;width:80px;flex:none"><span class="h" style="align-self:center;white-space:nowrap;padding:0 4px">${esc(UL[unitKey(d.unit)]||d.unit)} par pièce</span></div><span class="h">« 10 ${esc(UL[unitKey(d.unit)]||d.unit)} » dans l'agenda = ${toPieces({usize:d.usize},10)} pièce(s)</span></div>`:'<div></div>'}</div>
@@ -1381,7 +1385,7 @@ function logP(p,type,txt){p.log=p.log||[];p.log.unshift({t:Date.now(),type,txt})
 function histHTML(p){const L=p.log||[];if(!L.length)return '<div class="h">Aucun changement enregistré pour l\'instant.</div>';const I={qty:'box',hs:'tool',ok:'check',casse:'alert',perte:'x',new:'plus'};
   return `<div class="hist">${L.slice(0,12).map(x=>`<div class="hrow t-${x.type}">${ic(I[x.type]||'box')}<span>${esc(x.txt)}</span><small>${new Date(x.t).toLocaleString('fr-FR',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</small></div>`).join('')}</div>${L.length>12?`<div class="h">+ ${L.length-12} plus anciens</div>`:''}`}
 function hsRow(h,i){return `<div class="mrow hsr" data-from="${esc(h.from||'')}"><input class="in hq" type="number" min="1" value="${h.q||1}" aria-label="Quantité" style="width:64px"><input class="in hn" value="${esc(h.note||'')}" placeholder="Raison (ex : toile déchirée)" style="flex:1"><label class="h" style="white-space:nowrap">jusqu'au</label><input class="in hu" type="date" value="${esc(h.until||'')}" style="width:150px" aria-label="Jusqu'au"><button class="ib" data-act="hsrm" data-i="${i}" aria-label="Retirer">${ic('x')}</button></div>`}
-function readP(){if(!MD||MD.k!=='p')return;const d=MD.d;d.name=$('#p-name').value.trim();d.cat=$('#p-cat').value.trim();d.qty=Math.max(0,parseInt($('#p-qty').value)||0);d.kw=$('#p-kw').value.split(',').map(s=>s.trim()).filter(Boolean);d.unit=($('#p-unit')?.value||'').trim();if($('#p-usize')){const v=parseFloat(String($('#p-usize').value||'1').replace(',','.'));d.usize=v>0?v:1}d.hs=[...document.querySelectorAll('.hsr')].map(r=>({q:Math.max(0,parseInt(r.querySelector('.hq').value)||0),from:r.dataset.from||'',until:r.querySelector('.hu').value||'',note:r.querySelector('.hn').value.trim()})).filter(h=>h.q>0)}
+function readP(){if(!MD||MD.k!=='p')return;const d=MD.d;d.name=$('#p-name').value.trim();d.ref=($('#p-ref')?.value||'').trim();d.cat=$('#p-cat').value.trim();d.qty=Math.max(0,parseInt($('#p-qty').value)||0);d.kw=$('#p-kw').value.split(',').map(s=>s.trim()).filter(Boolean);d.unit=($('#p-unit')?.value||'').trim();if($('#p-usize')){const v=parseFloat(String($('#p-usize').value||'1').replace(',','.'));d.usize=v>0?v:1}d.hs=[...document.querySelectorAll('.hsr')].map(r=>({q:Math.max(0,parseInt(r.querySelector('.hq').value)||0),from:r.dataset.from||'',until:r.querySelector('.hu').value||'',note:r.querySelector('.hn').value.trim()})).filter(h=>h.q>0)}
 function loadPhoto(f){if(!/^image\//.test(f.type)){toast('Ce fichier n\'est pas une image');return}readP();const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,320/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);MD.d.photo=c.toDataURL('image/jpeg',.82);drawP()};im.src=fr.result};fr.readAsDataURL(f)}
 
 /* ---------- fiche kit ---------- */
