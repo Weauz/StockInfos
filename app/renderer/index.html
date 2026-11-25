@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:">
+<script src="vendor/qr/qrcode.js"></script>
+<script src="vendor/qr/jsQR.js"></script>
 <title>StockInfos</title>
 <style>
 /* VOICE work: a shipped Windows 11 desktop tool for a building-trades pro
@@ -717,42 +719,83 @@ button.ret:hover strong{color:var(--acc)}
 input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 input[type=number]{-moz-appearance:textfield;appearance:textfield}
 @media print{
-  @page{size:A4;margin:12mm 12mm 14mm}
-  #print .inv{font:9.5pt/1.35 "Segoe UI",Arial,sans-serif;color:#1d1d1f;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  #print .inv .ihead{display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:6px;border-bottom:.6pt solid #d0d0d0}
-  #print .inv .ico{font-size:13pt;font-weight:700;letter-spacing:.2px}
-  #print .inv .idate{font-size:9pt;color:#6b6b6b}
-  #print .inv .ititle{text-align:center;margin:16px 0 14px}
-  #print .inv .ititle h1{margin:0;font-size:19pt;font-weight:700;letter-spacing:2.5px;text-transform:uppercase}
-  #print .inv .ititle h1::after{content:"";display:block;width:46px;height:2.5px;background:#c2410c;margin:7px auto 0;border-radius:2px}
-  #print .inv .ititle p{margin:6px 0 0;color:#6b6b6b;font-size:9.5pt}
-  #print .inv .ikpi{display:flex;justify-content:center;gap:8px;margin-top:10px}
-  #print .inv .ikpi span{border:.6pt solid #e2e2e2;border-radius:20px;padding:3px 11px;font-size:8.5pt;color:#555;background:#fafafa}
-  #print .inv .ikpi b{color:#1d1d1f;font-size:10pt;margin-right:2px}
-  #print .inv .itbl{width:100%;border-collapse:collapse;table-layout:fixed}
-  #print .inv .itbl thead{display:table-header-group}
-  #print .inv .itbl th{font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6b6b6b;text-align:left;padding:5px 6px;white-space:nowrap;border-bottom:1pt solid #1d1d1f}
-  #print .inv .itbl td{padding:4.5px 6px;border-bottom:.5pt solid #e4e4e4;vertical-align:middle}
-  #print .inv .itbl tbody tr:nth-child(even) td{background:#f7f7f7}
-  #print .inv .itbl tr{page-break-inside:avoid}
-  #print .inv .itbl .n{width:22px;color:#9a9a9a;font-size:8pt;text-align:right;padding-right:8px}
-  #print .inv .itbl th.n{text-align:right}
-  #print .inv .itbl .pr b{font-weight:600}
-  #print .inv .itbl .meta{display:block;font-size:7.5pt;color:#8a8a8a;line-height:1.25}
-  #print .inv .itbl .meta i{font-style:normal;color:#b42318}
-  #print .inv .itbl .q{width:56px;text-align:right;font-variant-numeric:tabular-nums}
-  #print .inv .itbl th.q{text-align:right}
-  #print .inv .itbl tr.hs .h{color:#b42318;font-weight:700}
-  #print .inv .itbl .w{width:72px;padding-left:12px}
-  #print .inv .itbl .rm{width:120px}
-  #print .inv .itbl td.w{border-left:.5pt solid #e4e4e4}
-  #print .inv .itbl td.w:not(.rm)::after{content:"";display:block;height:13px;margin:0 4px;border-bottom:.6pt solid #b5b5b5}
-  #print .inv .itbl .empty{text-align:center;color:#888;padding:20px}
-  #print .inv .isign{display:flex;gap:12px;margin-top:20px;page-break-inside:avoid}
-  #print .inv .isign div{flex:1;border:.6pt solid #d0d0d0;border-radius:6px;height:46px;padding:5px 8px}
-  #print .inv .isign span{font-size:7.5pt;text-transform:uppercase;letter-spacing:.6px;color:#8a8a8a}
-  #print .inv .ifoot{margin:10px 0 0;text-align:center;font-size:7.5pt;color:#9a9a9a}
+  @page{size:A4;margin:12mm}
+  #print:has(.inv){padding:0}
+  #print .inv{font:9pt/1.3 "Segoe UI",Arial,sans-serif;color:#1d1d1f;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #print .inv .ipg{position:relative;width:186mm;height:273mm;overflow:hidden;page-break-after:always;break-after:page}
+  #print .inv .ipg:last-child{page-break-after:auto;break-after:auto}
+  #print .inv .mk{position:absolute;width:5mm;height:5mm;background:#000}
+  #print .inv .iqr{position:absolute}
+  #print .inv .iqr svg{width:100%;height:100%;display:block}
+  #print .inv .ihead{position:absolute;left:8mm;right:24mm;top:0;height:9mm;display:flex;justify-content:space-between;align-items:flex-end;border-bottom:.6pt solid #d0d0d0;padding-bottom:1.5mm}
+  #print .inv .ico{font-size:13pt;font-weight:700}
+  #print .inv .idate{font-size:8.5pt;color:#6b6b6b}
+  #print .inv .ititle{position:absolute;left:0;right:0;top:13mm;text-align:center}
+  #print .inv .ititle h1{margin:0;font-size:17pt;font-weight:700;letter-spacing:2.5px;text-transform:uppercase}
+  #print .inv .ititle h1::after{content:"";display:block;width:44px;height:2.5px;background:#c2410c;margin:5px auto 0;border-radius:2px}
+  #print .inv .ititle p{margin:4px 0 0;color:#6b6b6b;font-size:9pt}
+  #print .inv .ititle.sm h1{font-size:13pt}
+  #print .inv .ikpi{display:flex;justify-content:center;gap:7px;margin-top:6px}
+  #print .inv .ikpi span{border:.6pt solid #e2e2e2;border-radius:20px;padding:2px 10px;font-size:8pt;color:#555;background:#fafafa}
+  #print .inv .ikpi b{color:#1d1d1f;font-size:9.5pt;margin-right:2px}
+  #print .inv .r{position:absolute;left:0;right:0;border-bottom:.5pt solid #e4e4e4}
+  #print .inv .r.z{background:#f6f6f6}
+  #print .inv .r.th{border-bottom:1pt solid #1d1d1f;background:none}
+  #print .inv .r.th .c{font-size:7pt;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6b6b6b}
+  #print .inv .r.th small{font-weight:400;text-transform:none;letter-spacing:0}
+  #print .inv .c{position:absolute;top:0;bottom:0;display:flex;align-items:center;white-space:nowrap;overflow:hidden}
+  #print .inv .c.n{justify-content:flex-end;color:#9a9a9a;font-size:7.5pt;padding-right:1.5mm;box-sizing:border-box}
+  #print .inv .c.pr{gap:2mm}
+  #print .inv .c.pr b{font-weight:600;overflow:hidden;text-overflow:ellipsis}
+  #print .inv .c.pr .meta{font-size:7pt;color:#8a8a8a;flex:none}
+  #print .inv .c.pr .meta i{font-style:normal;color:#b42318}
+  #print .inv .c.tot{justify-content:flex-end;font-variant-numeric:tabular-nums;padding-right:1mm;box-sizing:border-box}
+  #print .inv .c.hsp{justify-content:center;color:#555;font-variant-numeric:tabular-nums}
+  #print .inv .c.hsp.red{color:#b42318;font-weight:700}
+  #print .inv .c.hsh{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center;gap:1.5mm}
+  #print .inv .c.cnt,#print .inv .c.hsb{justify-content:center}
+  #print .inv .bx{display:block;width:100%;height:5.6mm;box-sizing:border-box;border:.5pt solid #9a9a9a;border-radius:1mm;background:#fff}
+  #print .inv .ln{display:block;width:100%;height:5mm;border-bottom:.5pt solid #b5b5b5}
+  #print .inv .r.th .c.cnt,#print .inv .r.th .c.rem{justify-content:center}
+  #print .inv .empty{position:absolute;top:60mm;width:100%;text-align:center;color:#888}
+  #print .inv .isign{position:absolute;left:8mm;right:8mm;display:flex;gap:4mm;height:13mm}
+  #print .inv .isign div{flex:1;border:.6pt solid #d0d0d0;border-radius:1.5mm;padding:1mm 2mm}
+  #print .inv .isign span{font-size:6.5pt;text-transform:uppercase;letter-spacing:.5px;color:#8a8a8a}
+  #print .inv .ifoot{position:absolute;left:8mm;right:8mm;bottom:0;margin:0;text-align:center;font-size:6.5pt;color:#9a9a9a;line-height:5mm}
 }
+.impch{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.impc{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;padding:18px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);cursor:pointer;font:inherit}
+.impc:hover{border-color:var(--acc);background:var(--accbg)}
+.impc svg{width:24px;height:24px;color:var(--acc)}
+.impc b{font-size:15px}
+.impc span{font-size:12.5px;color:var(--mute);line-height:1.4}
+@media(max-width:620px){.impch{grid-template-columns:1fr}}
+.invbusy{align-items:center;text-align:center;padding:40px 20px}
+.spin{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:sp 1s linear infinite;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+.invsum{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;align-items:center}
+.invsum b{font-size:15px}
+.invsum .w{color:#c77700;display:inline-flex;align-items:center;gap:4px}
+.invsum .w svg{width:14px;height:14px}
+.inverr{display:flex;gap:8px;align-items:flex-start;color:var(--red);font-size:12.5px;background:color-mix(in srgb,var(--red) 8%,transparent);padding:8px 10px;border-radius:8px}
+.inverr svg{width:16px;height:16px;flex:none;margin-top:1px}
+.invlist{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;max-height:52vh;overflow:auto}
+.invr{display:grid;grid-template-columns:minmax(150px,1.1fr) 1fr 1fr 1.6fr;gap:12px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line)}
+.invr:last-child{border-bottom:0}
+.invr.warn{background:color-mix(in srgb,#f59e0b 10%,transparent);box-shadow:inset 3px 0 0 #f59e0b}
+.invp{display:flex;flex-direction:column;gap:2px;min-width:0}
+.invp b{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.invp small{color:var(--mute);font-size:11.5px}
+.invp .why{display:flex;gap:4px;align-items:center;color:#b45309;font-size:11.5px;font-weight:600}
+.invp .why svg{width:12px;height:12px;flex:none}
+.invf{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;gap:3px 8px;align-items:center}
+.invf .lbl{grid-column:1/-1;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--mute)}
+.invf img{height:40px;max-width:150px;border:1px solid var(--line);border-radius:4px;background:#fff;image-rendering:auto}
+.invf .in{width:64px;text-align:center;font-weight:600}
+.invf.rem{grid-template-columns:1fr}
+.invf.rem img{max-width:100%;height:40px;object-fit:contain;object-position:left}
+.invf.rem .in{width:100%;text-align:left;font-weight:400}
+@media(max-width:900px){.invr{grid-template-columns:1fr 1fr}.invp,.invf.rem{grid-column:1/-1}}
 </style>
 </head>
 <body>
@@ -1251,14 +1294,200 @@ function impPlan(){
     if(exi){it.p=exi;res.upd.push(it)}else res.add.push(it)});
   return res;
 }
-function openImp(){MD={k:'imp',step:1};drawImp()}
+// ---- lecture d'une feuille d'inventaire remplie (scan ou photo), 100 % sur le PC ----
+let DIGM=null;
+async function digModel(){if(DIGM)return DIGM;const j=await (await fetch('vendor/chiffres.json')).json();
+  DIGM=j.layers.map(l=>{const bin=atob(l.w),q=new Int8Array(bin.length);for(let i=0;i<bin.length;i++)q[i]=(bin.charCodeAt(i)<<24)>>24;return{...l,q}});return DIGM}
+function digPredict(x){let a=x;DIGM.forEach((l,li)=>{const o=new Float32Array(l.out);for(let j=0;j<l.out;j++){let s=0;const off=j*l.in;for(let i=0;i<l.in;i++)s+=l.q[off+i]*a[i];o[j]=s*l.s+l.b[j];if(li<DIGM.length-1&&o[j]<0)o[j]=0}a=o});
+  const m=Math.max(...a),e=a.map(v=>Math.exp(v-m)),t=e.reduce((x,y)=>x+y,0);return e.map(v=>v/t)}
+// image en niveaux de gris -> 28x28 façon MNIST (même calcul que l'entraînement)
+function norm28(g,w,h){let x0=w,x1=-1,y0=h,y1=-1;for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(g[y*w+x]>.15){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+  const out=new Float32Array(784);if(x1<0)return out;const cw=x1-x0+1,ch=y1-y0+1,sc=20/Math.max(cw,ch),nw=Math.max(1,Math.round(cw*sc)),nh=Math.max(1,Math.round(ch*sc));
+  const r=new Float32Array(nw*nh);for(let y=0;y<nh;y++)for(let x=0;x<nw;x++){const sx0=x0+x/sc,sy0=y0+y/sc,sx1=x0+(x+1)/sc,sy1=y0+(y+1)/sc;let s=0,n=0;
+    for(let yy=Math.floor(sy0);yy<Math.ceil(sy1);yy++)for(let xx=Math.floor(sx0);xx<Math.ceil(sx1);xx++){if(xx<0||yy<0||xx>=w||yy>=h)continue;s+=g[yy*w+xx];n++}r[y*nw+x]=n?s/n:0}
+  let tot=0,cx=0,cy=0;for(let y=0;y<nh;y++)for(let x=0;x<nw;x++){const v=r[y*nw+x];tot+=v;cx+=v*x;cy+=v*y}if(!tot)return out;
+  let oy=Math.round(14-cy/tot),ox=Math.round(14-cx/tot);oy=Math.min(Math.max(oy,0),28-nh);ox=Math.min(Math.max(ox,0),28-nw);
+  for(let y=0;y<nh;y++)for(let x=0;x<nw;x++)out[(y+oy)*28+x+ox]=Math.min(1,r[y*nw+x]);return out}
+// homographie (4 points) : page en mm -> image en pixels
+function homog(src,dst){const A=[],b=[];for(let i=0;i<4;i++){const[x,y]=src[i],[u,v]=dst[i];A.push([x,y,1,0,0,0,-u*x,-u*y]);b.push(u);A.push([0,0,0,x,y,1,-v*x,-v*y]);b.push(v)}
+  for(let c=0;c<8;c++){let p=c;for(let r=c+1;r<8;r++)if(Math.abs(A[r][c])>Math.abs(A[p][c]))p=r;[A[c],A[p]]=[A[p],A[c]];[b[c],b[p]]=[b[p],b[c]];
+    for(let r=0;r<8;r++){if(r===c)continue;const f=A[r][c]/A[c][c];for(let k=c;k<8;k++)A[r][k]-=f*A[c][k];b[r]-=f*b[c]}}
+  const h=b.map((v,i)=>v/A[i][i]);return(x,y)=>{const d=h[6]*x+h[7]*y+1;return[(h[0]*x+h[1]*y+h[2])/d,(h[3]*x+h[4]*y+h[5])/d]}}
+// composantes connexes sur une image binaire
+function blobs(bin,w,h,minA){const lab=new Int32Array(w*h),out=[],st=[];let n=0;
+  for(let i=0;i<w*h;i++){if(!bin[i]||lab[i])continue;n++;let a=0,x0=w,x1=0,y0=h,y1=0;st.push(i);lab[i]=n;
+    while(st.length){const j=st.pop(),x=j%w,y=(j/w)|0;a++;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;
+      for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=w||yy>=h)continue;const k=yy*w+xx;if(bin[k]&&!lab[k]){lab[k]=n;st.push(k)}}}
+    if(a>=minA)out.push({id:n,a,x0,x1,y0,y1})}return{lab,list:out}}
+function otsu(g){const hist=new Array(256).fill(0);g.forEach(v=>hist[v]++);const tot=g.length;let sum=0;for(let i=0;i<256;i++)sum+=i*hist[i];
+  let sb=0,wb=0,best=0,th=128;for(let i=0;i<256;i++){wb+=hist[i];if(!wb)continue;const wf=tot-wb;if(!wf)break;sb+=i*hist[i];const mb=sb/wb,mf=(sum-sb)/wf,v=wb*wf*(mb-mf)**2;if(v>best){best=v;th=i}}return th}
+// une page (canvas) -> {sheet, page, H (mm->px), gray, w, h} ou erreur
+async function scanPage(cv){
+  const w=cv.width,h=cv.height,ctx=cv.getContext('2d',{willReadFrequently:true}),img=ctx.getImageData(0,0,w,h),g=new Uint8Array(w*h);
+  for(let i=0;i<w*h;i++)g[i]=(img.data[i*4]*.3+img.data[i*4+1]*.59+img.data[i*4+2]*.11)|0;
+  // QR code
+  let qr=null;for(const k of [1,.6,.4]){const W=Math.round(w*k),Hh=Math.round(h*k);let d=img.data;if(k!==1){const c2=document.createElement('canvas');c2.width=W;c2.height=Hh;c2.getContext('2d').drawImage(cv,0,0,W,Hh);d=c2.getContext('2d').getImageData(0,0,W,Hh).data}
+    const r=jsQR(d,W,Hh,{inversionAttempts:'dontInvert'});if(r&&/^SI1\|/.test(r.data)){qr=r;['topLeftCorner','topRightCorner','bottomLeftCorner','bottomRightCorner'].forEach(c=>{r.location[c]={x:r.location[c].x/k,y:r.location[c].y/k}});break}}
+  if(!qr)return{err:'QR code introuvable'};
+  const[,sid,pg]=qr.data.split('|'),sheet=(S.invSheets||[]).find(x=>x.id===sid);
+  if(!sheet)return{err:'feuille inconnue (imprimée depuis un autre PC ou trop ancienne)',sid};
+  const L=INVL,Q=qr.location;
+  // première estimation à partir du QR, puis repères des coins pour la précision
+  let H=homog([[L.qr.x,L.qr.y],[L.qr.x+L.qr.s,L.qr.y],[L.qr.x,L.qr.y+L.qr.s],[L.qr.x+L.qr.s,L.qr.y+L.qr.s]],[[Q.topLeftCorner.x,Q.topLeftCorner.y],[Q.topRightCorner.x,Q.topRightCorner.y],[Q.bottomLeftCorner.x,Q.bottomLeftCorner.y],[Q.bottomRightCorner.x,Q.bottomRightCorner.y]]);
+  const th=otsu(g),bin=new Uint8Array(w*h);for(let i=0;i<w*h;i++)bin[i]=g[i]<th?1:0;
+  const p0=H(0,0),p1=H(10,0),pxmm=Math.hypot(p1[0]-p0[0],p1[1]-p0[1])/10,mkA=(L.mk*pxmm)**2,{list}=blobs(bin,w,h,Math.max(20,mkA*.3));
+  const cand=list.filter(b=>{const bw=b.x1-b.x0+1,bh=b.y1-b.y0+1;return b.a>mkA*.35&&b.a<mkA*3.5&&bw/bh>.6&&bw/bh<1.6&&b.a/(bw*bh)>.7});
+  const want=[[L.mk/2,L.mk/2],[L.W-L.mk/2,L.mk/2],[L.mk/2,L.H-L.mk/2],[L.W-L.mk/2,L.H-L.mk/2]],got=[];
+  want.forEach(([x,y])=>{const[u,v]=H(x,y);let best=null,bd=Math.max(w,h)*.18;cand.forEach(b=>{const cx=(b.x0+b.x1)/2,cy=(b.y0+b.y1)/2,d=Math.hypot(cx-u,cy-v);if(d<bd){bd=d;best=[cx,cy]}});got.push(best)});
+  const nf=got.filter(Boolean).length;
+  if(nf===3){const k=got.findIndex(g=>!g),o={0:[1,2,3],1:[0,3,2],2:[0,3,1],3:[1,2,0]}[k];const[a,b,c]=o.map(i=>got[i]);got[k]=[a[0]+b[0]-c[0],a[1]+b[1]-c[1]]}
+  if(got.every(Boolean))H=homog(want,got);
+  return{sheet,page:+pg,H,g,w,h,th,pxmm,mk:got.filter(Boolean).length};
+}
+// découpe une zone (en mm) de la page, redressée, à 8 px par mm ; valeurs = encre 0..1
+function cropMM(P,x0,y0,x1,y1,res=8){const W=Math.round((x1-x0)*res),Hh=Math.round((y1-y0)*res),ink=new Float32Array(W*Hh),gray=new Uint8ClampedArray(W*Hh);
+  const paper=Math.min(255,P.th+60);
+  for(let y=0;y<Hh;y++)for(let x=0;x<W;x++){const[u,v]=P.H(x0+(x+.5)/res,y0+(y+.5)/res);const xi=Math.floor(u),yi=Math.floor(v);let val=255;
+    if(xi>=0&&yi>=0&&xi<P.w-1&&yi<P.h-1){const fx=u-xi,fy=v-yi,G=P.g,i=yi*P.w+xi;val=G[i]*(1-fx)*(1-fy)+G[i+1]*fx*(1-fy)+G[i+P.w]*(1-fx)*fy+G[i+P.w+1]*fx*fy}
+    gray[y*W+x]=val;ink[y*W+x]=Math.max(0,Math.min(1,(paper-val)/(paper-Math.max(0,P.th-60))))}
+  return{W,H:Hh,ink,gray}}
+function cropURL(c){const cv=document.createElement('canvas');cv.width=c.W;cv.height=c.H;const ctx=cv.getContext('2d'),id=ctx.createImageData(c.W,c.H);
+  for(let i=0;i<c.W*c.H;i++){id.data[i*4]=id.data[i*4+1]=id.data[i*4+2]=c.gray[i];id.data[i*4+3]=255}ctx.putImageData(id,0,0);return cv.toDataURL('image/jpeg',.8)}
+// y a-t-il un trait de rature (droit ou penché) qui traverse ce groupe ?
+function struck(bin,W,x0,x1,y0,y1){const gw=x1-x0+1,gh=y1-y0+1;if(gw<6||gh<4)return false;
+  let tot=0;for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)tot+=bin[y*W+x];
+  for(const sl of [0,.12,-.12,.25,-.25,.4,-.4,.6,-.6])for(let yc=y0+gh*.2;yc<=y0+gh*.8;yc+=1){let run=0,best=0,gap=0,bs=0,be=0,st=x0;
+    for(let x=x0;x<=x1;x++){const y=Math.round(yc+sl*(x-(x0+x1)/2));let on=false;for(let d=-1;d<=1;d++){const yy=y+d;if(yy>=y0&&yy<=y1&&bin[yy*W+x])on=true}
+      if(on){if(!run)st=x;run+=1+gap;gap=0}else if(run&&gap<3)gap++;else{if(run>best){best=run;bs=st;be=x}run=0;gap=0}}
+    if(run>best){best=run;bs=st;be=x1}
+    if(best<gw*.8||gw<gh*.7)continue;
+    // encre au-dessus et au-dessous du trait (sinon c'est une simple barre, pas une rature)
+    let up=0,dn=0;for(let x=bs;x<=be;x++){const yl=yc+sl*(x-(x0+x1)/2);for(let y=y0;y<=y1;y++)if(bin[y*W+x]){if(y<yl-gh*.22)up++;else if(y>yl+gh*.22)dn++}}
+    if(up>tot*.15&&dn>tot*.15)return true}return false}
+// lit un nombre manuscrit dans une case ; renvoie {v, conf, struck, ink}
+function readBox(c,border){const{W,H,ink}=c,bin=new Uint8Array(W*H);for(let i=0;i<W*H;i++)bin[i]=ink[i]>.42?1:0;
+  if(border){// efface les traits imprimés (bord de la case, lignes du tableau) : longues lignes droites près des bords
+    const eraseRow=(y,x0,x1)=>{for(let x=x0;x<=x1;x++)for(let d=-1;d<=1;d++){const yy=y+d;if(yy>=0&&yy<H)bin[yy*W+x]=0}};
+    for(let y=0;y<H;y++){if(y>H*.3&&y<H*.7)continue;let run=0;for(let x=0;x<=W;x++){if(x<W&&bin[y*W+x])run++;else{if(run>=W*.3)eraseRow(y,x-run,x-1);run=0}}}
+    for(let x=0;x<W;x++){if(x>W*.15&&x<W*.85)continue;let run=0;for(let y=0;y<=H;y++){if(y<H&&bin[y*W+x])run++;else{if(run>=H*.45)for(let yy=y-run;yy<y;yy++)for(let d=-1;d<=1;d++){const xx=x+d;if(xx>=0&&xx<W)bin[yy*W+xx]=0}run=0}}}}
+  let tot=0;for(let i=0;i<W*H;i++)tot+=bin[i];if(tot<18)return{v:null,conf:1,ink:0};
+  const{lab,list}=blobs(bin,W,H,10),bl=list.filter(b=>(b.y1-b.y0)>=6||(b.x1-b.x0)>=10);if(!bl.length)return{v:null,conf:1,ink:tot};
+  // regroupe les morceaux qui se chevauchent horizontalement (5 en deux traits, rature sur plusieurs chiffres)
+  let G=bl.map(b=>({x0:b.x0,x1:b.x1,y0:b.y0,y1:b.y1,ids:[b.id]}));let merged=true;
+  while(merged){merged=false;for(let i=0;i<G.length&&!merged;i++)for(let j=i+1;j<G.length;j++){const a=G[i],b=G[j],ov=Math.min(a.x1,b.x1)-Math.max(a.x0,b.x0);
+    if(ov>Math.min(a.x1-a.x0,b.x1-b.x0)*.35){G[i]={x0:Math.min(a.x0,b.x0),x1:Math.max(a.x1,b.x1),y0:Math.min(a.y0,b.y0),y1:Math.max(a.y1,b.y1),ids:[...a.ids,...b.ids]};G.splice(j,1);merged=true;break}}}
+  G.sort((a,b)=>a.x0-b.x0);
+  // nombres = suites de glyphes proches
+  const nums=[];G.forEach(gl=>{const last=nums[nums.length-1];if(last&&gl.x0-last.x1<12){last.g.push(gl);last.x1=Math.max(last.x1,gl.x1);last.y0=Math.min(last.y0,gl.y0);last.y1=Math.max(last.y1,gl.y1)}else nums.push({g:[gl],x0:gl.x0,x1:gl.x1,y0:gl.y0,y1:gl.y1})});
+  // reconnaît un groupe de glyphes -> chiffres + confiance
+  const recog=n=>{let digits='',conf=1;
+    for(const gl of n.g){const gw=gl.x1-gl.x0+1,gh=gl.y1-gl.y0+1,parts=gw>gh*1.25?Math.min(3,Math.round(gw/(gh*.75))):1;
+      const cuts=[gl.x0];if(parts>1){const proj=[];for(let x=gl.x0;x<=gl.x1;x++){let s=0;for(let y=gl.y0;y<=gl.y1;y++)if(gl.ids.includes(lab[y*W+x]))s++;proj.push(s)}
+        for(let k=1;k<parts;k++){const c=Math.round(gw*k/parts);let bx=c,bv=1e9;for(let x=Math.max(2,c-gw*.18|0);x<=Math.min(gw-3,c+gw*.18|0);x++)if(proj[x]<bv){bv=proj[x];bx=x}cuts.push(gl.x0+bx)}}
+      cuts.push(gl.x1+1);
+      for(let k=0;k<cuts.length-1;k++){const ax=cuts[k],bx=cuts[k+1],cw=bx-ax,img=new Float32Array(cw*gh);
+        for(let y=0;y<gh;y++)for(let x=0;x<cw;x++){const i=(gl.y0+y)*W+ax+x;img[y*cw+x]=gl.ids.includes(lab[i])?Math.max(ink[i],.6):0}
+        const x=norm28(img,cw,gh),xd=new Float32Array(784);for(let y=0;y<28;y++)for(let xx=0;xx<28;xx++){let mv=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const yy=y+dy,x2=xx+dx;if(yy>=0&&x2>=0&&yy<28&&x2<28&&x[yy*28+x2]>mv)mv=x[yy*28+x2]}xd[y*28+xx]=(x[y*28+xx]+mv)/2}
+        const p1=digPredict(x),p2=digPredict(xd),p=p1.map((v,i)=>(v+p2[i])/2);let m=0;for(let d=1;d<11;d++)if(p[d]>p[m])m=d;
+        if(m===10){conf=Math.min(conf,.3);digits+='?'}else{digits+=m;conf=Math.min(conf,p[m])}}}
+    return{digits,conf}};
+  // un groupe est raturé s'il a la forme d'une rature ET que l'IA n'y voit pas un nombre net
+  nums.forEach(n=>{n.r=recog(n);const geo=n.g.some(gl=>struck(bin,W,gl.x0,gl.x1,gl.y0,gl.y1))||struck(bin,W,n.x0,n.x1,n.y0,n.y1);
+    n.st=geo&&(n.r.conf<.75||/\?/.test(n.r.digits))});
+  const live=nums.filter(n=>!n.st),anyStruck=nums.some(n=>n.st);if(!live.length)return{v:null,conf:.6,struck:anyStruck,ink:tot,onlyStruck:true};
+  // plusieurs nombres non raturés : on garde le plus net (à égalité, celui de droite = écrit en dernier)
+  const pick=live.reduce((a,b)=>b.r.conf>a.r.conf+.15||(Math.abs(b.r.conf-a.r.conf)<=.15&&b.x0>a.x0)?b:a);
+  let digits=pick.r.digits,conf=pick.r.conf;
+  if(live.length>1&&!anyStruck)conf=Math.min(conf,.55);
+  const v=/^\d+$/.test(digits)?parseInt(digits,10):null;return{v,conf:v===null?.2:conf,struck:anyStruck,ink:tot,raw:digits}}
+// lit toutes les pages déposées
+async function readInventoryFiles(files,onStep){
+  await digModel();const pages=[],errs=[];
+  for(const f of files){const buf=await f.arrayBuffer(),u=new Uint8Array(buf.slice(0,4)),cvs=[];
+    if(u[0]===0x25&&u[1]===0x50){const pdfjs=await import('./vendor/pdfjs/pdf.min.mjs');pdfjs.GlobalWorkerOptions.workerSrc=new URL('./vendor/pdfjs/pdf.worker.min.mjs',location.href).href;
+      const doc=await pdfjs.getDocument({data:new Uint8Array(buf),isEvalSupported:false}).promise;
+      for(let i=1;i<=Math.min(doc.numPages,30);i++){const p=await doc.getPage(i),vp0=p.getViewport({scale:1}),vp=p.getViewport({scale:1800/vp0.width}),cv=document.createElement('canvas');cv.width=vp.width;cv.height=vp.height;
+        await p.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;cvs.push([cv,`${f.name} p.${i}`])}}
+    else{try{const bmp=await createImageBitmap(new Blob([buf])),k=Math.min(1,2600/Math.max(bmp.width,bmp.height)),cv=document.createElement('canvas');cv.width=Math.round(bmp.width*k);cv.height=Math.round(bmp.height*k);cv.getContext('2d').drawImage(bmp,0,0,cv.width,cv.height);cvs.push([cv,f.name])}catch(e){errs.push(`${f.name} : format d'image non lu`)}}
+    for(const[cv,name]of cvs){onStep&&onStep(name);await new Promise(r=>setTimeout(r,0));const P=await scanPage(cv);if(P.err){errs.push(`${name} : ${P.err}`);continue}P.name=name;pages.push(P)}}
+  const L=INVL,rows=[];
+  for(const P of pages){const ids=P.sheet.pages[P.page]||[];
+    ids.forEach((pid,i)=>{const y=L.rows0+i*L.rowH,yb0=y+(L.rowH-L.boxH)/2,yb1=yb0+L.boxH,m=1.2;
+      const cc=(k,x0,x1)=>cropMM(P,x0-m,yb0-m,x1+m,yb1+m);
+      const cnt=cc('cnt',L.c.cnt[0],L.c.cnt[1]),hsb=cc('hsb',L.c.hsb[0],L.c.hsb[1]),hsp=cropMM(P,L.c.hsp[0],yb0,L.c.hsp[1],yb1),rem=cropMM(P,L.c.rem[0],y,L.c.rem[1],y+L.rowH);
+      const bd=(x0,x1)=>[m,m,m+(x1-x0),m+L.boxH];
+      const rc=readBox(cnt,bd(L.c.cnt[0],L.c.cnt[1])),rh=readBox(hsb,bd(L.c.hsb[0],L.c.hsb[1]));
+      // HS imprimé barré ?
+      const hb=new Uint8Array(hsp.W*hsp.H);let hi=0;for(let k=0;k<hb.length;k++){hb[k]=hsp.ink[k]>.42?1:0;hi+=hb[k]}
+      let bx0=hsp.W,bx1=-1,by0=hsp.H,by1=-1;for(let y=0;y<hsp.H;y++)for(let x=0;x<hsp.W;x++)if(hb[y*hsp.W+x]){if(x<bx0)bx0=x;if(x>bx1)bx1=x;if(y<by0)by0=y;if(y>by1)by1=y}
+      const hsStats={ink:hi,w:bx1-bx0+1,h:by1-by0+1,len:String(P.sheet.hs[pid]||0).length};
+      let remInk=0;for(let y=Math.round(rem.H*.08);y<rem.H*.78;y++)for(let x=0;x<rem.W;x++)if(rem.ink[y*rem.W+x]>.45)remInk++;
+      if(window.__invDebug)(window.__invDbg=window.__invDbg||[]).push({i,cnt:{W:cnt.W,H:cnt.H,ink:Array.from(cnt.ink,v=>+v.toFixed(2))},hsb:{W:hsb.W,H:hsb.H,ink:Array.from(hsb.ink,v=>+v.toFixed(2))}});
+      rows.push({pid,sheet:P.sheet,page:P.page,i,cnt:rc,hs:rh,hsStats,hsOld:P.sheet.hs[pid]||0,remInk,
+        img:{cnt:cropURL(cnt),hs:cropURL(cropMM(P,L.c.hsp[0]-.5,yb0-m,L.c.hsb[1]+m,yb1+m)),rem:remInk>40?cropURL(rem):''}})})}
+  // compare chaque HS imprimé aux autres de la même page (même nombre de chiffres)
+  pages.forEach(P=>{const rs=rows.filter(r=>r.sheet===P.sheet&&r.page===P.page);const med=a=>{const b=a.slice().sort((x,y)=>x-y);return b.length?b[b.length>>1]:0};
+    rs.forEach(r=>{const same=rs.filter(o=>o.hsStats.len===r.hsStats.len&&o.hsStats.ink>0),mi=med(same.map(o=>o.hsStats.ink)),mw=med(same.map(o=>o.hsStats.w)),mh=med(same.map(o=>o.hsStats.h));
+      r.hsStruck=same.length>=3&&r.hsStats.ink>mi*1.7&&(r.hsStats.w>mw*1.35||r.hsStats.h>mh*1.35)})});
+  return{rows,pages,errs};
+}
+// ---- import d'un inventaire rempli : écrans ----
+function invImpHTML(){const I=MD.inv;
+  if(I.busy)return{body:`<div class="wel invbusy"><span class="spin"></span><b>Lecture de la feuille…</b><span class="h">${esc(I.busy)}</span></div>`,foot:`<button class="btn" data-act="close">Annuler</button>`};
+  if(!I.rows){return{body:`<div class="wel"><label class="impdrop" id="invdrop" tabindex="0">${ic('cam')}<b>Glisse le scan ou les photos de ta feuille</b><span>ou clique pour les choisir · PDF, JPG ou PNG · plusieurs pages possibles</span><input type="file" id="invfile" accept=".pdf,.jpg,.jpeg,.png,.webp" multiple hidden></label>
+      <p class="note" style="margin:0">Utilise une feuille imprimée depuis <b>Stock › Inventaire</b> : son QR code permet à StockInfos de savoir quelle feuille et quelle ligne il lit. Tout se passe sur ce PC, rien n'est envoyé.</p>
+      <p class="note" style="margin:0">Pour une photo au téléphone : feuille à plat, bien éclairée, les 4 carrés noirs des coins visibles.</p></div>`,foot:`<button class="btn l" data-act="impback0">Retour</button><button class="btn" data-act="close">Annuler</button>`}}
+  const R=I.rows,act=R.filter(r=>r.touched),idle=R.length-act.length,warn=act.filter(r=>r.warn).length;
+  const head=`<div class="invsum"><span><b>${I.pages}</b> page${I.pages>1?'s':''} lue${I.pages>1?'s':''}</span><span><b>${act.length}</b> ligne${act.length>1?'s':''} remplie${act.length>1?'s':''}</span>${warn?`<span class="w">${ic('alert')}<b>${warn}</b> à vérifier</span>`:''}${idle?`<span class="h">${idle} ligne${idle>1?'s':''} vide${idle>1?'s':''} : rien ne change</span>`:''}</div>
+    ${I.errs.length?`<div class="inverr">${ic('alert')}<div>${I.errs.map(esc).join('<br>')}</div></div>`:''}
+    ${I.old?`<p class="note" style="margin:0">Feuille imprimée le ${fmt(I.old,{day:'numeric',month:'long'})}. Le stock a pu changer depuis : vérifie bien les lignes.</p>`:''}`;
+  const rows=act.map(r=>{const p=byId(r.pid),k=R.indexOf(r);
+    return `<div class="invr${r.warn?' warn':''}"><div class="invp"><b>${esc(p.name)}</b><small>Total actuel ${p.qty} · HS actuel ${hsQty(p,TODAY)}</small>${r.why?`<span class="why">${ic('alert')}${esc(r.why)}</span>`:''}</div>
+      <div class="invf"><span class="lbl">Compté</span><img src="${r.img.cnt}" alt=""><input class="in" inputmode="numeric" data-in="invcnt" data-k="${k}" value="${r.ucnt??''}" placeholder="—"></div>
+      <div class="invf"><span class="lbl">HS</span><img src="${r.img.hs}" alt=""><input class="in" inputmode="numeric" data-in="invhs" data-k="${k}" value="${r.uhs??''}" placeholder="—"></div>
+      <div class="invf rem"><span class="lbl">Remarque</span>${r.img.rem?`<img src="${r.img.rem}" alt="">`:''}<input class="in" data-in="invrem" data-k="${k}" value="${esc(r.urem||'')}" placeholder="${r.img.rem?'Recopie la remarque (facultatif)':'Aucune'}"></div></div>`}).join('');
+  return{body:`<div class="wel">${head}<div class="invlist">${rows||'<p class="empty">Rien n\'est écrit sur la feuille.</p>'}</div>
+    <p class="note" style="margin:0">Compare chaque case avec l'extrait de ta feuille, corrige si besoin. Une case vide ne change rien.</p></div>`,
+    foot:`<button class="btn l" data-act="invagain">Autre scan</button><button class="btn" data-act="close">Annuler</button><button class="btn pri" data-act="invgo"${act.length?'':' disabled'}>Mettre à jour le stock</button>`}}
+async function invLoad(files){const I=MD.inv;I.busy='Préparation…';drawImp();
+  try{const res=await readInventoryFiles([...files],n=>{if(MD&&MD.inv){MD.inv.busy=n;const e=document.querySelector('.invbusy .h');if(e)e.textContent=n}});
+    if(!MD||!MD.inv)return;I.busy=null;I.errs=res.errs;I.pages=res.pages.length;window.__lastInv=res;
+    if(!res.pages.length){I.rows=null;drawImp();toast(res.errs[0]?'Feuille non reconnue : '+res.errs[0].split(' : ').slice(1).join(' : '):'Aucune page lue');return}
+    const sh=res.pages[0].sheet;I.old=sh.d!==TODAY?sh.d:null;
+    I.rows=res.rows.filter(r=>byId(r.pid)).map(r=>{const p=byId(r.pid),why=[];
+      let ucnt=r.cnt.v,uhs=null;
+      if(r.cnt.ink&&r.cnt.v===null)why.push(r.cnt.onlyStruck?'Compté barré sans nouveau nombre':'Compté illisible');
+      else if(r.cnt.v!==null&&r.cnt.conf<.8)why.push('Compté peu lisible');
+      if(r.cnt.struck&&r.cnt.v!==null)why.push('Compté corrigé (rature)');
+      if(r.hs.v!==null){uhs=r.hs.v;if(r.hs.conf<.8)why.push('HS peu lisible')}
+      else if(r.hs.ink){why.push('HS illisible')}
+      else if(r.hsStruck){uhs=0;why.push('HS actuel barré : mis à 0')}
+      if(r.cnt.v!==null&&uhs!==null&&uhs>r.cnt.v)why.push('Plus de HS que de pièces comptées');
+      if(r.cnt.v!==null&&Math.abs(r.cnt.v-p.qty)>Math.max(5,p.qty*.5))why.push(`Très différent du total actuel (${p.qty})`);
+      const touched=r.cnt.ink>0||r.hs.ink>0||r.hsStruck||!!r.img.rem;
+      return{...r,ucnt,uhs,urem:'',touched,why:why.join(' · '),warn:why.some(w=>!/corrigé/.test(w))}});
+    drawImp()}catch(e){if(MD&&MD.inv){I.busy=null;I.rows=null;drawImp()}toast('Lecture impossible : '+String(e.message||e))}}
+function invApply(){const I=MD.inv;let nq=0,nh=0,nr=0;const d=fmt(TODAY,{day:'numeric',month:'short'});
+  I.rows.filter(r=>r.touched).forEach(r=>{const p=byId(r.pid);if(!p)return;
+    const c=String(r.ucnt??'').trim(),h=String(r.uhs??'').trim(),rem=(r.urem||'').trim();
+    if(/^\d+$/.test(c)&&+c!==p.qty){logP(p,'qty',`Inventaire du ${d} : ${p.qty} → ${+c}`);p.qty=+c;nq++}
+    if(/^\d+$/.test(h)){const cur=hsQty(p,TODAY),v=Math.min(+h,p.qty);if(v!==cur){p.hs=v>0?[{q:v,from:TODAY,until:'',note:rem||'Inventaire'}]:[];logP(p,'hs',`Inventaire du ${d} : hors service ${cur} → ${v}`);nh++}}
+    if(rem){logP(p,'note',`Remarque d'inventaire : ${rem}`);nr++}});
+  S.cfg.lastInv=TODAY;save();closeM();U.view='stock';render();toast(`Inventaire appliqué : ${nq} quantité${nq>1?'s':''}, ${nh} hors service, ${nr} remarque${nr>1?'s':''}`)}
+function openImp(){MD={k:'imp',step:0};drawImp()}
 function drawImp(){
   const I=MD.imp;let body,foot;
-  if(MD.step===1){
+  if(MD.step===0){
+    body=`<div class="wel"><div class="impch">
+      <button class="impc" data-act="impchoose" data-v="stock">${ic('ul')}<b>Importer un stock</b><span>Depuis un fichier Excel, CSV ou PDF : ajoute ou met à jour tes produits.</span></button>
+      <button class="impc" data-act="impchoose" data-v="inv">${ic('cam')}<b>Importer un inventaire rempli</b><span>Le scan ou la photo d'une feuille d'inventaire remplie à la main : met à jour les quantités et le hors service.</span></button></div></div>`;
+    foot=`<button class="btn" data-act="close">Annuler</button>`;
+  }else if(MD.step==='inv'){({body,foot}=invImpHTML())}
+  else if(MD.step===1){
     body=`<div class="wel"><label class="impdrop" id="impdrop" tabindex="0">${ic('ul')}<b>Glisse ton fichier ici</b><span>ou clique pour le choisir · Excel (.xlsx), CSV ou PDF</span><input type="file" id="impfile" accept=".xlsx,.xlsm,.csv,.txt,.tsv,.pdf" hidden></label>
       <p class="note" style="margin:0">Pas besoin d'un format précis : une ligne par produit, avec au moins son nom. StockInfos devine les colonnes (nom, quantité, hors service, unité…) et te montre ce qu'il a compris avant d'importer. Rien n'est envoyé sur internet.</p>
       <p class="note" style="margin:0">Fichier en .xls ou .ods ? Ouvre-le dans Excel et enregistre-le en .xlsx. Les PDF scannés (photos) ne sont pas lus, seulement ceux qui contiennent du texte. <button class="lnk" data-act="impmodel">Télécharger un modèle vide</button></p></div>`;
-    foot=`<button class="btn" data-act="close">Annuler</button>`;
+    foot=`<button class="btn l" data-act="impback0">Retour</button><button class="btn" data-act="close">Annuler</button>`;
   }else{
     const sh=I.sheets[I.si],width=Math.max(0,...sh.rows.map(r=>r?r.length:0)),cols=[...Array(width).keys()].filter(c=>sh.rows.some(r=>r&&String(r[c]??'').trim()));
     const prev=sh.rows.slice(I.hr+1).filter(r=>r&&r.some(x=>String(x).trim())).slice(0,6),pl=impPlan(),hasName=I.map.includes('name');
@@ -1274,8 +1503,13 @@ function drawImp(){
       :`<p class="impwarn">${ic('alert')}Choisis quelle colonne contient le nom des produits.</p>`}</div>`;
     foot=`<button class="btn l" data-act="impback">Autre fichier</button><button class="btn" data-act="close">Annuler</button><button class="btn pri" data-act="impgo"${hasName&&(pl.add.length||(pl.upd.length&&I.mode!=='skip'))?'':' disabled'}>Importer</button>`;
   }
-  $('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(${MD.step===1?520:860}px,100%)"><div class="dh"><h3 id="mt">Importer un stock</h3><button class="ib" data-act="close" aria-label="Fermer">${ic('x')}</button></div>${body}<div class="df">${foot}</div></div></div>`;
+  $('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(${MD.step===1||MD.step===0?560:MD.step==='inv'&&MD.inv&&MD.inv.rows?1000:MD.step==='inv'?560:860}px,100%)"><div class="dh"><h3 id="mt">${MD.step==='inv'?'Importer un inventaire rempli':MD.step===0?'Importer':'Importer un stock'}</h3><button class="ib" data-act="close" aria-label="Fermer">${ic('x')}</button></div>${body}<div class="df">${foot}</div></div></div>`;
   $('.impdet')?.addEventListener('toggle',e=>{if(MD&&MD.imp)MD.imp.open=e.target.open});
+  if(MD.step==='inv'&&$('#invdrop')){const box=$('#invdrop'),inp=$('#invfile');
+    inp.addEventListener('change',()=>{if(inp.files.length)invLoad(inp.files)});
+    box.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inp.click()}});
+    box.addEventListener('dragover',e=>{e.preventDefault();box.classList.add('drag')});box.addEventListener('dragleave',()=>box.classList.remove('drag'));
+    box.addEventListener('drop',e=>{e.preventDefault();box.classList.remove('drag');if(e.dataTransfer.files.length)invLoad(e.dataTransfer.files)})}
   if(MD.step===1){const box=$('#impdrop'),inp=$('#impfile');
     inp.addEventListener('change',()=>{if(inp.files[0])impLoad(inp.files[0])});
     box.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inp.click()}});
@@ -1321,16 +1555,46 @@ function invCSV(){const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
   for(const r of invRows())lines.push([q(r.p.name),q(r.p.ref||''),r.p.qty,r.hs,r.rest,q(r.hl.map(hsTxt).join(' / ')),''].join(';'));
   return '﻿'+lines.join('\r\n')}
 async function outPrint(mode,name){if(mode==='pdf'){if(!API||!API.savePdf){toast('Ferme complètement l\'app et relance Lancer.bat pour activer l\'export PDF');return}try{const f=await API.savePdf({name});if(f)toast('PDF enregistré et ouvert')}catch(e){toast('PDF impossible : '+String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,'').replace(/No handler registered.*/,'ferme complètement l\'app et relance Lancer.bat'))}}else setTimeout(()=>window.print(),50)}
-function printInv(mode){const R2=invRows(),tq=R2.reduce((n,r)=>n+r.p.qty,0),th=R2.reduce((n,r)=>n+r.hs,0),co=(S.cfg.company||'').trim(),N=n=>n.toLocaleString('fr-FR');
-  const F=d=>fmt(d,{day:'numeric',month:'short'}),hsShort=h=>`${h.q} HS${h.until?` jusqu'au ${F(h.until)}`:''}${h.note&&h.note!=='Importé'?` · ${esc(h.note)}`:''}`;
-  const rows=R2.map((r,i)=>`<tr${r.hs?' class="hs"':''}><td class="n">${i+1}</td><td class="pr"><b>${esc(r.p.name)}</b>${r.p.ref||r.hl.length?`<span class="meta">${r.p.ref?`Réf. ${esc(r.p.ref)}`:''}${r.p.ref&&r.hl.length?' · ':''}${r.hl.length?`<i>${r.hl.map(hsShort).join(' · ')}</i>`:''}</span>`:''}</td><td class="q">${N(r.p.qty)}</td><td class="q h">${r.hs?N(r.hs):'–'}</td><td class="q">${N(r.rest)}</td><td class="w"></td><td class="w rm"></td></tr>`).join('');
-  $('#print').innerHTML=`<div class="inv">
-  <div class="ihead"><div class="ico">${co?esc(co):'&nbsp;'}</div><div class="idate">${fmt(TODAY,{day:'numeric',month:'long',year:'numeric'})}</div></div>
-  <div class="ititle"><h1>Inventaire du matériel</h1><p>au ${fmt(TODAY,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</p>
-    <div class="ikpi"><span><b>${R2.length}</b> produits</span><span><b>${N(tq)}</b> pièces</span><span><b>${N(th)}</b> hors service</span><span><b>${N(tq-th)}</b> disponibles</span></div></div>
-  <table class="itbl"><thead><tr><th class="n">#</th><th class="pr">Produit</th><th class="q">Total</th><th class="q">HS</th><th class="q">Restant</th><th class="w">Compté</th><th class="w rm">Remarque</th></tr></thead><tbody>${rows||'<tr><td colspan="7" class="empty">Aucun produit dans le stock</td></tr>'}</tbody></table>
-  <div class="isign"><div><span>Inventaire réalisé par</span></div><div><span>Date</span></div><div><span>Signature</span></div></div>
-  <p class="ifoot">Remplir la colonne « Compté » au dépôt, puis mettre à jour le stock dans StockInfos.</p></div>`;outPrint(mode,`Inventaire-${TODAY}.pdf`)}
+// ---- feuille d'inventaire lisible par l'app (QR code + repères aux coins) ----
+// Toutes les positions sont en mm dans la zone imprimable (186 x 273 mm, marges de 12 mm)
+const INVL={W:186,H:273,mk:5,qr:{x:164,y:0,s:16},rows0:46,rowH:7.6,perPage:26,boxH:5.6,
+  c:{n:[0,7],pr:[9,88],tot:[88,101],hsp:[103,110],hsb:[110.5,123.5],cnt:[126,147],rem:[150,186]},sign:252};
+function invSheetSave(R2){
+  const id=Date.now().toString(36).slice(-6)+Math.random().toString(36).slice(2,4),pages=[];
+  for(let i=0;i<R2.length;i+=INVL.perPage)pages.push(R2.slice(i,i+INVL.perPage).map(r=>r.p.id));
+  if(!pages.length)pages.push([]);
+  const sh={id,d:TODAY,t:Date.now(),pages,hs:Object.fromEntries(R2.map(r=>[r.p.id,r.hs])),qty:Object.fromEntries(R2.map(r=>[r.p.id,r.p.qty]))};
+  S.invSheets=[sh,...(S.invSheets||[])].slice(0,12);save();return sh;
+}
+function qrSvg(txt){try{const q=qrcode(0,'M');q.addData(txt);q.make();const n=q.getModuleCount();let d='';
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))d+=`M${c} ${r}h1v1h-1z`;
+  return `<svg viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg"><path d="${d}" fill="#000"/></svg>`}catch(e){return ''}}
+function printInv(mode){
+  const R2=invRows(),tq=R2.reduce((n,r)=>n+r.p.qty,0),th=R2.reduce((n,r)=>n+r.hs,0),co=(S.cfg.company||'').trim(),N=n=>n.toLocaleString('fr-FR');
+  const sh=invSheetSave(R2),L=INVL,mm=v=>v+'mm',np=sh.pages.length;
+  const F=d=>fmt(d,{day:'numeric',month:'short'}),hsShort=h=>`${h.q} HS${h.until?` jusqu'au ${F(h.until)}`:''}`;
+  const col=(k,html,cls='')=>`<div class="c ${k} ${cls}" style="left:${mm(L.c[k][0])};width:${mm(L.c[k][1]-L.c[k][0])}">${html}</div>`;
+  const pagesHTML=sh.pages.map((ids,pi)=>{
+    const rows=ids.map((pid,i)=>{const r=R2.find(x=>x.p.id===pid),k=pi*L.perPage+i+1,y=L.rows0+i*L.rowH;
+      const meta=[r.p.ref?`Réf. ${esc(r.p.ref)}`:'',r.hl.length?`<i>${r.hl.map(hsShort).join(' · ')}</i>`:''].filter(Boolean).join(' · ');
+      return `<div class="r${i%2?' z':''}" style="top:${mm(y)};height:${mm(L.rowH)}">
+        ${col('n',k)}${col('pr',`<b>${esc(r.p.name)}</b>${meta?`<span class="meta">${meta}</span>`:''}`)}${col('tot',N(r.p.qty))}
+        ${col('hsp',r.hs?N(r.hs):'0',r.hs?'red':'')}${col('hsb','<span class="bx"></span>')}${col('cnt','<span class="bx"></span>')}${col('rem','<span class="ln"></span>')}</div>`}).join('');
+    const head=pi===0?`<div class="ititle"><h1>Inventaire du matériel</h1><p>au ${fmt(TODAY,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</p>
+        <div class="ikpi"><span><b>${R2.length}</b> produits</span><span><b>${N(tq)}</b> pièces</span><span><b>${N(th)}</b> hors service</span><span><b>${N(tq-th)}</b> disponibles</span></div></div>`
+      :`<div class="ititle sm"><h1>Inventaire du matériel</h1><p>suite · au ${fmt(TODAY,{day:'numeric',month:'long',year:'numeric'})}</p></div>`;
+    return `<section class="ipg">
+      <i class="mk" style="left:0;top:0"></i><i class="mk" style="right:0;top:0"></i><i class="mk" style="left:0;bottom:0"></i><i class="mk" style="right:0;bottom:0"></i>
+      <div class="iqr" style="left:${mm(L.qr.x)};top:${mm(L.qr.y)};width:${mm(L.qr.s)};height:${mm(L.qr.s)}">${qrSvg(`SI1|${sh.id}|${pi}`)}</div>
+      <div class="ihead"><div class="ico">${co?esc(co):'&nbsp;'}</div><div class="idate">${fmt(TODAY,{day:'numeric',month:'long',year:'numeric'})} · page ${pi+1}/${np}</div></div>
+      ${head}
+      <div class="r th" style="top:${mm(L.rows0-6)};height:6mm">${col('n','#')}${col('pr','Produit')}${col('tot','Total')}<div class="c hsh" style="left:${mm(L.c.hsp[0])};width:${mm(L.c.hsb[1]-L.c.hsp[0])}">HS <small>actuel · nouveau</small></div>${col('cnt','Compté')}${col('rem','Remarque')}</div>
+      ${rows||'<p class="empty">Aucun produit dans le stock</p>'}
+      ${pi===np-1?`<div class="isign" style="top:${mm(L.sign)}"><div><span>Inventaire réalisé par</span></div><div><span>Date</span></div><div><span>Signature</span></div></div>`:''}
+      <p class="ifoot">Écris le nombre compté dans « Compté » et le nouveau hors service dans la case de droite, puis Stock › Importer › Inventaire rempli.</p>
+    </section>`}).join('');
+  $('#print').innerHTML=`<div class="inv">${pagesHTML}</div>`;outPrint(mode,`Inventaire-${TODAY}.pdf`);
+}
 VIEWS.set=()=>{const cals=S.cfg.cals;
   return `<div class="setw">
   <h3 class="seth">Agendas synchronisés</h3>
@@ -1641,6 +1905,8 @@ document.addEventListener('mouseup',()=>{if(!DRAG.on)return;DRAG.on=false;const 
 /* ---------- actions ---------- */
 function setView(v){U.view=v;U.reset=false;try{history.replaceState(null,'','#'+VH[v])}catch(e){location.hash=VH[v]}render();$('#main').scrollTop=0}
 const A={
+  impback0:()=>{MD={k:'imp',step:0};drawImp()},impchoose:b=>{if(b.dataset.v==='inv'){MD.step='inv';MD.inv={rows:null,errs:[]}}else MD.step=1;drawImp()},
+  invagain:()=>{MD.inv={rows:null,errs:[]};drawImp()},invgo:()=>invApply(),
   impopen:()=>openImp(),impback:()=>{MD.step=1;drawImp()},impgo:()=>impApply(),
   impmodel:async()=>{const c='﻿'+['Nom;Quantité;Hors service;Unité;Catégorie','Chaise pliante;120;3;;Mobilier','Table 180 x 80;30;0;;Mobilier','Plancher;60;0;m²;Structure'].join('\r\n');
     if(!API||!API.saveFile){toast('Disponible dans l\'app installée');return}
@@ -1759,6 +2025,7 @@ document.addEventListener('keydown',e=>{
 });
 document.addEventListener('input',e=>{
   const t=e.target;
+  if(MD&&MD.k==='imp'&&MD.inv&&MD.inv.rows&&/^inv(cnt|hs|rem)$/.test(t.dataset.in||'')){const r=MD.inv.rows[+t.dataset.k],f={invcnt:'ucnt',invhs:'uhs',invrem:'urem'}[t.dataset.in];r[f]=t.value;return}
   if(t.id==='palq'){PAL.q=t.value;PAL.i=0;drawPal();return}
   if(t.classList.contains('rb')&&MD&&MD.k==='ret'){const r=MD.rows[+t.dataset.i];r.back=Math.max(0,Math.min(r.q,parseInt(t.value)||0));const pos=t.selectionStart;drawRet();const n=document.querySelector(`.rb[data-i="${t.dataset.i}"]`);if(n){n.focus()}}
   if(t.dataset.in==='q'){U.q=t.value;$('#plist').innerHTML=plistHTML()}
