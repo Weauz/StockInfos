@@ -706,6 +706,14 @@ button.ret:hover strong{color:var(--acc)}
 .impsum .w{color:var(--orange,#c77700)}
 .impwarn{display:flex;align-items:center;gap:8px;color:var(--red);margin:0;font-weight:600}
 .impwarn svg{width:16px;height:16px}
+.impdet summary{cursor:pointer;font-size:13px;color:var(--acc);font-weight:600}
+.implist{display:flex;flex-direction:column;max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:10px;margin-top:8px}
+.implist label{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:6px 10px;border-bottom:1px solid var(--line);font-size:13px;cursor:pointer}
+.implist label:last-child{border-bottom:0}
+.implist label b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.implist label span{color:var(--mute);white-space:nowrap}
+.implist label small{color:var(--mute);font-size:11.5px;white-space:nowrap}
+.implist label.off b{text-decoration:line-through;color:var(--mute)}
 </style>
 </head>
 <body>
@@ -1174,7 +1182,7 @@ const IMPW={name:['nom','nom du produit','designation','article','articles','pro
 function impKey(h){const n=norm(String(h||'')).replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();if(!n)return '';
   for(const k in IMPW)if(IMPW[k].includes(n))return k;
   for(const k in IMPW)if(IMPW[k].some(w=>w.length>2&&(' '+n+' ').includes(' '+w+' ')))return k;return ''}
-const impNum=v=>{const m=String(v??'').replace(/\s| /g,'').replace(',','.').match(/^-?\d+(\.\d+)?/);return m?parseFloat(m[0]):null};
+const impNum=v=>{const t=String(v??'').replace(/\s|\u00a0/g,'').replace(',','.'),m=t.match(/^-?\d+(\.\d+)?/);if(m)return parseFloat(m[0]);const w=norm(String(v??'')).trim().split(/\s+/)[0];return NUMW[w]??null};
 function impGuess(rows,force){
   let hr=-1,best=0;
   if(force!==undefined)hr=force;else for(let i=0;i<Math.min(rows.length,20);i++){const cells=(rows[i]||[]).filter(x=>String(x).trim());if(cells.length<2)continue;const sc=new Set(cells.map(impKey).filter(Boolean)).size;if(sc>best){best=sc;hr=i}}
@@ -1188,17 +1196,19 @@ function impGuess(rows,force){
 }
 function impPlan(){
   const I=MD.imp,sh=I.sheets[I.si],rows=sh.rows.slice(I.hr+1),col=k=>I.map.indexOf(k);
-  const cn=col('name');const res={add:[],upd:[],skip:0,dup:0};if(cn<0)return res;
-  const seen={},hj=I.hr>=0?norm((sh.rows[I.hr]||[]).join('|')):null;
+  const cn=col('name');const res={add:[],upd:[],skip:0,dup:0,off:[]};if(cn<0)return res;
+  const seen={},hj=I.hr>=0?norm((sh.rows[I.hr]||[]).join('|')):null,hasCat=col('cat')>=0,ex=I.ex||{};let sect='';
   rows.forEach(r=>{if(!r)return;const name=String(r[cn]??'').trim();if(hj&&norm(r.join('|'))===hj)return;
+    const filled=r.map(x=>String(x??'').trim()).filter(Boolean);
+    if(!name&&filled.length===1&&impNum(filled[0])===null&&filled[0].length<40){sect=filled[0];res.sect=(res.sect||0)+1;return}
     if(!name||/^(sous[- ]?)?total\b/i.test(norm(name))){if(r.some(x=>String(x).trim()))res.skip++;return}
     const g=k=>col(k)>=0?String(r[col(k)]??'').trim():'';
     const it={name,qty:Math.max(0,Math.round(impNum(g('qty'))??0)),hasQ:col('qty')>=0&&impNum(g('qty'))!==null,hs:Math.max(0,Math.round(impNum(g('hs'))??0)),
-      unit:UL[unitKey(g('unit'))]&&['m²','m','kg','L'].includes(UL[unitKey(g('unit'))])?UL[unitKey(g('unit'))]:'',usize:impNum(g('usize')),cat:g('cat'),kw:g('kw').split(/[,;]/).map(s=>s.trim()).filter(Boolean)};
+      unit:UL[unitKey(g('unit'))]&&['m²','m','kg','L'].includes(UL[unitKey(g('unit'))])?UL[unitKey(g('unit'))]:'',usize:impNum(g('usize')),cat:g('cat')||(!hasCat&&sect?sect.charAt(0)+sect.slice(1).toLowerCase():''),kw:g('kw').split(/[,;]/).map(s=>s.trim()).filter(Boolean)};
     const key=norm(name);
     if(seen[key]){seen[key].qty+=it.qty;seen[key].hs+=it.hs;res.dup++;return}
-    seen[key]=it;const ex=S.products.find(p=>norm(p.name)===key);
-    if(ex){it.p=ex;res.upd.push(it)}else res.add.push(it)});
+    seen[key]=it;it.key=key;if(ex[key]){res.off=(res.off||[]);res.off.push(it);return}const exi=S.products.find(p=>norm(p.name)===key);
+    if(exi){it.p=exi;res.upd.push(it)}else res.add.push(it)});
   return res;
 }
 function openImp(){MD={k:'imp',step:1};drawImp()}
@@ -1218,12 +1228,14 @@ function drawImp(){
       <p class="note" style="margin:0">Vérifie ce que représente chaque colonne :</p>
       <div class="impwrap"><table class="imptbl"><thead><tr>${cols.map(c=>`<th><select data-in="impmap" data-c="${c}" class="${I.map[c]?'on':''}">${IMPF.map(([v,l])=>`<option value="${v}"${(I.map[c]||'')===v?' selected':''}>${l}</option>`).join('')}</select>${I.hr>=0&&sh.rows[I.hr]?`<small>${esc(String(sh.rows[I.hr][c]??''))}</small>`:''}</th>`).join('')}</tr></thead>
         <tbody>${prev.map(r=>`<tr>${cols.map(c=>`<td class="${I.map[c]?'':'off'}">${esc(String(r[c]??''))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
-      ${hasName?`<div class="impsum"><span><b>${pl.add.length}</b> nouveau${pl.add.length>1?'x':''} produit${pl.add.length>1?'s':''}</span><span><b>${pl.upd.length}</b> déjà dans le stock</span>${pl.skip?`<span>${pl.skip} ligne${pl.skip>1?'s':''} ignorée${pl.skip>1?'s':''} (sans nom ou total)</span>`:''}${pl.dup?`<span class="w">${pl.dup} doublon${pl.dup>1?'s':''} additionné${pl.dup>1?'s':''}</span>`:''}</div>
+      ${hasName?`<div class="impsum"><span><b>${pl.add.length}</b> nouveau${pl.add.length>1?'x':''} produit${pl.add.length>1?'s':''}</span><span><b>${pl.upd.length}</b> déjà dans le stock</span>${pl.skip?`<span>${pl.skip} ligne${pl.skip>1?'s':''} ignorée${pl.skip>1?'s':''} (sans nom ou total)</span>`:''}${pl.dup?`<span class="w">${pl.dup} doublon${pl.dup>1?'s':''} additionné${pl.dup>1?'s':''}</span>`:''}${pl.off.length?`<span>${pl.off.length} décoché${pl.off.length>1?'s':''}</span>`:''}</div>
+        <details class="impdet"${I.open?' open':''}><summary>Voir et décocher les produits</summary><div class="implist">${[...pl.add.map(i=>[i,'Nouveau']),...pl.upd.map(i=>[i,'Déjà dans le stock']),...pl.off.map(i=>[i,''])].map(([i,t])=>`<label class="${t?'':'off'}"><input type="checkbox" data-in="impex" data-k="${esc(i.key)}"${t?' checked':''}><b>${esc(i.name)}</b><span>${i.hasQ?i.qty:'?'}${i.unit?' '+i.unit:''}${i.hs?` · ${i.hs} HS`:''}${i.cat?` · ${esc(i.cat)}`:''}</span><small>${t||'Ignoré'}</small></label>`).join('')}</div></details>
         ${pl.upd.length?`<div class="f" style="margin:0"><label for="impmode">Pour les ${pl.upd.length} produit${pl.upd.length>1?'s':''} déjà dans le stock</label><select id="impmode" data-in="impmode"><option value="set"${I.mode==='set'?' selected':''}>Remplacer par les quantités du fichier</option><option value="add"${I.mode==='add'?' selected':''}>Ajouter les quantités du fichier</option><option value="skip"${I.mode==='skip'?' selected':''}>Ne pas y toucher</option></select></div>`:''}`
       :`<p class="impwarn">${ic('alert')}Choisis quelle colonne contient le nom des produits.</p>`}</div>`;
     foot=`<button class="btn l" data-act="impback">Autre fichier</button><button class="btn" data-act="close">Annuler</button><button class="btn pri" data-act="impgo"${hasName&&(pl.add.length||(pl.upd.length&&I.mode!=='skip'))?'':' disabled'}>Importer</button>`;
   }
   $('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(${MD.step===1?520:860}px,100%)"><div class="dh"><h3 id="mt">Importer un stock</h3><button class="ib" data-act="close" aria-label="Fermer">${ic('x')}</button></div>${body}<div class="df">${foot}</div></div></div>`;
+  $('.impdet')?.addEventListener('toggle',e=>{if(MD&&MD.imp)MD.imp.open=e.target.open});
   if(MD.step===1){const box=$('#impdrop'),inp=$('#impfile');
     inp.addEventListener('change',()=>{if(inp.files[0])impLoad(inp.files[0])});
     box.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inp.click()}});
@@ -1717,6 +1729,7 @@ document.addEventListener('change',e=>{
     else if(t.dataset.in==='imphr'){I.hr=+v;I.map=impGuess(I.sheets[I.si].rows,I.hr).map}
     else if(t.dataset.in==='impsheet'){I.si=+v;const g=impGuess(I.sheets[I.si].rows);I.hr=g.hr;I.map=g.map}
     else if(t.dataset.in==='impmode')I.mode=v;
+    else if(t.dataset.in==='impex'){I.ex=I.ex||{};if(t.checked)delete I.ex[t.dataset.k];else I.ex[t.dataset.k]=1;I.open=true}
     drawImp();return}
   if(t.matches('[data-punit]')&&MD&&MD.k==='p'){readP();if(!MD.d.usize)MD.d.usize=1;drawP();$('.adv')?.setAttribute('open','')}
   if(t.dataset.calf){const c=calById(t.dataset.id);if(c){const f=t.dataset.calf;c[f]=f==='count'?t.checked:f==='name'?(t.value.trim()||c.name):t.value;save();render();if(f==='count')toast(t.checked?'Ses événements sortent du matériel':'Ses événements ne sortent plus de matériel')}}
