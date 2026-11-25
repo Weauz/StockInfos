@@ -2223,8 +2223,10 @@ function gBody(ev){const r=rng(ev),p=P(ev),its=Object.entries(p.items).map(([id,
   b.extendedProperties={private:{si:ev.id,h:hashId(JSON.stringify(b))}};return b}
 function gSoon(ms){clearTimeout(GS.timer);GS.timer=setTimeout(()=>gSync(false),ms??1500)}
 async function gSync(manual){
-  if(!API||!API.gApi)return;const st=GS.st||await gStatus();if(!st||!st.connected){if(manual&&st&&st.configured)toast('Connecte d\'abord ton compte Google dans Paramètres');return}
-  if(GS.busy){GS.again=true;return}GS.busy=true;GS.err=null;let nA=0,nU=0,nD=0;
+  if(!API||!API.gApi)return;
+  if(GS.busy){GS.again=true;return}GS.busy=true;
+  const st=GS.st||await gStatus();if(!st||!st.connected){GS.busy=false;if(manual&&st&&st.configured)toast('Connecte d\'abord ton compte Google dans Paramètres');return}
+  GS.err=null;let nA=0,nU=0,nD=0;
   const call=async(method,path,body)=>{const r=await API.gApi({method,path,body});if(r.status>=400&&r.status!==404&&r.status!==410)throw new Error((r.json&&r.json.error&&r.json.error.message)||('erreur Google '+r.status));return r};
   try{
     let cal=S.cfg.gcal;
