@@ -929,6 +929,7 @@ i.brk{color:#c77700}i.lost{color:var(--red)}
 i.tm{font-style:normal;font-weight:700;font-size:.85em;margin-right:5px;opacity:.85}
 i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .rrow i.tm{color:var(--amb)}
+.wks{margin-left:auto}.wks button{height:28px;padding:0 12px;font-size:12.5px}.wkn{display:inline-block;min-width:18px;margin-left:4px;padding:0 5px;border-radius:9px;background:var(--line);font-size:11px;font-weight:700;line-height:17px}.wks button.on .wkn{background:var(--acc);color:var(--accink)}
 .wkt{font-style:normal;text-transform:none;letter-spacing:0;font-size:11.5px;margin-left:auto;padding-left:8px;color:var(--ink);font-weight:700}
 .wki span{width:100%}
 .tg{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
@@ -1204,11 +1205,13 @@ function qcRes(){const Q=U.qc;if(!Q||!Q.txt.trim())return '<p class="h" style="m
   const unk=(amb.length?`<p class="h" style="margin:4px 0 0;color:#b45309">${amb.join('<br>')}</p>`:'')+(miss2.length?`<p class="h" style="margin:4px 0 0">Pas reconnu : ${miss2.join(', ')}</p>`:'');
   return `<div class="qcv ${ok?'ok':'ko'}">${ok?'Tout est disponible':'Pas assez de matériel'} <small>${days.length>1?`du ${fmt(a,{day:'numeric',month:'short'})} au ${fmt(b,{day:'numeric',month:'short'})}`:`le ${fmt(a,{day:'numeric',month:'short'})}`}</small></div>${rows}${unk}
     <button class="btn sm" data-act="qcnew" style="margin-top:8px">${ic('plus')}Créer un chantier avec ce matériel</button>`}
-function weekHTML(){const days=[...Array(5)].map((_,i)=>add(TODAY,i));
-  const col=d=>{const L=[];S.events.filter(ev=>counts(ev)&&retItems(ev)).forEach(ev=>{const r=rng(ev);if(r.s===d)L.push({ev,k:'out',t:ev.t0||''});if(r.e===d&&!ev.checked)L.push({ev,k:'in',t:ev.t1||''})});
+function wkList(d){const L=[];S.events.filter(ev=>counts(ev)&&retItems(ev)).forEach(ev=>{const r=rng(ev);if(r.s===d)L.push({ev,k:'out',t:ev.t0||''});if(r.e===d&&!ev.checked)L.push({ev,k:'in',t:ev.t1||''})});return L}
+function wkCount(k){let n=0;for(let i=0;i<5;i++)n+=wkList(add(TODAY,i)).filter(x=>x.k===k).length;return n}
+function weekHTML(){const days=[...Array(5)].map((_,i)=>add(TODAY,i)),M=U.wkm||'out';
+  const col=d=>{const L=wkList(d).filter(x=>x.k===M);
     L.sort((a,b)=>(a.t||'')<(b.t||'')?-1:(a.t||'')>(b.t||'')?1:a.k==='in'?-1:1);const j=diff(TODAY,d);
     return `<div class="wkd${j===0?' td':''}${L.length?'':' empty'}"><div class="wkh"><b>${j===0?'Aujourd\'hui':j===1?'Demain':fmt(d,{weekday:'long'})}</b><small>${fmt(d,{day:'numeric',month:'short'})}</small></div>
-      ${L.map(({ev,k,t})=>`<button class="wki ${k==='out'?'wko':'wkr'}" data-act="${k==='in'&&rng(ev).e<=TODAY?'retopen':'openev'}" data-id="${ev.id}"><span>${ic(k==='out'?'ul':'back')}${k==='out'?'Sortie':'Retour'}${t?`<em class="wkt">${hh(t)}</em>`:''}</span><b>${esc(short(ev.title))}</b><small>${itemsTxt(ev)}</small></button>`).join('')}
+      ${L.map(({ev,k,t})=>`<button class="wki ${k==='out'?'wko':'wkr'}" data-act="${k==='in'&&rng(ev).e<=TODAY?'retopen':'openev'}" data-id="${ev.id}"><span>${ic(k==='out'?'ul':'back')}${k==='out'?'Départ':'Retour'}${t?`<em class="wkt">${hh(t)}</em>`:''}</span><b>${esc(short(ev.title))}</b><small>${itemsTxt(ev)}</small></button>`).join('')}
       ${L.length?'':'<span class="h">Rien</span>'}</div>`};
   return `<div class="wk">${days.map(col).join('')}</div>`}
 function hsHTML(){const rows=S.products.map(p=>({p,l:(p.hs||[]).filter(h=>(!h.from||h.from<=TODAY)&&(!h.until||h.until>=TODAY)&&+h.q>0)})).filter(x=>x.l.length);
@@ -1244,7 +1247,7 @@ VIEWS.dash=()=>{
     ${sec('search','Vérif rapide pour un devis','',qcHTML(),{cls:'qc'})}
     ${sec('star','Matériel le plus demandé','30 jours',topHTML30())}
   </div>
-  ${sec('truck','Sorties et retours','5 prochains jours',weekHTML(),{link:'<button class="lnk" data-act="view" data-v="ret">Voir les retours</button>'})}
+  ${sec('truck','À venir','5 prochains jours',weekHTML(),{link:`<div class="seg wks" role="tablist"><button class="${(U.wkm||'out')==='out'?'on':''}" data-act="wkm" data-v="out" role="tab">Chantiers <span class="wkn">${wkCount('out')}</span></button><button class="${U.wkm==='in'?'on':''}" data-act="wkm" data-v="in" role="tab">Retours <span class="wkn">${wkCount('in')}</span></button></div>`})}
   <div class="dgrid">
     ${sec('cal','Chantiers en cours et à venir',evs.length?evs.length+' chantier'+(evs.length>1?'s':''):'',`<div class="dlist">${evs.map(dcard).join('')||`<div class="empty">Aucun chantier prévu. Ajoute-en un dans le Planning ou relie un agenda.</div>`}</div>`,{cls:'scroll big'})}
     <aside class="dside">
@@ -2198,6 +2201,7 @@ document.addEventListener('mouseup',()=>{if(!DRAG.on)return;DRAG.on=false;const 
 /* ---------- actions ---------- */
 function setView(v){U.view=v;U.reset=false;try{history.replaceState(null,'','#'+VH[v])}catch(e){location.hash=VH[v]}render();$('#main').scrollTop=0}
 const A={
+  wkm:e=>{U.wkm=e.dataset.v;render()},
   qcnew:()=>{const Q=U.qc;openE(null,Q.a<=Q.b?Q.a:Q.b,Q.a<=Q.b?Q.b:Q.a);if(MD&&MD.d){MD.d.desc=Q.txt;drawE()}},
   essaiadd:()=>{const pr=S.products.filter(p=>p.qty>0).sort((a,b)=>b.qty-a.qty);if(!pr.length)return;
     const P=k=>pr[k%pr.length],q=(p,f)=>Math.max(1,Math.ceil(p.qty*f)),D=n=>add(TODAY,n);
