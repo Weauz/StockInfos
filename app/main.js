@@ -269,9 +269,16 @@ async function checkUpdate(manual) {
 function runInstaller(relaunch) {
   if (!UPD.file || UPD.installing || !fs.existsSync(UPD.file)) return false;
   UPD.installing = true;
-  const args = ['/S'];
-  if (relaunch) args.push('/RELANCER');
-  try { spawn(UPD.file, args, { detached: true, stdio: 'ignore' }).unref(); } catch (e) { UPD.installing = false; return false; }
+  try {
+    if (relaunch && process.platform === 'win32') {
+      // cmd attend la fin de l'installation silencieuse, puis relance l'app elle-même
+      const cmd = `/d /s /c "start "" /wait "${UPD.file}" /S & start "" "${process.execPath}""`;
+      spawn(process.env.ComSpec || 'cmd.exe', [cmd], { detached: true, stdio: 'ignore', windowsHide: true, windowsVerbatimArguments: true }).unref();
+    } else {
+      spawn(UPD.file, ['/S'], { detached: true, stdio: 'ignore' }).unref();
+    }
+    journal('mise à jour lancée' + (relaunch ? ' avec redémarrage' : ''));
+  } catch (e) { UPD.installing = false; journal('mise à jour impossible : ' + e); return false; }
   return true;
 }
 
