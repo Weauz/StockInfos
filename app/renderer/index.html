@@ -828,8 +828,11 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .rdate{color:var(--mute);font-size:12px;width:52px;flex:none}
 b.brk{color:#c77700}b.lost{color:var(--red)}.okt{color:var(--ok)}
 .rtbl{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.rth,.rtr{display:grid;grid-template-columns:36px minmax(0,1fr) 92px 92px 92px;gap:10px;align-items:center;padding:8px 12px}
-.rth{background:var(--card2);font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--mute);grid-template-columns:minmax(0,1fr) 92px 92px 92px;padding-left:58px}
+.rth,.rtr{display:grid;grid-template-columns:36px minmax(0,1fr) 64px 92px 92px 92px;gap:10px;align-items:center;padding:8px 12px}
+.rth{background:var(--card2);font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--mute);grid-template-columns:minmax(0,1fr) 64px 92px 92px 92px;padding-left:58px}
+.rth span:not(:first-child){text-align:center}
+.rq{text-align:center;font-size:18px;font-weight:700}
+.rokw{display:flex;flex-direction:column;align-items:center;gap:2px}.rokw .in{width:100%}.rokw small{font-size:10.5px;color:var(--mute)}
 .rtr{border-top:1px solid var(--line)}
 .rtr .rn b{display:block;font-size:13.5px}.rtr .rn small{color:var(--mute);font-size:11.5px}
 .rtr .in.rok,.rtr .in.rcs{text-align:center;font-weight:600}
@@ -1821,9 +1824,9 @@ function drawRet(){const ev=S.events.find(e=>e.id===MD.id);
   $('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(760px,100%)">
     <div class="dh"><h3 id="mt">Retour du matériel · ${esc(short(ev.title))}</h3><button class="ib" data-act="close" aria-label="Fermer">${ic('x')}</button></div>
     <div class="wel"><p class="note" style="margin:0">Pour chaque produit : combien sont revenus <b>en bon état</b>, combien sont <b>cassés</b>. Ce qui manque est compté comme <b>perdu</b>.</p>
-    <div class="rtbl"><div class="rth"><span>Produit</span><span>En bon état</span><span>Cassés</span><span>Perdus</span></div>
-    ${MD.rows.map((r,i)=>{const pr=byId(r.pid),l=retLost(r);return `<div class="rtr">${tile(pr)}<span class="rn"><b>${esc(pr.name)}</b><small>parti ×${r.q}</small></span>
-      <input class="in rok" inputmode="numeric" value="${r.ok}" data-i="${i}" aria-label="En bon état">
+    <div class="rtbl"><div class="rth"><span>Produit</span><span>Parti</span><span>En bon état</span><span>Cassés</span><span>Perdus</span></div>
+    ${MD.rows.map((r,i)=>{const pr=byId(r.pid),l=retLost(r);return `<div class="rtr">${tile(pr)}<span class="rn"><b>${esc(pr.name)}</b></span><span class="rq">${r.q}</span>
+      <span class="rokw"><input class="in rok" inputmode="numeric" value="${r.ok}" data-i="${i}" aria-label="En bon état"><small>sur ${r.q}</small></span>
       <input class="in rcs${r.cs?' on':''}" inputmode="numeric" value="${r.cs}" data-i="${i}" aria-label="Cassés">
       <span class="rlost${l?' on':''}" data-i="${i}">${l?`${l} perdu${l>1?'s':''}`:'—'}</span>
       <input class="in rnote" value="${esc(r.note)}" data-i="${i}" placeholder="Note sur ce produit (facultatif) : ex. 2 pieds tordus"></div>`}).join('')}</div>
