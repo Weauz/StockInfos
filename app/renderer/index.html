@@ -931,7 +931,15 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .rrow i.tm{color:var(--amb)}
 .qca{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px}.qca>span{font-size:12.5px;color:var(--amb);font-weight:600;margin-right:2px}
 .qcp{cursor:pointer;border:1px solid var(--line);display:inline-flex;align-items:baseline;gap:6px}.qcp:hover{border-color:var(--acc);color:var(--acc)}.qcp small{font-size:10.5px;color:var(--mute)}
-.qcs{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;min-height:0}.qcs:empty{display:none}.qcs kbd{font:inherit;font-size:10px;color:var(--mute);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:2px}
+.qcs{display:flex;flex-direction:column;gap:10px;margin-top:10px;padding:12px;border-radius:10px;background:var(--card2)}
+.qcg{display:flex;flex-direction:column;gap:7px}.qcgt{font-size:13.5px;font-weight:600;color:var(--amb)}
+.qcgl{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.qcc{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;cursor:pointer}
+.qcc:hover{border-color:var(--acc);box-shadow:0 2px 8px rgba(0,0,0,.08)}.qcc b{font-size:14.5px}.qcc small{font-size:12px;color:var(--mute)}
+.qcc kbd{font:inherit;font-size:10.5px;border:1px solid var(--line);border-radius:4px;padding:0 4px}
+.qcbig [data-act=qcnew]{align-self:flex-start;height:34px;padding:0 14px;font-size:13.5px}.qcbig .qcq .chip{padding:5px 11px;font-size:13px}.qcbig .qcdb{height:38px;font-size:14px}
+.qcbig textarea{font-size:15px;min-height:76px;padding:10px 12px;line-height:1.45}
+.qcbig .qcr{margin-top:14px;gap:6px}.qcbig .qcv{font-size:16px;padding:9px 12px}.qcbig .qcl{font-size:14.5px;padding:5px 4px}.qcbig .qcl svg{width:17px;height:17px}.qcs:empty{display:none}.qcs kbd{font:inherit;font-size:10px;color:var(--mute);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:2px}
 .gcon{display:flex;align-items:center;gap:14px;padding:16px;border:1px solid var(--acc);border-radius:10px;background:var(--accbg);margin-bottom:8px}.gcon>div{flex:1;display:flex;flex-direction:column;gap:3px}.gcon small{color:var(--mute);font-size:12.5px;line-height:1.4}.gcon .btn{white-space:nowrap}
 .qcdr{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px}
 .qcdb{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;font-weight:600;cursor:pointer}
@@ -1198,7 +1206,7 @@ function dcard(ev){const r=rng(ev),p=P(ev),st=evStatus(ev),n=Object.values(p.ite
 const NUMWS=/^(un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|onze|douze|treize|quatorze|quinze|seize|vingt|trente|quarante|cinquante|soixante|cent|cents|mille)$/;
 function qcHTML(){const Q=U.qc||(U.qc={a:TODAY,b:add(TODAY,2),txt:''});
   return `<div class="qcf"><div id="qcdw">${qcDates()}</div>
-    <textarea class="in" data-qc="txt" rows="2" placeholder="Écris le matériel comme dans un chantier : 120 chaises, 2 chapiteaux, 30 m² de plancher…">${esc(Q.txt)}</textarea><div class="qcs" id="qcsug"></div></div>
+    <textarea class="in" data-qc="txt" rows="3" placeholder="Écris le matériel comme dans un chantier : 120 chaises, 2 chapiteaux, 30 m² de plancher…">${esc(Q.txt)}</textarea><div class="qcs" id="qcsug"></div></div>
     <div class="qcr" id="qcr">${qcRes()}</div>`}
 function qcDates(){const Q=U.qc,a=Q.a<=Q.b?Q.a:Q.b,b=Q.a<=Q.b?Q.b:Q.a,n=diff(a,b)+1,F=d=>fmt(d,{weekday:'short',day:'numeric',month:'short'});
   const sat=add(TODAY,(6-dt(TODAY).getDay()+7)%7);
@@ -1211,26 +1219,32 @@ function qcDates(){const Q=U.qc,a=Q.a<=Q.b?Q.a:Q.b,b=Q.a<=Q.b?Q.b:Q.a,n=diff(a,b
     <div class="qcq">${quick.map(([l,x,z])=>`<button class="chip${x===a&&z===b?' on':''}" data-act="qcq" data-a="${x}" data-b="${z}">${l}</button>`).join('')}</div></div>`}
 // propositions pendant la frappe, comme le clavier d'un téléphone
 function qcWord(t){const el=document.querySelector('[data-qc=txt]');if(!el)return null;const c=el.selectionStart??el.value.length,v=el.value;let i=c;while(i>0&&/[\p{L}\d²\-']/u.test(v[i-1]))i--;let j=c;while(j<v.length&&/[\p{L}\d²\-']/u.test(v[j]))j++;const w=v.slice(i,j);return /\p{L}{2,}/u.test(w)&&!/^\d/.test(w)?{i,j,w}:null}
-function qcSuggest(){const box=$('#qcsug');if(!box)return;const W=qcWord();if(!W){box.innerHTML='';return}
-  const st=norm(W.w).replace(/(s|x)$/,'');if(st.length<2){box.innerHTML='';return}
-  const L=S.products.map(p=>{const ws=norm(p.name).split(/[^a-z0-9œ]+/).filter(Boolean),kw=(p.kw||[]).map(norm);const k=ws.findIndex(x=>x.startsWith(st));const kk=kw.some(x=>x.startsWith(st));return{p,r:k===0?0:k>0?1:kk?2:9}}).filter(x=>x.r<9).sort((x,y)=>x.r-y.r||x.p.name.localeCompare(y.p.name)).slice(0,6);
-  const exact=L.length===1&&norm(L[0].p.name)===norm(W.w);
-  box.innerHTML=L.length&&!exact?L.map((x,n)=>`<button class="chip qcp" data-act="qcsug" data-id="${x.p.id}" tabindex="-1">${esc(x.p.name)}<small>${x.p.qty} en stock</small>${n===0?'<kbd>Tab</kbd>':''}</button>`).join(''):''}
-function qcAccept(id){const pr=byId(id),W=qcWord(),el=document.querySelector('[data-qc=txt]');if(!pr||!W||!el)return;const v=el.value.slice(0,W.i)+pr.name+' '+el.value.slice(W.j).replace(/^ /,'');el.value=v;U.qc.txt=v;const c=W.i+pr.name.length+1;el.focus();el.setSelectionRange(c,c);$('#qcsug').innerHTML='';const r=$('#qcr');if(r)r.innerHTML=qcRes()}
-function qcRedraw(){const w=$('#qcdw');if(w)w.innerHTML=qcDates();const r=$('#qcr');if(r)r.innerHTML=qcRes()}
+function qcAmb(txt){const tn=norm(txt),cov=new Uint8Array(tn.length);(parse(txt).hits||[]).forEach(h=>cov.fill(1,h.s,h.e));
+  const STOP=/^(de|des|du|la|le|les|un|une|pour|avec|sans|plus|et|en|au|aux|metre|metres|carre|carres|m2|piece|pieces|x)$/;
+  const amb=[],miss=[],seen=new Set();
+  for(const m of tn.matchAll(/[a-zœ]{3,}/g)){const w=m[0];if(cov[m.index]||STOP.test(w)||NUMWS.test(w)||seen.has(w))continue;seen.add(w);
+    const st=w.replace(/(s|x)$/,''),c=S.products.filter(p=>norm(p.name).split(/[^a-z0-9œ]+/).some(x=>x.startsWith(st)||(st.length>=4&&x.replace(/(s|x)$/,'')===st)));
+    if(c.length)amb.push({w,i:m.index,l:w.length,orig:txt.slice(m.index,m.index+w.length),c});else miss.push(w)}
+  return{amb,miss}}
+const qcCard=(p,act,extra,first)=>`<button class="qcc" data-act="${act}" data-id="${p.id}" ${extra} tabindex="-1"><b>${esc(p.name)}</b><small>${p.qty} en stock${first?' · <kbd>Tab</kbd>':''}</small></button>`;
+function qcSuggest(){const box=$('#qcsug');if(!box)return;const W=qcWord(),Q=U.qc;
+  const {amb}=qcAmb(Q?Q.txt:'');let groups=[];
+  if(W){const st=norm(W.w).replace(/(s|x)$/,'');if(st.length>=2){
+    const L=S.products.map(p=>{const ws=norm(p.name).split(/[^a-z0-9œ]+/).filter(Boolean),kw=(p.kw||[]).map(norm);const k=ws.findIndex(x=>x.startsWith(st));const kk=kw.some(x=>x.startsWith(st));return{p,r:k===0?0:k>0?1:kk?2:9}}).filter(x=>x.r<9).sort((x,y)=>x.r-y.r||x.p.name.localeCompare(y.p.name)).slice(0,8);
+    const exact=L.length===1&&norm(L[0].p.name)===norm(W.w);
+    if(L.length&&!exact)groups.push(`<div class="qcg"><span class="qcgt">« ${esc(W.w)} » ${L.length>1?'— choisis le bon produit':'— c\'est celui-ci ?'}</span><div class="qcgl">${L.map((x,n)=>qcCard(x.p,'qcsug','',n===0)).join('')}</div></div>`)}}
+  // autres mots déjà tapés qui correspondent à plusieurs produits
+  amb.filter(x=>!(W&&x.i>=W.i&&x.i<W.j)).forEach(x=>groups.push(`<div class="qcg"><span class="qcgt">« ${esc(x.orig)} » ${x.c.length>1?'— lequel ?':'— tu veux dire ?'}</span><div class="qcgl">${x.c.slice(0,8).map(p=>qcCard(p,'qcpick',`data-i="${x.i}" data-l="${x.l}"`,false)).join('')}</div></div>`));
+  box.innerHTML=groups.join('');return;
+}
+function qcAccept(id){const pr=byId(id),W=qcWord(),el=document.querySelector('[data-qc=txt]');if(!pr||!W||!el)return;const v=el.value.slice(0,W.i)+pr.name+' '+el.value.slice(W.j).replace(/^ /,'');el.value=v;U.qc.txt=v;const c=W.i+pr.name.length+1;el.focus();el.setSelectionRange(c,c);const r=$('#qcr');if(r)r.innerHTML=qcRes();qcSuggest()}
+function qcRedraw(){const w=$('#qcdw');if(w)w.innerHTML=qcDates();const r=$('#qcr');if(r)r.innerHTML=qcRes();qcSuggest()}
 function qcRes(){const Q=U.qc;if(!Q||!Q.txt.trim())return '<p class="h" style="margin:0">Le résultat s\'affiche ici au fur et à mesure.</p>';
   const a=Q.a<=Q.b?Q.a:Q.b,b=Q.a<=Q.b?Q.b:Q.a,days=[];for(let d=a;d<=b&&days.length<92;d=add(d,1))days.push(d);
   const p=P({desc:Q.txt,man:{packs:{},items:{}}}),its=Object.entries(p.items).map(([id,q])=>({pr:byId(id),q})).filter(x=>x.pr);
-  // mots qui ne correspondent à aucun produit : soit plusieurs produits possibles (on propose de choisir), soit inconnu
-  const tn=norm(Q.txt),cov=new Uint8Array(tn.length);(parse(Q.txt).hits||[]).forEach(h=>cov.fill(1,h.s,h.e));
-  const STOP=/^(de|des|du|la|le|les|un|une|pour|avec|sans|plus|et|en|au|aux|metre|metres|carre|carres|m2|piece|pieces|x)$/;
-  const amb=[],miss2=[],seen=new Set();
-  for(const m of tn.matchAll(/[a-zœ]{3,}/g)){const w=m[0];if(cov[m.index]||STOP.test(w)||NUMWS.test(w)||seen.has(w))continue;seen.add(w);
-    const st=w.replace(/(s|x)$/,''),c=S.products.filter(p=>norm(p.name).split(/[^a-z0-9œ]+/).some(x=>x.startsWith(st)||(st.length>=4&&x.replace(/(s|x)$/,'')===st)));
-    if(c.length)amb.push({w,i:m.index,orig:Q.txt.slice(m.index,m.index+w.length),c});else miss2.push(esc(w))}
-  const unk=amb.map(x=>`<div class="qca"><span>${x.c.length>1?`« ${esc(x.orig)} » : lequel ?`:`« ${esc(x.orig)} » : tu veux dire ?`}</span>${x.c.slice(0,8).map(p=>`<button class="chip qcp" data-act="qcpick" data-i="${x.i}" data-l="${x.w.length}" data-id="${p.id}">${esc(p.name)}<small>${p.qty} en stock</small></button>`).join('')}</div>`).join('')
-    +(miss2.length?`<p class="h" style="margin:6px 0 0">Pas reconnu : ${miss2.join(', ')}. Vérifie l'orthographe ou ajoute ce nom dans les mots-clés du produit.</p>`:'');
-  if(!its.length)return amb.length?`<p class="h" style="margin:0 0 4px">Choisis le bon produit :</p>${unk}`:`<p class="h" style="margin:0">Aucun produit reconnu${miss2.length?' : '+miss2.join(', '):'.'} Vérifie l'orthographe ou ajoute ce nom dans les mots-clés du produit.</p>`;
+  const {amb,miss}=qcAmb(Q.txt),miss2=miss.map(esc);
+  const unk=miss2.length?`<p class="h" style="margin:6px 0 0">Pas reconnu : ${miss2.join(', ')}. Vérifie l'orthographe ou ajoute ce nom dans les mots-clés du produit.</p>`:'';
+  if(!its.length)return amb.length?`<p class="h" style="margin:0">Choisis le bon produit dans les propositions au-dessus.</p>`:`<p class="h" style="margin:0">Aucun produit reconnu${miss2.length?' : '+miss2.join(', '):'.'} Vérifie l'orthographe ou ajoute ce nom dans les mots-clés du produit.</p>`;
   let ok=true;const rows=its.map(x=>{let mn=1e9,wd=a;for(const d of days){const v=x.pr.qty-usage(x.pr.id,d);if(v<mn){mn=v;wd=d}}const good=mn>=x.q;if(!good)ok=false;
     return `<div class="qcl ${good?'ok':'ko'}">${ic(good?'check':'alert')}<b>${esc(x.pr.name)} ×${x.q}</b><span>${good?`OK · ${mn} dispo au plus juste`:`Il en manque ${x.q-Math.max(0,mn)} le ${fmt(wd,{weekday:'short',day:'numeric',month:'short'})} (${Math.max(0,mn)} dispo)`}</span></div>`}).join('');
   return `<div class="qcv ${ok?'ok':'ko'}">${ok?'Tout est disponible':'Pas assez de matériel'} <small>${days.length>1?`du ${fmt(a,{day:'numeric',month:'short'})} au ${fmt(b,{day:'numeric',month:'short'})}`:`le ${fmt(a,{day:'numeric',month:'short'})}`}</small></div>${rows}${unk}
@@ -1273,10 +1287,7 @@ VIEWS.dash=()=>{
     ${(()=>{const ten=S.products.filter(p=>{const a=p.qty-usage(p.id,d);return p.qty>0&&usage(p.id,d)>0&&a<=Math.max(1,Math.round(p.qty*.2))});return `<button class="htile${ten.length?' warn':''}" data-act="view" data-v="stock"><span class="hi">${ic('box')}</span><span><small>Produits presque épuisés aujourd'hui</small><b>${ten.length}<i> / ${S.products.length}</i></b><em>${ten.length?ten.slice(0,3).map(p=>esc(p.name)).join(', ')+(ten.length>3?'…':''):'Le stock est large'}</em></span></button>`})()}
     <div class="htile${nAl?' bad':' good'}"><span class="hi">${ic(nAl?'alert':'check')}</span><span><small>À surveiller</small><b>${nAl}</b><em>${nAl?(SH.length?`${SH.length} manque${SH.length>1?'s':''} prévu${SH.length>1?'s':''}`:'')+(SH.length&&unk.length?' · ':'')+(unk.length?`${unk.length} à vérifier`:''):'Tout est en ordre'}</em></span></div>
   </div>
-  <div class="dgrid2">
-    ${sec('search','Vérif rapide pour un devis','',qcHTML(),{cls:'qc'})}
-    ${sec('star','Matériel le plus demandé','30 jours',topHTML30())}
-  </div>
+  ${sec('search','Vérif rapide pour un devis','Écris le matériel, l\'appli vérifie le stock sur les dates choisies',qcHTML(),{cls:'qc qcbig'})}
   ${sec('truck','À venir','5 prochains jours',weekHTML(),{link:`<div class="seg wks" role="tablist"><button class="${(U.wkm||'out')==='out'?'on':''}" data-act="wkm" data-v="out" role="tab">Chantiers <span class="wkn">${wkCount('out')}</span></button><button class="${U.wkm==='in'?'on':''}" data-act="wkm" data-v="in" role="tab">Retours <span class="wkn">${wkCount('in')}</span></button></div>`})}
   <div class="dgrid">
     ${sec('cal','Chantiers en cours et à venir',evs.length?evs.length+' chantier'+(evs.length>1?'s':''):'',`<div class="dlist">${evs.map(dcard).join('')||`<div class="empty">Aucun chantier prévu. Ajoute-en un dans le Planning ou relie un agenda.</div>`}</div>`,{cls:'scroll big'})}
@@ -1286,6 +1297,7 @@ VIEWS.dash=()=>{
         ${unk.map(ev=>`<button class="al w" data-act="openev" data-id="${ev.id}">${ic('eye')}<span><strong>${[...P(ev).amb.map(a=>`« ${esc(a.label)} » : plusieurs produits possibles`),...(P(ev).umiss||[]).map(a=>`« ${esc(a.label)} » : aucun produit dans cette unité`),...(P(ev).unknown.length?['Pas reconnu : '+P(ev).unknown.map(u=>esc(u.name)).join(', ')]:[])].join(' · ')}</strong><small>dans « ${esc(short(ev.title))} » · clique pour préciser</small></span></button>`).join('')}
       </div>`,{tone:'bad',cls:'scroll'}):''}
       ${tc.length?sec('back','Retours à vérifier',tc.length,`${tc.map(ev=>`<button class="ret" data-act="retopen" data-id="${ev.id}"><span class="jx" style="background:var(--ambbg);color:var(--amb)">${ic('back')}</span><span><strong>${esc(short(ev.title))}</strong><span>terminé le ${fmt(rng(ev).e)} · clique pour vérifier</span></span></button>`).join('')}`,{tone:'amb',cls:'scroll'}):''}
+      ${sec('star','Matériel le plus demandé','30 jours',topHTML30())}
       ${sec('tool','Matériel hors service','',hsHTML(),{cls:'scroll'})}
       ${sec('alert','Casse et pertes','30 jours',lossHTML(),{cls:'scroll'})}
     </aside>
@@ -1904,7 +1916,7 @@ VIEWS.set=()=>{const cals=S.cfg.cals;
   </div>`};
 
 if(S&&S.cfg&&(S.cfg.logo||S.cfg.site)){delete S.cfg.logo;delete S.cfg.site}
-function render(){setTimeout(tgScroll,0);
+function render(){setTimeout(()=>{tgScroll();if($("#qcsug"))qcSuggest()},0);
   if(!VIEWS[U.view])U.view='dash';
   if(U.view==='packs'&&!S.cfg.kits)U.view='dash';
   {const t=iso(new Date());if(t!==TODAY){if(U.date===TODAY)U.date=t;TODAY=t;PC.clear()}}
@@ -2218,12 +2230,15 @@ function gBody(ev){const r=rng(ev),p=P(ev),its=Object.entries(p.items).map(([id,
     else end={dateTime:`${r.e}T23:59:00`,timeZone:TZ}}
   const description=[its.length?'Matériel :\n'+its.join('\n'):'',(ev.desc||'').trim(),'— Envoyé par StockInfos'].filter(Boolean).join('\n\n');
   const b={summary:ev.title||'(Sans titre)',location:ev.lieu||'',description,start,end};
-  const j=JSON.stringify({title:ev.title||'',start:ev.start,end:ev.end,t0:ev.t0||'',t1:ev.t1||'',lieu:ev.lieu||'',desc:ev.desc||'',man:ev.man||{packs:{},items:{}},ci:ev.ci||0}),pr={si:ev.id,h:hashId(JSON.stringify(b)+j)};
+  const vis=gToLocal(b),v=hashId(JSON.stringify(vis));
+  const j=JSON.stringify({title:ev.title||'',start:ev.start,end:ev.end,t0:ev.t0||'',t1:ev.t1||'',lieu:ev.lieu||'',desc:ev.desc||'',man:ev.man||{packs:{},items:{}},ci:ev.ci||0}),pr={si:ev.id,h:hashId(JSON.stringify(b)+j),v};
   for(let i=0,k=0;i<j.length&&k<28;i+=900,k++)pr['j'+k]=j.slice(i,i+900);
   b.extendedProperties={private:pr};return b}
+const gVis=it=>{const f=gToLocal(it);return f?hashId(JSON.stringify(f)):''};
+const gStripDesc=d=>String(d||'').replace(/^Matériel :\n(?:- .*(?:\n|$))*/,'').replace(/\n*— Envoyé par StockInfos\s*$/,'').trim();
 function gReadJ(it){const pr=(it.extendedProperties&&it.extendedProperties.private)||{};let j='';for(let k=0;pr['j'+k]!==undefined;k++)j+=pr['j'+k];
   if(j){try{return JSON.parse(j)}catch(e){}}
-  const f=gToLocal(it);if(!f)return null;f.desc=f.desc.replace(/\n*— Envoyé par StockInfos\s*$/,'').trim();return f}
+  const f=gToLocal(it);if(!f)return null;f.desc=gStripDesc(f.desc);return f}
 function gToLocal(it){const S0=it.start||{},E0=it.end||{};let start,end,t0='',t1='';
   if(S0.date){start=S0.date;end=E0.date?add(E0.date,-1):start}
   else if(S0.dateTime){start=S0.dateTime.slice(0,10);t0=S0.dateTime.slice(11,16);if(E0.dateTime){end=E0.dateTime.slice(0,10);t1=E0.dateTime.slice(11,16);if(t1==='00:00'&&end>start){end=add(end,-1);t1=''}}else end=start}
@@ -2251,8 +2266,20 @@ async function gSync(manual){
       for(const it of (r.json&&r.json.items)||[]){const si=it.extendedProperties&&it.extendedProperties.private&&it.extendedProperties.private.si;if(si&&!remote.has(si))remote.set(si,it);else extra.push(it)}
       tok=r.json&&r.json.nextPageToken}while(tok);
     const del=new Set(S.cfg.gdel||[]);
+    S.events.forEach(e=>{if(e.cal==='gsi'){e.src='manuel';delete e.cal}});
+    // rendez-vous créés directement dans Google : ils deviennent des chantiers comme les autres (modifiables et supprimables des deux côtés)
+    const extraById=new Map();
+    for(const it of extra){if(it.status==='cancelled'||!it.start)continue;
+      if(del.has('gs'+it.id)){await call('DELETE',base+'/'+encodeURIComponent(it.id));del.delete('gs'+it.id);nD++;continue}
+      extraById.set(it.id,it);
+      if(!S.events.some(e=>e.gid===it.id)){const f=gToLocal(it);if(!f)continue;f.desc=gStripDesc(f.desc);S.events.push({...f,id:'gs'+it.id,src:'manuel',gid:it.id,gcal:cal,ci:3,created:Date.now(),man:{packs:{},items:{}}});nI++}}
     for(const ev of S.events.filter(gSyncable)){const b=gBody(ev),lh=b.extendedProperties.private.h,ex=remote.get(ev.id);remote.delete(ev.id);
-      if(ex){ev.gid=ex.id;const rh=ex.extendedProperties.private.h;
+      if(!ex&&ev.gid&&extraById.has(ev.gid)){const it=extraById.get(ev.gid);extraById.delete(ev.gid);
+        if(!ev.gh){const f=gToLocal(it);if(f){Object.assign(ev,f,{desc:gStripDesc(f.desc)})}}
+        const b2=gBody(ev);await call('PATCH',base+'/'+encodeURIComponent(it.id),b2);ev.gh=b2.extendedProperties.private.h;ev.gcal=cal;continue}
+      if(ex){ev.gid=ex.id;const rh=ex.extendedProperties.private.h,pv=ex.extendedProperties.private.v;
+        // modifié directement dans Google (titre, dates, heures, lieu, description) : on reprend ces changements
+        if(pv&&gVis(ex)!==pv){const f=gToLocal(ex);if(f){Object.assign(ev,{title:f.title,start:f.start,end:f.end,t0:f.t0,t1:f.t1,lieu:f.lieu,desc:gStripDesc(f.desc)});const b2=gBody(ev);await call('PATCH',base+'/'+encodeURIComponent(ex.id),b2);ev.gh=b2.extendedProperties.private.h;ev.gcal=cal;nI++;continue}}
         if(rh===lh){ev.gh=lh;ev.gcal=cal;continue}
         if(ev.gh&&ev.gh===lh&&ev.gcal===cal){const d=gReadJ(ex);if(d){Object.assign(ev,d);if(!ev.man)ev.man={packs:{},items:{}};ev.gh=rh;nI++;continue}}
         const r=await call('PATCH',base+'/'+encodeURIComponent(ex.id),b);if(r.status<300){ev.gh=lh;ev.gcal=cal;nU++}else{const r2=await call('POST',base,b);ev.gid=r2.json.id;ev.gh=lh;ev.gcal=cal;nA++}}
@@ -2264,13 +2291,6 @@ async function gSync(manual){
       // chantier créé sur un autre PC : on le récupère ici
       const d=gReadJ(it);if(!d)continue;S.events.push({...d,man:d.man||{packs:{},items:{}},id:si,src:'manuel',gid:it.id,gh:it.extendedProperties.private.h,gcal:cal,created:Date.now()});nI++}
     S.cfg.gdel=[...del].slice(-500);
-    // rendez-vous ajoutés directement dans Google sur cet agenda : on les ramène dans l'appli
-    const seenG=new Set();
-    for(const it of extra){if(it.status==='cancelled'||!it.start)continue;const f=gToLocal(it);if(!f)continue;const id='gs'+it.id;seenG.add(id);
-      const ex=S.events.find(e=>e.id===id);
-      if(ex){if(ex.title!==f.title||ex.start!==f.start||ex.end!==f.end||(ex.t0||'')!==f.t0||(ex.t1||'')!==f.t1||(ex.lieu||'')!==f.lieu||(ex.desc||'')!==f.desc){Object.assign(ex,f);nI++}}
-      else{S.events.push({id,src:'google',cal:'gsi',gid:it.id,ci:3,created:Date.now(),man:{packs:{},items:{}},...f});nI++}}
-    const b4=S.events.length;S.events=S.events.filter(e=>e.cal!=='gsi'||seenG.has(e.id));nI+=b4-S.events.length;
     GS.last=Date.now();save();if(nI&&U.view!=='set')render();
     if(manual)toast(nA||nU||nD||nI?`Google Agenda : ${nA} envoyé${nA>1?'s':''}, ${nU} mis à jour, ${nD} retiré${nD>1?'s':''}${nI?`, ${nI} changement${nI>1?'s':''} reçu${nI>1?'s':''}`:''}`:'Google Agenda : déjà à jour');
   }catch(e){GS.err=String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,'');if(/non connecté|expirée/.test(GS.err))await gStatus();if(manual)toast('Google Agenda : '+GS.err)}
@@ -2310,7 +2330,7 @@ document.addEventListener('mouseup',()=>{if(!DRAG.on)return;DRAG.on=false;const 
 function setView(v){U.view=v;U.reset=false;try{history.replaceState(null,'','#'+VH[v])}catch(e){location.hash=VH[v]}render();$('#main').scrollTop=0}
 const A={
   wkm:e=>{U.wkm=e.dataset.v;render()},
-  qcpick:e=>{const Q=U.qc,i=+e.dataset.i,l=+e.dataset.l,pr=byId(e.dataset.id);if(!Q||!pr)return;Q.txt=Q.txt.slice(0,i)+pr.name+Q.txt.slice(i+l);const t=document.querySelector('[data-qc=txt]');if(t)t.value=Q.txt;const r=$('#qcr');if(r)r.innerHTML=qcRes()},
+  qcpick:e=>{const Q=U.qc,i=+e.dataset.i,l=+e.dataset.l,pr=byId(e.dataset.id);if(!Q||!pr)return;Q.txt=Q.txt.slice(0,i)+pr.name+Q.txt.slice(i+l);const t=document.querySelector('[data-qc=txt]');if(t)t.value=Q.txt;const r=$('#qcr');if(r)r.innerHTML=qcRes();qcSuggest()},
   qcdp:()=>{U.qcd=!U.qcd;U.qcpk=null;U.qcm=(U.qc.a<=U.qc.b?U.qc.a:U.qc.b).slice(0,7);qcRedraw()},
   qcmon:e=>{const [y,m]=(U.qcm||TODAY.slice(0,7)).split('-').map(Number),d=new Date(y,m-1+(+e.dataset.v),1);U.qcm=`${d.getFullYear()}-${pad(d.getMonth()+1)}`;qcRedraw()},
   qcday:e=>{const d=e.dataset.d;if(!U.qcpk){U.qcpk=d}else{const x=U.qcpk<d?U.qcpk:d,y=U.qcpk<d?d:U.qcpk;U.qc.a=x;U.qc.b=y;U.qcpk=null;U.qcd=false}qcRedraw()},
