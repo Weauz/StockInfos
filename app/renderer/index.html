@@ -716,6 +716,43 @@ button.ret:hover strong{color:var(--acc)}
 .implist label.off b{text-decoration:line-through;color:var(--mute)}
 input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 input[type=number]{-moz-appearance:textfield;appearance:textfield}
+@media print{
+  @page{size:A4;margin:12mm 12mm 14mm}
+  #print .inv{font:9.5pt/1.35 "Segoe UI",Arial,sans-serif;color:#1d1d1f;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #print .inv .ihead{display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:6px;border-bottom:.6pt solid #d0d0d0}
+  #print .inv .ico{font-size:13pt;font-weight:700;letter-spacing:.2px}
+  #print .inv .idate{font-size:9pt;color:#6b6b6b}
+  #print .inv .ititle{text-align:center;margin:16px 0 14px}
+  #print .inv .ititle h1{margin:0;font-size:19pt;font-weight:700;letter-spacing:2.5px;text-transform:uppercase}
+  #print .inv .ititle h1::after{content:"";display:block;width:46px;height:2.5px;background:#c2410c;margin:7px auto 0;border-radius:2px}
+  #print .inv .ititle p{margin:6px 0 0;color:#6b6b6b;font-size:9.5pt}
+  #print .inv .ikpi{display:flex;justify-content:center;gap:8px;margin-top:10px}
+  #print .inv .ikpi span{border:.6pt solid #e2e2e2;border-radius:20px;padding:3px 11px;font-size:8.5pt;color:#555;background:#fafafa}
+  #print .inv .ikpi b{color:#1d1d1f;font-size:10pt;margin-right:2px}
+  #print .inv .itbl{width:100%;border-collapse:collapse;table-layout:fixed}
+  #print .inv .itbl thead{display:table-header-group}
+  #print .inv .itbl th{font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6b6b6b;text-align:left;padding:5px 6px;white-space:nowrap;border-bottom:1pt solid #1d1d1f}
+  #print .inv .itbl td{padding:4.5px 6px;border-bottom:.5pt solid #e4e4e4;vertical-align:middle}
+  #print .inv .itbl tbody tr:nth-child(even) td{background:#f7f7f7}
+  #print .inv .itbl tr{page-break-inside:avoid}
+  #print .inv .itbl .n{width:22px;color:#9a9a9a;font-size:8pt;text-align:right;padding-right:8px}
+  #print .inv .itbl th.n{text-align:right}
+  #print .inv .itbl .pr b{font-weight:600}
+  #print .inv .itbl .meta{display:block;font-size:7.5pt;color:#8a8a8a;line-height:1.25}
+  #print .inv .itbl .meta i{font-style:normal;color:#b42318}
+  #print .inv .itbl .q{width:56px;text-align:right;font-variant-numeric:tabular-nums}
+  #print .inv .itbl th.q{text-align:right}
+  #print .inv .itbl tr.hs .h{color:#b42318;font-weight:700}
+  #print .inv .itbl .w{width:72px;padding-left:12px}
+  #print .inv .itbl .rm{width:120px}
+  #print .inv .itbl td.w{border-left:.5pt solid #e4e4e4}
+  #print .inv .itbl td.w:not(.rm)::after{content:"";display:block;height:13px;margin:0 4px;border-bottom:.6pt solid #b5b5b5}
+  #print .inv .itbl .empty{text-align:center;color:#888;padding:20px}
+  #print .inv .isign{display:flex;gap:12px;margin-top:20px;page-break-inside:avoid}
+  #print .inv .isign div{flex:1;border:.6pt solid #d0d0d0;border-radius:6px;height:46px;padding:5px 8px}
+  #print .inv .isign span{font-size:7.5pt;text-transform:uppercase;letter-spacing:.6px;color:#8a8a8a}
+  #print .inv .ifoot{margin:10px 0 0;text-align:center;font-size:7.5pt;color:#9a9a9a}
+}
 </style>
 </head>
 <body>
@@ -1284,11 +1321,16 @@ function invCSV(){const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
   for(const r of invRows())lines.push([q(r.p.name),q(r.p.ref||''),r.p.qty,r.hs,r.rest,q(r.hl.map(hsTxt).join(' / ')),''].join(';'));
   return '﻿'+lines.join('\r\n')}
 async function outPrint(mode,name){if(mode==='pdf'){if(!API||!API.savePdf){toast('Ferme complètement l\'app et relance Lancer.bat pour activer l\'export PDF');return}try{const f=await API.savePdf({name});if(f)toast('PDF enregistré et ouvert')}catch(e){toast('PDF impossible : '+String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,'').replace(/No handler registered.*/,'ferme complètement l\'app et relance Lancer.bat'))}}else setTimeout(()=>window.print(),50)}
-function printInv(mode){const R2=invRows(),tq=R2.reduce((n,r)=>n+r.p.qty,0),th=R2.reduce((n,r)=>n+r.hs,0);
-  const rows=R2.map(r=>`<tr${r.hs?' class="hsl"':''}><td>${esc(r.p.name)}${r.p.ref?`<br><small style="color:#666">Réf. ${esc(r.p.ref)}</small>`:''}</td><td class="q">${r.p.qty}</td><td class="q">${r.hs||''}</td><td class="q">${r.rest}</td><td class="hsd">${r.hl.map(h=>esc(hsTxt(h))).join('<br>')}</td><td class="cnt"></td></tr>`).join('');
-  $('#print').innerHTML=`<div class="ph1"><div><h1>Inventaire du matériel</h1><h2>au ${fmt(TODAY,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</h2></div><div class="pco">${esc(S.cfg.company||'')}<br><small>StockInfos</small></div></div>
-  <table class="ptbl"><thead><tr><th>Produit</th><th>Quantité totale</th><th>Hors service</th><th>Restant</th><th>Détail du hors service</th><th>Compté</th></tr></thead><tbody>${rows}</tbody></table>
-  <p class="ptot">${R2.length} produits · ${tq} pièces · ${th} hors service · ${tq-th} restantes</p><p style="font-size:10pt;color:#555">Colonne « Compté » : à remplir à la main lors de l'inventaire au dépôt.</p>`;outPrint(mode,`Inventaire-${TODAY}.pdf`)}
+function printInv(mode){const R2=invRows(),tq=R2.reduce((n,r)=>n+r.p.qty,0),th=R2.reduce((n,r)=>n+r.hs,0),co=(S.cfg.company||'').trim(),N=n=>n.toLocaleString('fr-FR');
+  const F=d=>fmt(d,{day:'numeric',month:'short'}),hsShort=h=>`${h.q} HS${h.until?` jusqu'au ${F(h.until)}`:''}${h.note&&h.note!=='Importé'?` · ${esc(h.note)}`:''}`;
+  const rows=R2.map((r,i)=>`<tr${r.hs?' class="hs"':''}><td class="n">${i+1}</td><td class="pr"><b>${esc(r.p.name)}</b>${r.p.ref||r.hl.length?`<span class="meta">${r.p.ref?`Réf. ${esc(r.p.ref)}`:''}${r.p.ref&&r.hl.length?' · ':''}${r.hl.length?`<i>${r.hl.map(hsShort).join(' · ')}</i>`:''}</span>`:''}</td><td class="q">${N(r.p.qty)}</td><td class="q h">${r.hs?N(r.hs):'–'}</td><td class="q">${N(r.rest)}</td><td class="w"></td><td class="w rm"></td></tr>`).join('');
+  $('#print').innerHTML=`<div class="inv">
+  <div class="ihead"><div class="ico">${co?esc(co):'&nbsp;'}</div><div class="idate">${fmt(TODAY,{day:'numeric',month:'long',year:'numeric'})}</div></div>
+  <div class="ititle"><h1>Inventaire du matériel</h1><p>au ${fmt(TODAY,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</p>
+    <div class="ikpi"><span><b>${R2.length}</b> produits</span><span><b>${N(tq)}</b> pièces</span><span><b>${N(th)}</b> hors service</span><span><b>${N(tq-th)}</b> disponibles</span></div></div>
+  <table class="itbl"><thead><tr><th class="n">#</th><th class="pr">Produit</th><th class="q">Total</th><th class="q">HS</th><th class="q">Restant</th><th class="w">Compté</th><th class="w rm">Remarque</th></tr></thead><tbody>${rows||'<tr><td colspan="7" class="empty">Aucun produit dans le stock</td></tr>'}</tbody></table>
+  <div class="isign"><div><span>Inventaire réalisé par</span></div><div><span>Date</span></div><div><span>Signature</span></div></div>
+  <p class="ifoot">Remplir la colonne « Compté » au dépôt, puis mettre à jour le stock dans StockInfos.</p></div>`;outPrint(mode,`Inventaire-${TODAY}.pdf`)}
 VIEWS.set=()=>{const cals=S.cfg.cals;
   return `<div class="setw">
   <h3 class="seth">Agendas synchronisés</h3>

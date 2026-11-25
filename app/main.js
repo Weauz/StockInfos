@@ -195,7 +195,7 @@ ipcMain.handle('save-pdf', async (e, o) => {
     filters: [{ name: 'PDF', extensions: ['pdf'] }]
   });
   if (r.canceled || !r.filePath) return false;
-  const data = await win.webContents.printToPDF({ pageSize: 'A4', printBackground: true, margins: { marginType: 'default' } });
+  const data = await win.webContents.printToPDF({ pageSize: 'A4', printBackground: true, preferCSSPageSize: true });
   fs.writeFileSync(r.filePath, data);
   shell.openPath(r.filePath);
   return r.filePath;
