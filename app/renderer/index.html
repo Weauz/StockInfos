@@ -1308,7 +1308,7 @@ VIEWS.dash=()=>{
     <button class="htile${nAl?' bad':' good'}" data-act="dpanel" data-k="al"><span class="hi">${ic(nAl?'alert':'check')}</span><span><small>À surveiller</small><b>${nAl}</b><em>${nAl?(SH.length?`${SH.length} manque${SH.length>1?'s':''} prévu${SH.length>1?'s':''}`:'')+(SH.length&&unk.length?' · ':'')+(unk.length?`${unk.length} à vérifier`:''):'Tout est en ordre'}</em></span></button>
   </div>
   ${sec('search','Vérif rapide pour un devis','Écris le matériel, l\'appli vérifie le stock sur les dates choisies',qcHTML(),{cls:'qc qcbig'})}
-  ${sec('truck','À venir','5 prochains jours',weekHTML(),{link:`<button class="lnk" data-act="dpanel" data-k="evs" style="margin-left:auto">Tous les chantiers</button><div class="seg wks" role="tablist"><button class="${(U.wkm||'out')==='out'?'on':''}" data-act="wkm" data-v="out" role="tab">Chantiers <span class="wkn">${wkCount('out')}</span></button><button class="${U.wkm==='in'?'on':''}" data-act="wkm" data-v="in" role="tab">Retours <span class="wkn">${wkCount('in')}</span></button></div>`})}
+  ${sec('truck','À venir','5 prochains jours',weekHTML(),{link:`<button class="lnk" data-act="view" data-v="plan" style="margin-left:auto">Ouvrir le planning</button><div class="seg wks" role="tablist"><button class="${(U.wkm||'out')==='out'?'on':''}" data-act="wkm" data-v="out" role="tab">Chantiers <span class="wkn">${wkCount('out')}</span></button><button class="${U.wkm==='in'?'on':''}" data-act="wkm" data-v="in" role="tab">Retours <span class="wkn">${wkCount('in')}</span></button></div>`})}
   ${(()=>{const allEv=S.events.filter(ev=>rng(ev).e>=TODAY).sort((a,b)=>evKey(a)<evKey(b)?-1:1),hsN=S.products.reduce((n,p)=>n+(p.hs||[]).filter(h=>(!h.from||h.from<=TODAY)&&(!h.until||h.until>=TODAY)).reduce((m,h)=>m+(+h.q||0),0),0);
     const lossN=S.events.filter(ev=>ev.checked&&ev.checked.date>=add(TODAY,-30)).reduce((n,ev)=>n+(ev.checked.losses||[]).reduce((m,l)=>m+l.q,0),0);
     DPANELS={
@@ -1322,7 +1322,7 @@ VIEWS.dash=()=>{
       hs:{t:'Matériel hors service',i:'tool',h:hsHTML()},
       loss:{t:'Casse et pertes · 30 jours',i:'alert',h:lossHTML()}};
     const B=(k,l,n,tone)=>`<button class="dbar-b${tone?' '+tone:''}" data-act="dpanel" data-k="${k}">${ic(DPANELS[k].i)}<span>${l}</span>${n!==''?`<b>${n}</b>`:''}</button>`;
-    return `<div class="dbar" role="navigation" aria-label="Autres informations">${B('evs','Tous les chantiers',allEv.length)}${nAl?B('al','À surveiller',nAl,'bad'):''}${tc.length?B('ret','Retours à vérifier',tc.length,'warn'):''}${B('top','Matériel le plus demandé','')}${B('hs','Hors service',hsN,hsN?'warn':'')}${B('loss','Casse et pertes',lossN,lossN?'bad':'')}</div>`})()}
+    return `<div class="dbar" role="navigation" aria-label="Autres informations">${nAl?B('al','À surveiller',nAl,'bad'):''}${tc.length?B('ret','Retours à vérifier',tc.length,'warn'):''}${B('top','Matériel le plus demandé','')}${B('hs','Hors service',hsN,hsN?'warn':'')}${B('loss','Casse et pertes',lossN,lossN?'bad':'')}</div>`})()}
   </div>`;
 };
 function stockInfo(p){
