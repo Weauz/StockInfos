@@ -798,6 +798,45 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 @media(max-width:900px){.invr{grid-template-columns:1fr 1fr}.invp,.invf.rem{grid-column:1/-1}}
 .invp .invtot{font-size:12px;color:var(--ink)}
 .invp .invtot .bad{color:var(--red);font-weight:600}
+.nb.alert{color:var(--red)}
+.badge.pulse{animation:bpulse 1.6s ease-in-out infinite}
+@keyframes bpulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--red) 55%,transparent)}50%{box-shadow:0 0 0 6px transparent}}
+@media(prefers-reduced-motion:reduce){.badge.pulse{animation:none}}
+.retpage{display:flex;flex-direction:column;gap:6px;max-width:1100px}
+.retalert{display:flex;gap:14px;align-items:center;padding:16px 18px;border-radius:12px;background:color-mix(in srgb,var(--red) 10%,var(--card));border:1px solid color-mix(in srgb,var(--red) 35%,transparent)}
+.retalert svg{width:26px;height:26px;color:var(--red);flex:none}
+.retalert b{display:block;font-size:17px;color:var(--red)}
+.retalert span{font-size:13px;color:var(--mute)}
+.retalert.ok{background:var(--okbg);border-color:transparent}.retalert.ok svg,.retalert.ok b{color:var(--ok)}
+.dh2 small{font-weight:400;color:var(--mute);font-size:12px;margin-left:6px}
+.dh2 .lnk{float:right;font-size:12.5px}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.rcard{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:12px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--amb)}
+.rcard.late{border-left-color:var(--red)}
+.rct{display:flex;gap:10px;align-items:flex-start}
+.rct b{display:block;font-size:15px}.rct small{color:var(--mute);font-size:12px}
+.rbadge{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--ambbg);color:var(--amb);flex:none}
+.rcard.late .rbadge{background:color-mix(in srgb,var(--red) 12%,transparent);color:var(--red)}
+.rbadge svg{width:18px;height:18px}
+.rcf{display:flex;justify-content:flex-end;gap:8px;margin-top:auto}
+.rday{display:flex;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line)}.rday:last-child{border-bottom:0}
+.rday>div{display:flex;flex-direction:column;flex:1;min-width:0}
+.rrow{display:flex;gap:10px;align-items:baseline;border:0;background:none;text-align:left;padding:6px 4px;border-radius:6px;cursor:pointer;font:inherit;color:var(--ink);width:100%}
+.rrow:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
+.rrow b{white-space:nowrap}.rrow span{color:var(--mute);font-size:12.5px;overflow:hidden;text-overflow:ellipsis}
+.rrow.done{padding:9px 12px;border-bottom:1px solid var(--line);border-radius:0}.rrow.done:last-child{border-bottom:0}
+.rdate{color:var(--mute);font-size:12px;width:52px;flex:none}
+b.brk{color:#c77700}b.lost{color:var(--red)}.okt{color:var(--ok)}
+.rtbl{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.rth,.rtr{display:grid;grid-template-columns:36px minmax(0,1fr) 92px 92px 92px;gap:10px;align-items:center;padding:8px 12px}
+.rth{background:var(--card2);font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--mute);grid-template-columns:minmax(0,1fr) 92px 92px 92px;padding-left:58px}
+.rtr{border-top:1px solid var(--line)}
+.rtr .rn b{display:block;font-size:13.5px}.rtr .rn small{color:var(--mute);font-size:11.5px}
+.rtr .in.rok,.rtr .in.rcs{text-align:center;font-weight:600}
+.rtr .in.rcs.on{border-color:#c77700;color:#c77700;background:color-mix(in srgb,#f59e0b 10%,var(--card))}
+.rlost{text-align:center;color:var(--mute);font-size:13px}.rlost.on{color:var(--red);font-weight:700}
+.rtr .rnote{grid-column:2/-1;font-size:12.5px;height:30px}
+.retsum{font-size:13px;padding:2px 2px}
 </style>
 </head>
 <body>
@@ -976,8 +1015,8 @@ const jours=n=>n<=0?"aujourd'hui":n===1?'demain':`dans ${n} jours`;
 const range=(a,b)=>a===b?fmt(a):`${fmt(a)} → ${fmt(b)}`;
 
 /* ---------- vues ---------- */
-const NAV=[['dash','Tableau de bord','home'],['stock','Stock','box'],['packs','Kits','pack'],['plan','Planning','cal'],['set','Paramètres','gear']];
-function navHTML(){return NAV.filter(([v])=>v!=='packs'||S.cfg.kits).map(([v,l,i])=>`<button class="nb${U.view===v?' on':''}" data-act="view" data-v="${v}" title="${l}">${ic(i)}<span>${l}</span>${v==='dash'&&SH.length?`<b class="badge">${SH.length}</b>`:''}</button>`).join('')+`<div class="grow"></div><div class="gs" title="Google Agenda"><i class="dot${!S.cfg.cals.length?' off':SYNC.err?' err':''}"></i><span>${!S.cfg.cals.length?'Aucun agenda relié':SYNC.err?'Synchro en échec':SYNC.busy?'Synchro en cours…':(S.cfg.cals.length>1?S.cfg.cals.length+' agendas':'Agenda')+' · synchro '+(S.lastSync?new Date(S.lastSync).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'—')}</span></div>`}
+const NAV=[['dash','Tableau de bord','home'],['stock','Stock','box'],['packs','Kits','pack'],['plan','Planning','cal'],['ret','Retours','back'],['set','Paramètres','gear']];
+function navHTML(){const rc=retToCheck().length,showRet=rc||retSoon(7).length||U.view==='ret';return NAV.filter(([v])=>(v!=='packs'||S.cfg.kits)&&(v!=='ret'||showRet)).map(([v,l,i])=>`<button class="nb${U.view===v?' on':''}${v==='ret'&&rc?' alert':''}" data-act="view" data-v="${v}" title="${l}">${ic(i)}<span>${l}</span>${v==='dash'&&SH.length?`<b class="badge">${SH.length}</b>`:''}${v==='ret'&&rc?`<b class="badge pulse" title="${rc} retour${rc>1?'s':''} à vérifier">${rc}</b>`:''}</button>`).join('')+`<div class="grow"></div><div class="gs" title="Google Agenda"><i class="dot${!S.cfg.cals.length?' off':SYNC.err?' err':''}"></i><span>${!S.cfg.cals.length?'Aucun agenda relié':SYNC.err?'Synchro en échec':SYNC.busy?'Synchro en cours…':(S.cfg.cals.length>1?S.cfg.cals.length+' agendas':'Agenda')+' · synchro '+(S.lastSync?new Date(S.lastSync).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'—')}</span></div>`}
 function isDark(){if(S.theme!=='auto')return S.theme==='dark';const r=document.documentElement.dataset.theme;if(r==='dark'||r==='light')return r==='dark';return matchMedia('(prefers-color-scheme: dark)').matches}
 function dateHTML(){
   const per=U.mode==='periode';let pop='';
@@ -989,9 +1028,9 @@ function dateHTML(){
   return `<div class="dw"><div style="position:relative"><div class="datebar"><button class="ib" data-act="dprev" aria-label="Reculer d'un jour">${ic('l')}</button><button class="dbtn" data-act="dp-toggle" title="Choisir un jour ou une période">${ic('cal')}${lab}</button><button class="ib" data-act="dnext" aria-label="Avancer d'un jour">${ic('r')}</button>${per||U.date!==TODAY?`<button class="ib" data-act="dtoday" title="Revenir à aujourd'hui" aria-label="Revenir à aujourd'hui">${ic('x')}</button>`:''}</div>${pop}</div></div>`;
 }
 function topHTML(){
-  const T={dash:'Tableau de bord',stock:'Stock',packs:'Kits de matériel',plan:'Planning des chantiers',set:'Paramètres'};
+  const T={dash:'Tableau de bord',stock:'Stock',packs:'Kits de matériel',plan:'Planning des chantiers',ret:'Retours de matériel',set:'Paramètres'};
   const dark=isDark();
-  return `<div class="top"><h1>${T[U.view]}</h1>${U.view!=='set'&&U.view!=='dash'&&U.view!=='plan'&&U.view!=='packs'?dateHTML():''}</div>`;
+  return `<div class="top"><h1>${T[U.view]}</h1>${U.view==='stock'?dateHTML():''}</div>`;
 }
 function ecard(ev){
   const r=rng(ev),p=P(ev),bad=evShort(ev),unk=p.unknown.length+p.amb.length+(p.umiss||[]).length,c=evColor(ev);
@@ -1056,7 +1095,7 @@ VIEWS.dash=()=>{
         ${unk.map(ev=>`<button class="al w" data-act="openev" data-id="${ev.id}">${ic('eye')}<span><strong>${[...P(ev).amb.map(a=>`« ${esc(a.label)} » : plusieurs produits possibles`),...(P(ev).umiss||[]).map(a=>`« ${esc(a.label)} » : aucun produit dans cette unité`),...(P(ev).unknown.length?['Pas reconnu : '+P(ev).unknown.map(u=>esc(u.name)).join(', ')]:[])].join(' · ')}</strong><small>dans « ${esc(short(ev.title))} » · clique pour préciser</small></span></button>`).join('')}
       </div>`:''}
       ${(()=>{const tc=S.events.filter(ev=>{const r=rng(ev);return counts(ev)&&r.e<=TODAY&&r.e>=add(TODAY,-30)&&!ev.checked&&Object.keys(P(ev).items).length}).sort((a,b)=>rng(b).e<rng(a).e?-1:1);return tc.length?`<h2 class="dh2">Retours à vérifier</h2><div class="card">${tc.map(ev=>`<button class="ret" data-act="retopen" data-id="${ev.id}"><span class="jx" style="background:var(--ambbg);color:var(--amb)">${ic('back')}</span><span><strong>${esc(short(ev.title))}</strong><span>terminé le ${fmt(rng(ev).e)} · clique pour vérifier</span></span></button>`).join('')}</div>`:''})()}
-      <h2 class="dh2">Retours de matériel</h2>
+      <h2 class="dh2">Retours de matériel <button class="lnk" data-act="view" data-v="ret">Tout voir</button></h2>
       <div class="card">${rets.map(({ev,r})=>{const j=diff(TODAY,r.back);return `<button class="ret" data-act="openev" data-id="${ev.id}"><span class="jx">${j<=0?'Auj.':'J-'+j}<small>${fmt(r.back,{day:'numeric',month:'short'})}</small></span><span><strong>${esc(short(ev.title))}</strong><span>${itemsTxt(ev)}</span></span></button>`}).join('')||'<div class="empty">Rien à récupérer pour l\'instant.</div>'}</div>
     </aside>
   </div>`;
@@ -1740,7 +1779,7 @@ function drawR(){
       <div><small>Retour au dépôt</small><b>${fmt(r.back,{weekday:'short',day:'numeric',month:'short'})}</b><span>dispo le ${fmt(r.free,{day:'numeric',month:'short'})}</span></div>
     </div>
     <div class="rbody">
-      ${r.e<=TODAY&&items.length&&cnt?(ev.checked?`<div class="retok">${ic('check')}<span>Retour vérifié le ${fmt(ev.checked.date)}${ev.checked.losses&&ev.checked.losses.length?' · '+ev.checked.losses.map(l=>`${l.q} ${esc(l.name)} ${l.fate==='perdu'?'perdu(s)':'cassé(s)'}`).join(', '):' · tout est revenu'}</span></div>`:`<div class="retchk">${ic('back')}<span><b>Chantier terminé :</b> vérifie que tout le matériel est bien revenu.</span><button class="btn sm pri" data-act="retopen" data-id="${ev.id}">Vérifier le retour</button></div>`):''}
+      ${r.e<=TODAY&&items.length&&cnt?(ev.checked?`<div class="retok">${ic('check')}<span>Retour vérifié le ${fmt(ev.checked.date)}${ev.checked.losses&&ev.checked.losses.length?' · '+ev.checked.losses.map(l=>`${l.q} ${esc(l.name)} ${l.fate==='perdu'?'perdu(s)':'cassé(s)'}`).join(', '):' · tout est revenu'}${ev.checked.comment?`<br><i>« ${esc(ev.checked.comment)} »</i>`:''}${ev.checked.notes&&Object.keys(ev.checked.notes).length?`<br><small>${Object.entries(ev.checked.notes).map(([id,n])=>`${esc(byId(id)?.name||'')} : ${esc(n)}`).join(' · ')}</small>`:''}</span></div>`:`<div class="retchk">${ic('back')}<span><b>Chantier terminé :</b> vérifie que tout le matériel est bien revenu.</span><button class="btn sm pri" data-act="retopen" data-id="${ev.id}">Vérifier le retour</button></div>`):''}
       ${ambHTML(p)}
       ${p.unknown.length?`<div class="unk"><p><b>Pas reconnu :</b> ${p.unknown.map(u=>`« ${esc(u.name)} »`).join(', ')}</p><div class="acts"><button class="btn sm" data-act="redit" data-id="${ev.id}">Corriger</button></div></div>`:''}
       ${kits.length?`<div class="pks" style="margin:10px 0 0">${kits.map(([id,q,how])=>`<span class="chip pk" title="${how}">${ic('pack')} ${esc(byPack(id).name)} ×${q}</span>`).join('')}</div>`:''}
@@ -1751,14 +1790,46 @@ function drawR(){
     <div class="df">${items.length?`<span class="l" style="display:flex;gap:6px"><button class="btn" data-act="pdfload" data-id="${ev.id}" title="Enregistrer la liste de chargement en PDF">${ic('dl')}Liste en PDF</button><button class="btn" data-act="printload" data-id="${ev.id}" title="Imprimer la liste de chargement">${ic('print')}Imprimer</button></span>`:''}<button class="btn" data-act="close">Fermer</button><button class="btn pri" data-act="redit" data-id="${ev.id}">${ic('cal')}Modifier</button></div>
   </div></div>`;
 }
-function openRet(id){const ev=S.events.find(e=>e.id===id);const p=P(ev);MD={k:'ret',id,rows:Object.entries(p.items).filter(([pid])=>byId(pid)).map(([pid,q])=>({pid,q,back:q,fate:'casse'}))};drawRet()}
+// ---- retours de matériel ----
+const retItems=ev=>Object.keys(P(ev).items).filter(id=>byId(id)).length;
+function retToCheck(){return S.events.filter(ev=>{const r=rng(ev);return counts(ev)&&r.e<=TODAY&&r.e>=add(TODAY,-60)&&!ev.checked&&retItems(ev)}).sort((a,b)=>rng(a).e<rng(b).e?-1:1)}
+function retSoon(n){return S.events.filter(ev=>{const r=rng(ev);return counts(ev)&&r.e>TODAY&&r.e<=add(TODAY,n)&&retItems(ev)}).sort((a,b)=>rng(a).e<rng(b).e?-1:1)}
+function retDone(){return S.events.filter(ev=>ev.checked&&ev.checked.date>=add(TODAY,-30)).sort((a,b)=>a.checked.date<b.checked.date?1:-1)}
+const retChips=ev=>Object.entries(P(ev).items).map(([id,q])=>{const p=byId(id);return p?`<span class="chip">${esc(p.name)} ×${q}</span>`:''}).join('');
+function retLossTxt(ev){const c=ev.checked;if(!c)return'';const L=c.losses||[];
+  return L.length?L.map(l=>`<b class="${l.fate==='perdu'?'lost':'brk'}">${l.q} ${esc(l.name)} ${l.fate==='perdu'?(l.q>1?'perdus':'perdu'):(l.q>1?'cassés':'cassé')}</b>`).join(', '):'<span class="okt">Tout est revenu en bon état</span>'}
+VIEWS.ret=()=>{const tc=retToCheck(),soon=retSoon(14),done=retDone();
+  const ago=ev=>{const j=diff(rng(ev).e,TODAY);return j<=0?'Terminé aujourd\'hui':j===1?'Terminé hier':`Terminé il y a ${j} jours`};
+  const byDay={};soon.forEach(ev=>{const d=rng(ev).e;(byDay[d]=byDay[d]||[]).push(ev)});
+  return `<div class="retpage">
+  ${tc.length?`<div class="retalert">${ic('alert')}<div><b>${tc.length} retour${tc.length>1?'s':''} à vérifier</b><span>Compte le matériel revenu et note la casse : le stock sera mis à jour.</span></div></div>`:`<div class="retalert ok">${ic('check')}<div><b>Aucun retour à vérifier</b><span>Tous les chantiers terminés ont été contrôlés.</span></div></div>`}
+  ${tc.length?`<h2 class="dh2">À vérifier</h2><div class="rgrid">${tc.map(ev=>{const r=rng(ev),late=diff(r.e,TODAY);return `<div class="rcard${late>=2?' late':''}">
+      <div class="rct"><span class="rbadge">${ic('back')}</span><div><b>${esc(ev.title)}</b><small>${ago(ev)} · ${fmt(r.s,{day:'numeric',month:'short'})} → ${fmt(r.e,{day:'numeric',month:'short'})}${ev.lieu?' · '+esc(ev.lieu):''}</small></div></div>
+      <div class="kchips">${retChips(ev)}</div>
+      <div class="rcf"><button class="btn" data-act="openev" data-id="${ev.id}">Voir le chantier</button><button class="btn pri" data-act="retopen" data-id="${ev.id}">${ic('check')}Vérifier le retour</button></div></div>`}).join('')}</div>`:''}
+  <h2 class="dh2">Bientôt de retour <small>14 prochains jours</small></h2>
+  <div class="card">${Object.keys(byDay).length?Object.entries(byDay).map(([d,evs])=>{const j=diff(TODAY,d);return `<div class="rday"><span class="jx">${j===1?'Dem.':'J-'+j}<small>${fmt(d,{day:'numeric',month:'short'})}</small></span><div>${evs.map(ev=>`<button class="rrow" data-act="openev" data-id="${ev.id}"><b>${esc(short(ev.title))}</b><span>${itemsTxt(ev)}</span></button>`).join('')}</div></div>`}).join(''):'<div class="empty">Aucun retour prévu dans les 14 prochains jours.</div>'}</div>
+  ${done.length?`<h2 class="dh2">Déjà vérifiés <small>30 derniers jours</small></h2><div class="card">${done.map(ev=>`<button class="rrow done" data-act="openev" data-id="${ev.id}"><span class="rdate">${fmt(ev.checked.date,{day:'numeric',month:'short'})}</span><b>${esc(short(ev.title))}</b><span>${retLossTxt(ev)}${ev.checked.comment?` · <i>« ${esc(ev.checked.comment)} »</i>`:''}</span></button>`).join('')}</div>`:''}
+  </div>`};
+function openRet(id){const ev=S.events.find(e=>e.id===id);const p=P(ev);MD={k:'ret',id,comment:'',rows:Object.entries(p.items).filter(([pid])=>byId(pid)).map(([pid,q])=>({pid,q,ok:q,cs:0,note:''}))};drawRet()}
+const retLost=r=>Math.max(0,r.q-r.ok-r.cs);
+function retRowState(i){const r=MD.rows[i],l=retLost(r),e=document.querySelector(`.rlost[data-i="${i}"]`);if(e){e.innerHTML=l?`${l} perdu${l>1?'s':''}`:'—';e.classList.toggle('on',l>0)}
+  const s=document.querySelector('.retsum');if(s)s.innerHTML=retSumTxt()}
+function retSumTxt(){const c=MD.rows.reduce((n,r)=>n+r.cs,0),l=MD.rows.reduce((n,r)=>n+retLost(r),0);
+  return c||l?`${c?`<b class="brk">${c} cassé${c>1?'s':''}</b> → passeront hors service`:''}${c&&l?' · ':''}${l?`<b class="lost">${l} perdu${l>1?'s':''}</b> → retirés du stock`:''}`:'<span class="okt">Tout revient en bon état</span>'}
 function drawRet(){const ev=S.events.find(e=>e.id===MD.id);
-  $('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(640px,100%)">
+  $('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(760px,100%)">
     <div class="dh"><h3 id="mt">Retour du matériel · ${esc(short(ev.title))}</h3><button class="ib" data-act="close" aria-label="Fermer">${ic('x')}</button></div>
-    <div style="padding:14px 20px"><p class="h" style="margin:0 0 10px">Indique combien sont revenus. S'il en manque, dis si c'est cassé (mis hors service) ou perdu (retiré du stock).</p>
-    <div class="rlist">${MD.rows.map((r,i)=>{const pr=byId(r.pid),miss=r.q-r.back;return `<div class="retr">${tile(pr)}<span class="rn"><b>${esc(pr.name)}</b><small>prévu ×${r.q}</small></span><label class="h">revenu</label><input class="in rb" type="number" min="0" max="${r.q}" value="${r.back}" data-i="${i}" style="width:72px" aria-label="Revenu">
-      ${miss>0?`<select class="rf" data-i="${i}" aria-label="Que sont devenus les manquants"><option value="casse"${r.fate==='casse'?' selected':''}>${miss} cassé(s) → hors service</option><option value="perdu"${r.fate==='perdu'?' selected':''}>${miss} perdu(s) → retiré du stock</option></select>`:`<span class="pill ok">${ic('check')} complet</span>`}</div>`}).join('')}</div></div>
-    <div class="df"><button class="btn" data-act="retall">Tout est revenu</button><button class="btn" data-act="retback" data-id="${ev.id}">Annuler</button><button class="btn pri" data-act="retok">Valider le retour</button></div>
+    <div class="wel"><p class="note" style="margin:0">Pour chaque produit : combien sont revenus <b>en bon état</b>, combien sont <b>cassés</b>. Ce qui manque est compté comme <b>perdu</b>.</p>
+    <div class="rtbl"><div class="rth"><span>Produit</span><span>En bon état</span><span>Cassés</span><span>Perdus</span></div>
+    ${MD.rows.map((r,i)=>{const pr=byId(r.pid),l=retLost(r);return `<div class="rtr">${tile(pr)}<span class="rn"><b>${esc(pr.name)}</b><small>parti ×${r.q}</small></span>
+      <input class="in rok" inputmode="numeric" value="${r.ok}" data-i="${i}" aria-label="En bon état">
+      <input class="in rcs${r.cs?' on':''}" inputmode="numeric" value="${r.cs}" data-i="${i}" aria-label="Cassés">
+      <span class="rlost${l?' on':''}" data-i="${i}">${l?`${l} perdu${l>1?'s':''}`:'—'}</span>
+      <input class="in rnote" value="${esc(r.note)}" data-i="${i}" placeholder="Note sur ce produit (facultatif) : ex. 2 pieds tordus"></div>`}).join('')}</div>
+    <div class="f" style="margin:0"><label for="rcom">Commentaire sur le retour <span class="h">facultatif</span></label><textarea class="in" id="rcom" rows="2" placeholder="Ex : matériel rendu mouillé, à faire sécher">${esc(MD.comment)}</textarea></div>
+    <div class="retsum">${retSumTxt()}</div></div>
+    <div class="df"><button class="btn l" data-act="retall">Tout est revenu en bon état</button><button class="btn" data-act="retback" data-id="${ev.id}">Annuler</button><button class="btn pri" data-act="retok">Valider le retour</button></div>
   </div></div>`}
 function printLoad(id,mode){const ev=S.events.find(e=>e.id===id),r=rng(ev),p=P(ev);
   const items=Object.entries(p.items).map(([pid,q])=>({pr:byId(pid),q})).filter(x=>x.pr).sort((a,b)=>(a.pr.cat||'~').localeCompare(b.pr.cat||'~','fr')||a.pr.name.localeCompare(b.pr.name,'fr'));
@@ -2010,10 +2081,13 @@ const A={
   setunit:b=>{const x=byId(b.dataset.p);if(!x)return;x.unit=b.dataset.u;x.usize=x.usize||1;save();if(MD&&MD.k==='r')drawR();else redrawRead();render();toast('« '+x.name+' » est maintenant compté en '+b.dataset.u)},
   upick:b=>{const k=b.dataset.k,pid=b.dataset.p;if(MD&&MD.k==='r'){const ev=S.events.find(e=>e.id===MD.id);ev.upick={...(ev.upick||{}),[k]:pid};save();render();drawR();toast('C\'est noté pour ce chantier')}else if(MD&&MD.k==='e'){MD.d.upick={...(MD.d.upick||{}),[k]:pid};redrawRead()}},
   retopen:b=>openRet(b.dataset.id),retback:b=>openR(b.dataset.id),
-  retall:()=>{for(const r of MD.rows)r.back=r.q;drawRet()},
-  retok:()=>{const ev=S.events.find(e=>e.id===MD.id),losses=[];for(const r of MD.rows){const miss=r.q-r.back;if(miss<=0)continue;const pr=byId(r.pid);losses.push({pid:r.pid,name:pr.name,q:miss,fate:r.fate});
-      if(r.fate==='perdu'){pr.qty=Math.max(0,pr.qty-miss);logP(pr,'perte',`${miss} perdu(s) au retour de « ${short(ev.title)} »`)}else{pr.hs=pr.hs||[];pr.hs.push({q:miss,from:TODAY,until:'',note:'Casse · '+short(ev.title)});logP(pr,'casse',`${miss} cassé(s) au retour de « ${short(ev.title)} »`)}}
-    ev.checked={date:TODAY,losses};save();render();openR(ev.id);toast(losses.length?'Retour enregistré, stock mis à jour':'Retour enregistré : tout est revenu')},
+  retall:()=>{for(const r of MD.rows){r.ok=r.q;r.cs=0}MD.comment=$('#rcom')?.value||MD.comment;drawRet()},
+  retok:()=>{const ev=S.events.find(e=>e.id===MD.id),losses=[],notes={},t=short(ev.title),com=($('#rcom')?.value||'').trim();
+    for(const r of MD.rows){const pr=byId(r.pid);if(!pr)continue;const lost=retLost(r),note=r.note.trim();if(note)notes[r.pid]=note;
+      if(r.cs>0){losses.push({pid:r.pid,name:pr.name,q:r.cs,fate:'casse'});pr.hs=pr.hs||[];pr.hs.push({q:r.cs,from:TODAY,until:'',note:(note?note+' · ':'')+'Casse · '+t});logP(pr,'casse',`${r.cs} cassé${r.cs>1?'s':''} au retour de « ${t} »${note?' : '+note:''}`)}
+      if(lost>0){losses.push({pid:r.pid,name:pr.name,q:lost,fate:'perdu'});pr.qty=Math.max(0,pr.qty-lost);logP(pr,'perte',`${lost} perdu${lost>1?'s':''} au retour de « ${t} »${note?' : '+note:''}`)}
+      if(note&&!r.cs&&!lost)logP(pr,'note',`Retour de « ${t} » : ${note}`)}
+    ev.checked={date:TODAY,losses,comment:com,notes};save();closeM();render();toast(losses.length?'Retour enregistré, stock mis à jour':'Retour enregistré : tout est revenu')},
   printload:b=>printLoad(b.dataset.id,'print'),pdfload:b=>printLoad(b.dataset.id,'pdf'),
   nk:b=>{MD.mk=+b.dataset.k;redrawRead();$('#nk-qty')?.focus()},
   'nk-no':()=>{MD.mk=-1;redrawRead()},
@@ -2044,7 +2118,11 @@ document.addEventListener('input',e=>{
   const t=e.target;
   if(MD&&MD.k==='imp'&&MD.inv&&MD.inv.rows&&/^inv(cnt|hs|rem)$/.test(t.dataset.in||'')){const r=MD.inv.rows[+t.dataset.k],f={invcnt:'ucnt',invhs:'uhs',invrem:'urem'}[t.dataset.in];r[f]=t.value;const e=document.querySelector(`.invtot[data-k="${t.dataset.k}"]`);if(e)e.innerHTML=invTotTxt(r);return}
   if(t.id==='palq'){PAL.q=t.value;PAL.i=0;drawPal();return}
-  if(t.classList.contains('rb')&&MD&&MD.k==='ret'){const r=MD.rows[+t.dataset.i];r.back=Math.max(0,Math.min(r.q,parseInt(t.value)||0));const pos=t.selectionStart;drawRet();const n=document.querySelector(`.rb[data-i="${t.dataset.i}"]`);if(n){n.focus()}}
+  if(MD&&MD.k==='ret'&&(t.classList.contains('rok')||t.classList.contains('rcs'))){const i=+t.dataset.i,r=MD.rows[i],v=Math.max(0,parseInt(t.value)||0);
+    if(t.classList.contains('rok')){r.ok=Math.min(r.q,v);if(r.ok+r.cs>r.q)r.cs=r.q-r.ok}else{r.cs=Math.min(r.q,v);if(r.ok+r.cs>r.q)r.ok=r.q-r.cs}
+    const o=document.querySelector(`.rok[data-i="${i}"]`),c=document.querySelector(`.rcs[data-i="${i}"]`);if(o&&o!==t)o.value=r.ok;if(c&&c!==t)c.value=r.cs;if(c)c.classList.toggle('on',r.cs>0);retRowState(i)}
+  if(MD&&MD.k==='ret'&&t.classList.contains('rnote'))MD.rows[+t.dataset.i].note=t.value;
+  if(MD&&MD.k==='ret'&&t.id==='rcom')MD.comment=t.value;
   if(t.dataset.in==='q'){U.q=t.value;$('#plist').innerHTML=plistHTML()}
   if(t.dataset.ev&&MD&&MD.k==='e'){MD.d[t.dataset.ev]=t.value;MD.mk=-1;redrawRead()}
 });
