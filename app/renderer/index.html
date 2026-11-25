@@ -796,6 +796,8 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .invf.rem img{max-width:100%;height:40px;object-fit:contain;object-position:left}
 .invf.rem .in{width:100%;text-align:left;font-weight:400}
 @media(max-width:900px){.invr{grid-template-columns:1fr 1fr}.invp,.invf.rem{grid-column:1/-1}}
+.invp .invtot{font-size:12px;color:var(--ink)}
+.invp .invtot .bad{color:var(--red);font-weight:600}
 </style>
 </head>
 <body>
@@ -1442,12 +1444,12 @@ function invImpHTML(){const I=MD.inv;
     ${I.errs.length?`<div class="inverr">${ic('alert')}<div>${I.errs.map(esc).join('<br>')}</div></div>`:''}
     ${I.old?`<p class="note" style="margin:0">Feuille imprimée le ${fmt(I.old,{day:'numeric',month:'long'})}. Le stock a pu changer depuis : vérifie bien les lignes.</p>`:''}`;
   const rows=act.map(r=>{const p=byId(r.pid),k=R.indexOf(r);
-    return `<div class="invr${r.warn?' warn':''}"><div class="invp"><b>${esc(p.name)}</b><small>Total actuel ${p.qty} · HS actuel ${hsQty(p,TODAY)}</small>${r.why?`<span class="why">${ic('alert')}${esc(r.why)}</span>`:''}</div>
-      <div class="invf"><span class="lbl">Compté</span><img src="${r.img.cnt}" alt=""><input class="in" inputmode="numeric" data-in="invcnt" data-k="${k}" value="${r.ucnt??''}" placeholder="—"></div>
+    return `<div class="invr${r.warn?' warn':''}"><div class="invp"><b>${esc(p.name)}</b><small>Total actuel ${p.qty} · HS actuel ${hsQty(p,TODAY)}</small><span class="invtot" data-k="${k}">${invTotTxt(r)}</span>${r.why?`<span class="why">${ic('alert')}${esc(r.why)}</span>`:''}</div>
+      <div class="invf"><span class="lbl">En état</span><img src="${r.img.cnt}" alt=""><input class="in" inputmode="numeric" data-in="invcnt" data-k="${k}" value="${r.ucnt??''}" placeholder="—"></div>
       <div class="invf"><span class="lbl">HS</span><img src="${r.img.hs}" alt=""><input class="in" inputmode="numeric" data-in="invhs" data-k="${k}" value="${r.uhs??''}" placeholder="—"></div>
       <div class="invf rem"><span class="lbl">Remarque</span>${r.img.rem?`<img src="${r.img.rem}" alt="">`:''}<input class="in" data-in="invrem" data-k="${k}" value="${esc(r.urem||'')}" placeholder="${r.img.rem?'Recopie la remarque (facultatif)':'Aucune'}"></div></div>`}).join('');
   return{body:`<div class="wel">${head}<div class="invlist">${rows||'<p class="empty">Rien n\'est écrit sur la feuille.</p>'}</div>
-    <p class="note" style="margin:0">Compare chaque case avec l'extrait de ta feuille, corrige si besoin. Une case vide ne change rien.</p></div>`,
+    <p class="note" style="margin:0">Compare chaque case avec l'extrait de ta feuille, corrige si besoin. Nouveau total = en état + HS. Si « En état » est vide, le total ne change pas.</p></div>`,
     foot:`<button class="btn l" data-act="invagain">Autre scan</button><button class="btn" data-act="close">Annuler</button><button class="btn pri" data-act="invgo"${act.length?'':' disabled'}>Mettre à jour le stock</button>`}}
 async function invLoad(files){const I=MD.inv;I.busy='Préparation…';drawImp();
   try{const res=await readInventoryFiles([...files],n=>{if(MD&&MD.inv){MD.inv.busy=n;const e=document.querySelector('.invbusy .h');if(e)e.textContent=n}});
@@ -1456,22 +1458,26 @@ async function invLoad(files){const I=MD.inv;I.busy='Préparation…';drawImp();
     const sh=res.pages[0].sheet;I.old=sh.d!==TODAY?sh.d:null;
     I.rows=res.rows.filter(r=>byId(r.pid)).map(r=>{const p=byId(r.pid),why=[];
       let ucnt=r.cnt.v,uhs=null;
-      if(r.cnt.ink&&r.cnt.v===null)why.push(r.cnt.onlyStruck?'Compté barré sans nouveau nombre':'Compté illisible');
-      else if(r.cnt.v!==null&&r.cnt.conf<.8)why.push('Compté peu lisible');
-      if(r.cnt.struck&&r.cnt.v!==null)why.push('Compté corrigé (rature)');
+      if(r.cnt.ink&&r.cnt.v===null)why.push(r.cnt.onlyStruck?'« En état » barré sans nouveau nombre':'« En état » illisible');
+      else if(r.cnt.v!==null&&r.cnt.conf<.8)why.push('« En état » peu lisible');
+      if(r.cnt.struck&&r.cnt.v!==null)why.push('« En état » corrigé (rature)');
       if(r.hs.v!==null){uhs=r.hs.v;if(r.hs.conf<.8)why.push('HS peu lisible')}
       else if(r.hs.ink){why.push('HS illisible')}
       else if(r.hsStruck){uhs=0;why.push('HS actuel barré : mis à 0')}
-      if(r.cnt.v!==null&&uhs!==null&&uhs>r.cnt.v)why.push('Plus de HS que de pièces comptées');
-      if(r.cnt.v!==null&&Math.abs(r.cnt.v-p.qty)>Math.max(5,p.qty*.5))why.push(`Très différent du total actuel (${p.qty})`);
+      {const nt=r.cnt.v!==null?r.cnt.v+(uhs??hsQty(p,TODAY)):null;if(nt!==null&&Math.abs(nt-p.qty)>Math.max(5,p.qty*.5))why.push(`Nouveau total très différent de l'actuel (${p.qty})`)}
       const touched=r.cnt.ink>0||r.hs.ink>0||r.hsStruck||!!r.img.rem;
       return{...r,ucnt,uhs,urem:'',touched,why:why.join(' · '),warn:why.some(w=>!/corrigé/.test(w))}});
     drawImp()}catch(e){if(MD&&MD.inv){I.busy=null;I.rows=null;drawImp()}toast('Lecture impossible : '+String(e.message||e))}}
+function invCalc(r){const p=byId(r.pid),c=String(r.ucnt??'').trim(),h=String(r.uhs??'').trim(),cur=hsQty(p,TODAY);
+  const ok=c===''||/^\d+$/.test(c),okh=h===''||/^\d+$/.test(h);if(!ok||!okh)return{err:true};
+  const hs=h!==''?+h:cur,tot=c!==''?+c+hs:p.qty;return{tot,hs:Math.min(hs,tot),chg:tot!==p.qty||Math.min(hs,tot)!==cur}}
+function invTotTxt(r){const p=byId(r.pid),k=invCalc(r);if(k.err)return'<span class="bad">Nombre invalide</span>';
+  return k.chg?`Nouveau total <b>${k.tot}</b>${k.hs?` dont <b>${k.hs}</b> HS`:''}`:'Aucun changement'}
 function invApply(){const I=MD.inv;let nq=0,nh=0,nr=0;const d=fmt(TODAY,{day:'numeric',month:'short'});
-  I.rows.filter(r=>r.touched).forEach(r=>{const p=byId(r.pid);if(!p)return;
-    const c=String(r.ucnt??'').trim(),h=String(r.uhs??'').trim(),rem=(r.urem||'').trim();
-    if(/^\d+$/.test(c)&&+c!==p.qty){logP(p,'qty',`Inventaire du ${d} : ${p.qty} → ${+c}`);p.qty=+c;nq++}
-    if(/^\d+$/.test(h)){const cur=hsQty(p,TODAY),v=Math.min(+h,p.qty);if(v!==cur){p.hs=v>0?[{q:v,from:TODAY,until:'',note:rem||'Inventaire'}]:[];logP(p,'hs',`Inventaire du ${d} : hors service ${cur} → ${v}`);nh++}}
+  I.rows.filter(r=>r.touched).forEach(r=>{const p=byId(r.pid);if(!p)return;const k=invCalc(r),rem=(r.urem||'').trim();if(k.err)return;
+    const cur=hsQty(p,TODAY);
+    if(k.tot!==p.qty){logP(p,'qty',`Inventaire du ${d} : total ${p.qty} → ${k.tot}`);p.qty=k.tot;nq++}
+    if(k.hs!==cur){p.hs=k.hs>0?[{q:k.hs,from:TODAY,until:'',note:rem||'Inventaire'}]:[];logP(p,'hs',`Inventaire du ${d} : hors service ${cur} → ${k.hs}`);nh++}
     if(rem){logP(p,'note',`Remarque d'inventaire : ${rem}`);nr++}});
   S.cfg.lastInv=TODAY;save();closeM();U.view='stock';render();toast(`Inventaire appliqué : ${nq} quantité${nq>1?'s':''}, ${nh} hors service, ${nr} remarque${nr>1?'s':''}`)}
 function openImp(){MD={k:'imp',step:0};drawImp()}
@@ -1551,7 +1557,7 @@ function openInv(){const R2=invRows(),tq=R2.reduce((n,r)=>n+r.p.qty,0),th=R2.red
   <button class="btn" data-act="invprint"><span><b>${ic('print')} Imprimer</b><small>Envoie la même feuille à l'imprimante.</small></span></button>
   <button class="btn" data-act="invcsv"><span><b>${ic('dl')} Fichier Excel (CSV)</b><small>S'ouvre dans Excel : une ligne par produit.</small></span></button></div></div></div>`}
 function invCSV(){const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-  const lines=[['Produit','Référence','Quantité totale','Hors service','Restant','Détail hors service','Compté'].map(q).join(';')];
+  const lines=[['Produit','Référence','Quantité totale','Hors service','Restant','Détail hors service','En état'].map(q).join(';')];
   for(const r of invRows())lines.push([q(r.p.name),q(r.p.ref||''),r.p.qty,r.hs,r.rest,q(r.hl.map(hsTxt).join(' / ')),''].join(';'));
   return '﻿'+lines.join('\r\n')}
 async function outPrint(mode,name){if(mode==='pdf'){if(!API||!API.savePdf){toast('Ferme complètement l\'app et relance Lancer.bat pour activer l\'export PDF');return}try{const f=await API.savePdf({name});if(f)toast('PDF enregistré et ouvert')}catch(e){toast('PDF impossible : '+String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,'').replace(/No handler registered.*/,'ferme complètement l\'app et relance Lancer.bat'))}}else setTimeout(()=>window.print(),50)}
@@ -1588,10 +1594,10 @@ function printInv(mode){
       <div class="iqr" style="left:${mm(L.qr.x)};top:${mm(L.qr.y)};width:${mm(L.qr.s)};height:${mm(L.qr.s)}">${qrSvg(`SI1|${sh.id}|${pi}`)}</div>
       <div class="ihead"><div class="ico">${co?esc(co):'&nbsp;'}</div><div class="idate">${fmt(TODAY,{day:'numeric',month:'long',year:'numeric'})} · page ${pi+1}/${np}</div></div>
       ${head}
-      <div class="r th" style="top:${mm(L.rows0-6)};height:6mm">${col('n','#')}${col('pr','Produit')}${col('tot','Total')}<div class="c hsh" style="left:${mm(L.c.hsp[0])};width:${mm(L.c.hsb[1]-L.c.hsp[0])}">HS <small>actuel · nouveau</small></div>${col('cnt','Compté')}${col('rem','Remarque')}</div>
+      <div class="r th" style="top:${mm(L.rows0-6)};height:6mm">${col('n','#')}${col('pr','Produit')}${col('tot','Total')}<div class="c hsh" style="left:${mm(L.c.hsp[0])};width:${mm(L.c.hsb[1]-L.c.hsp[0])}">HS <small>actuel · nouveau</small></div>${col('cnt','En état')}${col('rem','Remarque')}</div>
       ${rows||'<p class="empty">Aucun produit dans le stock</p>'}
       ${pi===np-1?`<div class="isign" style="top:${mm(L.sign)}"><div><span>Inventaire réalisé par</span></div><div><span>Date</span></div><div><span>Signature</span></div></div>`:''}
-      <p class="ifoot">Écris le nombre compté dans « Compté » et le nouveau hors service dans la case de droite, puis Stock › Importer › Inventaire rempli.</p>
+      <p class="ifoot">« En état » : pièces utilisables. HS : écris le nouveau nombre dans la case de droite. Total = en état + HS. Puis Stock › Importer › Inventaire rempli.</p>
     </section>`}).join('');
   $('#print').innerHTML=`<div class="inv">${pagesHTML}</div>`;outPrint(mode,`Inventaire-${TODAY}.pdf`);
 }
@@ -2025,7 +2031,7 @@ document.addEventListener('keydown',e=>{
 });
 document.addEventListener('input',e=>{
   const t=e.target;
-  if(MD&&MD.k==='imp'&&MD.inv&&MD.inv.rows&&/^inv(cnt|hs|rem)$/.test(t.dataset.in||'')){const r=MD.inv.rows[+t.dataset.k],f={invcnt:'ucnt',invhs:'uhs',invrem:'urem'}[t.dataset.in];r[f]=t.value;return}
+  if(MD&&MD.k==='imp'&&MD.inv&&MD.inv.rows&&/^inv(cnt|hs|rem)$/.test(t.dataset.in||'')){const r=MD.inv.rows[+t.dataset.k],f={invcnt:'ucnt',invhs:'uhs',invrem:'urem'}[t.dataset.in];r[f]=t.value;const e=document.querySelector(`.invtot[data-k="${t.dataset.k}"]`);if(e)e.innerHTML=invTotTxt(r);return}
   if(t.id==='palq'){PAL.q=t.value;PAL.i=0;drawPal();return}
   if(t.classList.contains('rb')&&MD&&MD.k==='ret'){const r=MD.rows[+t.dataset.i];r.back=Math.max(0,Math.min(r.q,parseInt(t.value)||0));const pos=t.selectionStart;drawRet();const n=document.querySelector(`.rb[data-i="${t.dataset.i}"]`);if(n){n.focus()}}
   if(t.dataset.in==='q'){U.q=t.value;$('#plist').innerHTML=plistHTML()}
