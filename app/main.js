@@ -274,7 +274,7 @@ function runInstaller(relaunch) {
   try {
     if (relaunch && process.platform === 'win32') {
       // cmd attend la fin de l'installation silencieuse, puis relance l'app elle-même
-      const cmd = `/d /s /c "start "" /wait "${UPD.file}" /S & start "" "${process.execPath}""`;
+      const cmd = `/d /s /c "start "" /wait "${UPD.file}" /S /RELANCER & start "" "${process.execPath}""`;
       spawn(process.env.ComSpec || 'cmd.exe', [cmd], { detached: true, stdio: 'ignore', windowsHide: true, windowsVerbatimArguments: true }).unref();
     } else {
       spawn(UPD.file, ['/S'], { detached: true, stdio: 'ignore' }).unref();
@@ -393,8 +393,8 @@ ipcMain.handle('g-login', () => {
   });
 });
 ipcMain.handle('g-logout', async () => {
-  const st = gRead();
-  try { if (st && st.refresh) await net.fetch('https://oauth2.googleapis.com/revoke?token=' + encodeURIComponent(st.refresh), { method: 'POST' }); } catch (e) {}
+  // On oublie seulement la connexion sur ce PC, sans révoquer l'accès chez Google :
+  // sinon, à la reconnexion, Google ne laisse plus l'appli écrire dans l'agenda déjà créé et elle en recréerait un.
   try { fs.unlinkSync(gFile()); } catch (e) {}
   G.access = null; G.exp = 0;
   return true;

@@ -2359,7 +2359,7 @@ const A={
   sync:()=>{syncNow(true);gSync(false)},
   gsync:()=>gSync(true),
   glogin:async()=>{toast('Connexion dans ton navigateur…');try{const r=await API.gLogin();await gStatus();render();toast('Connecté à Google'+(r&&r.email?' ('+r.email+')':''));gSync(true)}catch(e){toast('Google : '+String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,''))}},
-  glogout:async()=>{await API.gLogout();await gStatus();GS.err=null;render();toast('Déconnecté de Google. L\'agenda « Chantiers StockInfos » reste dans ton Google Agenda.')},
+  glogout:async()=>{await API.gLogout();await gStatus();GS.err=null;render();toast('Déconnecté de Google sur ce PC. Reconnecte-toi avec le même compte pour retrouver le même agenda.')},
   folder:()=>API?API.openDataFolder():toast('Disponible dans l\'app installée'),
   export:async()=>{if(!API)return toast('Disponible dans l\'app installée');const f=await API.exportData(JSON.stringify(S,null,1));if(f)toast('Données exportées')},
   import:async()=>{if(!API)return toast('Disponible dans l\'app installée');const t=await API.importData();if(!t)return;try{const o=JSON.parse(t);if(!Array.isArray(o.products)||!Array.isArray(o.events))throw 0;S=o;S.cfg=Object.assign({read:true,auto:'15',kits:true},S.cfg||{});migrateCals();S.ui=S.ui||{};S.packs=S.packs||[];save();render();toast('Données importées')}catch(e){toast('Ce fichier n\'est pas une sauvegarde StockInfos')}},
