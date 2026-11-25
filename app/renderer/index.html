@@ -536,9 +536,6 @@ button.ret:hover strong{color:var(--acc)}
 .ob.t{box-shadow:inset 0 -3px 0 var(--ink)}
 .occl{display:flex;gap:3px;margin-top:4px}
 .occl span{flex:1;font-size:11px;color:var(--mute);white-space:nowrap;overflow:visible;min-width:0}
-.toprow{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:center;width:100%;border:0;border-top:1px solid var(--line);background:none;padding:8px 0;text-align:left;cursor:pointer}
-.toprow:first-of-type{border-top:0}
-.toprow:hover b{color:var(--acc)}
 .tn{width:22px;height:22px;border-radius:50%;background:var(--card2);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--mute)}
 .tl{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px}
 .tl b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -878,6 +875,33 @@ b.brk{color:#c77700}b.lost{color:var(--red)}.okt{color:var(--ok)}
   #print .ld .lsign{display:flex;gap:4mm;margin-top:4mm;page-break-inside:avoid}
   #print .ld .lsign div{flex:1;height:16mm;border:.6pt solid #d0d0d0;border-radius:2mm;padding:1.5mm 3mm}
 }
+.dgrid2 .qc{display:flex;flex-direction:column}
+.qcf{display:flex;flex-direction:column;gap:8px}
+.qcd{display:flex;gap:10px}.qcd label{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--mute)}.qcd .in{width:150px}
+.qcf textarea{resize:vertical;min-height:52px}
+.qcr{margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.qcv{font-weight:700;font-size:15px;padding:6px 10px;border-radius:8px}.qcv small{font-weight:400;font-size:12px;margin-left:6px;color:var(--mute)}
+.qcv.ok{background:var(--okbg);color:var(--ok)}.qcv.ko{background:color-mix(in srgb,var(--red) 10%,var(--card));color:var(--red)}
+.qcl{display:grid;grid-template-columns:16px auto 1fr;gap:8px;align-items:center;font-size:13px;padding:3px 2px}
+.qcl svg{width:15px;height:15px}.qcl.ok svg{color:var(--ok)}.qcl.ko svg{color:var(--red)}.qcl span{color:var(--mute)}.qcl.ko span{color:var(--red)}
+.tops{display:grid;grid-template-columns:22px minmax(0,1fr) auto auto;gap:10px;align-items:center;width:100%;border:0;border-bottom:1px solid var(--line);background:none;padding:9px 2px;cursor:pointer;font:inherit;color:var(--ink);text-align:left}
+.tops:last-child{border-bottom:0}.tops:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
+.tops .tn{color:var(--mute);font-size:12px;text-align:center}.tops b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.wkd{display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:10px;background:var(--card2);min-height:90px}
+.wkd.td{box-shadow:inset 0 0 0 2px var(--acc)}.wkd.empty{opacity:.65}
+.wkh b{display:block;font-size:12.5px;text-transform:capitalize}.wkh small{color:var(--mute);font-size:11px}
+.wki{display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left;width:100%;border:0;border-radius:7px;padding:6px 7px;cursor:pointer;font:inherit;color:var(--ink);background:var(--card)}
+.wki span{display:flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}.wki span svg{width:11px;height:11px}
+.wki.wko span{color:#2563eb}.wki.wkr span{color:var(--amb)}
+.wki b{font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wki small{font-size:11px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+@media(max-width:1100px){.wk{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.hsr2{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;width:100%;border:0;border-bottom:1px solid var(--line);background:none;padding:9px 12px;text-align:left;cursor:pointer;font:inherit;color:var(--ink)}
+.hsr2:last-child{border-bottom:0}.hsr2:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
+.hsr2 b{font-weight:600;font-size:13px}.hsr2 .hq{font-size:12.5px;font-weight:700;color:var(--red)}.hsr2 .hq i{font-style:normal}
+.hsr2 small{grid-column:1/-1;color:var(--mute);font-size:11.5px}
+.lsum{display:flex;gap:16px;padding:10px 12px;border-bottom:1px solid var(--line);font-size:13px}.lsum b{font-size:16px}
+i.brk{color:#c77700}i.lost{color:var(--red)}
 </style>
 </head>
 <body>
@@ -1090,26 +1114,42 @@ function dcard(ev){const r=rng(ev),p=P(ev),st=evStatus(ev),n=Object.values(p.ite
     <span class="meta"><span>${ic('cal')}${range(r.s,r.e)}</span>${ev.lieu?`<span>${ic('pin')}${esc(ev.lieu)}</span>`:''}</span>
     <span class="dcf"><span>${ic('box')}${n} article${n>1?'s':''}</span>${bad?'<span class="pill ko">Matériel manquant</span>':unk?`<span class="pill lo">${unk} non reconnu${unk>1?'s':''}</span>`:n?'<span class="pill ok">Matériel OK</span>':''}</span>
   </button>`}
-function occHTML(tot){
-  const days=[...Array(30)].map((_,i)=>add(TODAY,i));
-  const prods=S.products.filter(p=>p.qty>0);
-  const vals=days.map(d=>{let sum=0,bad=false,u=0;for(const p of prods){const x=usage(p.id,d);u+=x;sum+=Math.min(1,x/p.qty);if(x>p.qty)bad=true}return {d,u,pct:prods.length?sum/prods.length*100:0,bad}});
-  const peak=vals.reduce((m,v)=>v.pct>m.pct?v:m,vals[0]);
-  if(!tot)return '<div class="empty">Ajoute du matériel pour voir l\'occupation.</div>';
-  return `<div class="occh"><span class="h">${peak.u?`Jour le plus chargé : <b>${fmt(peak.d)}</b> (${Math.round(peak.pct)} % du stock utilisé en moyenne)`:'Aucun matériel sorti sur les 30 prochains jours'}</span><span class="h">Clique sur un jour pour voir le stock</span></div>
-  <div class="occ">${vals.map(v=>`<button class="ob${v.d===TODAY?' t':''}${v.bad?' bad':v.pct>=70?' hi':''}" data-act="occday" data-d="${v.d}" title="${fmt(v.d,{weekday:'long',day:'numeric',month:'long'})} : ${Math.round(v.pct)} % du stock utilisé en moyenne${v.bad?' · un produit manque':''}"><i style="height:${v.u?Math.max(3,v.pct):0}%"></i></button>`).join('')}</div>
-  <div class="occl">${vals.map((v,i)=>`<span>${i===0?'Auj.':i%7===0?dt(v.d).getDate()+' '+fmt(v.d,{month:'short'}).replace('.',''):''}</span>`).join('')}</div>
-  <div class="avleg"><span><i style="background:var(--acc)"></i>% moyen du stock utilisé</span><span><i class="lo"></i>Plus de 70 %</span><span><i class="ko"></i>Jour avec un manque</span></div>`;
-}
+// ---- tableau de bord : blocs ----
+function qcHTML(){const Q=U.qc||(U.qc={a:TODAY,b:add(TODAY,2),txt:''});
+  return `<div class="qcf"><div class="qcd"><label>Du<input class="in" type="date" data-qc="a" value="${Q.a}"></label><label>Au<input class="in" type="date" data-qc="b" value="${Q.b}" min="${Q.a}"></label></div>
+    <textarea class="in" data-qc="txt" rows="2" placeholder="Écris le matériel comme dans un chantier : 120 chaises, 2 chapiteaux, 30 m² de plancher…">${esc(Q.txt)}</textarea></div>
+    <div class="qcr" id="qcr">${qcRes()}</div>`}
+function qcRes(){const Q=U.qc;if(!Q||!Q.txt.trim())return '<p class="h" style="margin:0">Le résultat s\'affiche ici au fur et à mesure.</p>';
+  const a=Q.a<=Q.b?Q.a:Q.b,b=Q.a<=Q.b?Q.b:Q.a,days=[];for(let d=a;d<=b&&days.length<92;d=add(d,1))days.push(d);
+  const p=P({desc:Q.txt,man:{packs:{},items:{}}}),its=Object.entries(p.items).map(([id,q])=>({pr:byId(id),q})).filter(x=>x.pr);
+  if(!its.length)return `<p class="h" style="margin:0">${p.unknown.length?'Pas reconnu : '+p.unknown.map(u=>esc(u.name)).join(', '):'Aucun produit reconnu.'}</p>`;
+  let ok=true;const rows=its.map(x=>{let mn=1e9,wd=a;for(const d of days){const v=x.pr.qty-usage(x.pr.id,d);if(v<mn){mn=v;wd=d}}const good=mn>=x.q;if(!good)ok=false;
+    return `<div class="qcl ${good?'ok':'ko'}">${ic(good?'check':'alert')}<b>${esc(x.pr.name)} ×${x.q}</b><span>${good?`OK · ${mn} dispo au plus juste`:`Il en manque ${x.q-Math.max(0,mn)} le ${fmt(wd,{weekday:'short',day:'numeric',month:'short'})} (${Math.max(0,mn)} dispo)`}</span></div>`}).join('');
+  const unk=p.unknown.length?`<p class="h" style="margin:4px 0 0">Pas reconnu : ${p.unknown.map(u=>esc(u.name)).join(', ')}</p>`:'';
+  return `<div class="qcv ${ok?'ok':'ko'}">${ok?'Tout est disponible':'Pas assez de matériel'} <small>${days.length>1?`du ${fmt(a,{day:'numeric',month:'short'})} au ${fmt(b,{day:'numeric',month:'short'})}`:`le ${fmt(a,{day:'numeric',month:'short'})}`}</small></div>${rows}${unk}
+    <button class="btn sm" data-act="qcnew" style="margin-top:8px">${ic('plus')}Créer un chantier avec ce matériel</button>`}
+function weekHTML(){const days=[...Array(7)].map((_,i)=>add(TODAY,i));
+  const col=d=>{const dep=S.events.filter(ev=>counts(ev)&&rng(ev).s===d&&retItems(ev)),ret=S.events.filter(ev=>counts(ev)&&rng(ev).e===d&&retItems(ev)&&!ev.checked);
+    const j=diff(TODAY,d);
+    return `<div class="wkd${j===0?' td':''}${dep.length||ret.length?'':' empty'}"><div class="wkh"><b>${j===0?'Aujourd\'hui':j===1?'Demain':fmt(d,{weekday:'long'})}</b><small>${fmt(d,{day:'numeric',month:'short'})}</small></div>
+      ${dep.map(ev=>`<button class="wki wko" data-act="openev" data-id="${ev.id}"><span>${ic('ul')}Sortie</span><b>${esc(short(ev.title))}</b><small>${itemsTxt(ev)}</small></button>`).join('')}
+      ${ret.map(ev=>`<button class="wki wkr" data-act="${rng(ev).e<=TODAY?'retopen':'openev'}" data-id="${ev.id}"><span>${ic('back')}Retour</span><b>${esc(short(ev.title))}</b><small>${itemsTxt(ev)}</small></button>`).join('')}
+      ${dep.length||ret.length?'':'<span class="h">Rien</span>'}</div>`};
+  return `<div class="wk">${days.map(col).join('')}</div>`}
+function hsHTML(){const rows=S.products.map(p=>({p,l:(p.hs||[]).filter(h=>(!h.from||h.from<=TODAY)&&(!h.until||h.until>=TODAY)&&+h.q>0)})).filter(x=>x.l.length);
+  if(!rows.length)return '<div class="empty">Aucun matériel hors service.</div>';
+  return rows.map(({p,l})=>`<button class="hsr2" data-act="openp" data-id="${p.id}"><b>${esc(p.name)}</b><span class="hq">${l.reduce((n,h)=>n+(+h.q),0)} HS</span><small>${l.map(h=>`${h.until?`jusqu'au ${fmt(h.until,{day:'numeric',month:'short'})}`:'sans date de retour'}${h.note?' · '+esc(h.note):''}`).join(' · ')}</small></button>`).join('')}
+function lossHTML(){const since=add(TODAY,-30),L=[];S.events.filter(ev=>ev.checked&&ev.checked.date>=since).forEach(ev=>(ev.checked.losses||[]).forEach(l=>L.push({...l,ev})));
+  if(!L.length)return '<div class="empty">Rien de cassé ni de perdu ce mois-ci.</div>';
+  const by={};L.forEach(l=>{const k=l.pid;by[k]=by[k]||{name:l.name,c:0,p:0,evs:new Set()};by[k][l.fate==='perdu'?'p':'c']+=l.q;by[k].evs.add(short(l.ev.title))});
+  const tc=L.filter(l=>l.fate!=='perdu').reduce((n,l)=>n+l.q,0),tp=L.filter(l=>l.fate==='perdu').reduce((n,l)=>n+l.q,0);
+  return `<div class="lsum"><span><b class="brk">${tc}</b> cassé${tc>1?'s':''}</span><span><b class="lost">${tp}</b> perdu${tp>1?'s':''}</span></div>`+Object.entries(by).sort((x,y)=>(y[1].c+y[1].p)-(x[1].c+x[1].p)).map(([id,x])=>`<button class="hsr2" data-act="openp" data-id="${id}"><b>${esc(x.name)}</b><span class="hq">${x.c?`<i class="brk">${x.c} cassé${x.c>1?'s':''}</i>`:''}${x.c&&x.p?' · ':''}${x.p?`<i class="lost">${x.p} perdu${x.p>1?'s':''}</i>`:''}</span><small>${[...x.evs].map(esc).join(' · ')}</small></button>`).join('')}
 function topHTML30(){
   const end=add(TODAY,29),evs=S.events.filter(ev=>{const r=rng(ev);return counts(ev)&&r.re>=TODAY&&r.s<=end});
   const rows=S.products.map(p=>{let total=0,nb=0;for(const ev of evs){const q=P(ev).items[p.id];if(q){total+=q;nb++}}
-    let peak=0;if(total)for(let i=0;i<30;i++)peak=Math.max(peak,usage(p.id,add(TODAY,i)));return {p,total,nb,peak}}).filter(x=>x.total).sort((a,b)=>b.total-a.total).slice(0,6);
+    let short=0;if(total)for(let i=0;i<30;i++)if(usage(p.id,add(TODAY,i))>p.qty)short++;return {p,total,nb,short}}).filter(x=>x.total).sort((a,b)=>b.nb-a.nb||b.total-a.total).slice(0,5);
   if(!rows.length)return '<div class="empty">Aucun matériel réservé sur les 30 prochains jours.</div>';
-  const mx=rows[0].total;
-  return rows.map((x,i)=>{const st=x.peak>x.p.qty?'ko':x.peak>=x.p.qty*.8?'lo':'ok';
-    return `<button class="toprow" data-act="openp" data-id="${x.p.id}"><span class="tn">${i+1}</span><span class="tbx"><span class="tl"><b>${esc(x.p.name)}</b><span class="h">${x.nb} chantier${x.nb>1?'s':''}</span></span><span class="bar"><i style="width:${x.total/mx*100}%;background:var(--acc)"></i></span></span><span class="tv"><b>${x.total}</b><small class="${st}">${st==='ko'?'manque':st==='lo'?'juste':''} pic ${x.peak}/${x.p.qty}</small></span></button>`}).join('');
-}
+  return rows.map((x,i)=>`<button class="tops" data-act="openp" data-id="${x.p.id}"><span class="tn">${i+1}</span><b>${esc(x.p.name)}</b><span class="h">${x.nb} chantier${x.nb>1?'s':''}</span>${x.short?`<span class="pill ko">${x.short} jour${x.short>1?'s':''} en manque</span>`:'<span class="pill ok">OK</span>'}</button>`).join('')}
 VIEWS.dash=()=>{
   const d=TODAY,act=S.events.filter(ev=>counts(ev)&&evOut(ev,d));
   const out=S.products.reduce((n,p)=>n+usage(p.id,d),0),tot=S.products.reduce((n,p)=>n+(+p.qty||0),0),pct=tot?Math.round(out/tot*100):0;
@@ -1124,9 +1164,10 @@ VIEWS.dash=()=>{
     <div class="htile${nAl?' bad':' good'}"><span class="hi">${ic(nAl?'alert':'check')}</span><span><small>À surveiller</small><b>${nAl}</b><em>${nAl?(SH.length?`${SH.length} manque${SH.length>1?'s':''} prévu${SH.length>1?'s':''}`:'')+(SH.length&&unk.length?' · ':'')+(unk.length?`${unk.length} à vérifier`:''):'Tout est en ordre'}</em></span></div>
   </div>
   <div class="dgrid2">
-    <section class="card wcard"><h2 class="dh2">Occupation du stock · 30 prochains jours</h2>${occHTML(tot)}</section>
-    <section class="card wcard"><h2 class="dh2">Matériel le plus demandé · 30 jours</h2>${topHTML30()}</section>
+    <section class="card wcard qc"><h2 class="dh2">Vérif rapide pour un devis</h2>${qcHTML()}</section>
+    <section class="card wcard"><h2 class="dh2">Matériel le plus demandé <small>30 jours</small></h2>${topHTML30()}</section>
   </div>
+  <section class="card wcard" style="margin-top:14px"><h2 class="dh2">Sorties et retours <small>7 prochains jours</small> <button class="lnk" data-act="view" data-v="ret">Retours</button></h2>${weekHTML()}</section>
   <div class="dgrid">
     <section><h2 class="dh2">Chantiers en cours et à venir</h2>
       <div class="dlist">${evs.map(dcard).join('')||`<div class="empty card">Aucun chantier prévu. Ajoute-en un dans le Planning ou relie un agenda.</div>`}</div>
@@ -1137,8 +1178,8 @@ VIEWS.dash=()=>{
         ${unk.map(ev=>`<button class="al w" data-act="openev" data-id="${ev.id}">${ic('eye')}<span><strong>${[...P(ev).amb.map(a=>`« ${esc(a.label)} » : plusieurs produits possibles`),...(P(ev).umiss||[]).map(a=>`« ${esc(a.label)} » : aucun produit dans cette unité`),...(P(ev).unknown.length?['Pas reconnu : '+P(ev).unknown.map(u=>esc(u.name)).join(', ')]:[])].join(' · ')}</strong><small>dans « ${esc(short(ev.title))} » · clique pour préciser</small></span></button>`).join('')}
       </div>`:''}
       ${(()=>{const tc=S.events.filter(ev=>{const r=rng(ev);return counts(ev)&&r.e<=TODAY&&r.e>=add(TODAY,-30)&&!ev.checked&&Object.keys(P(ev).items).length}).sort((a,b)=>rng(b).e<rng(a).e?-1:1);return tc.length?`<h2 class="dh2">Retours à vérifier</h2><div class="card">${tc.map(ev=>`<button class="ret" data-act="retopen" data-id="${ev.id}"><span class="jx" style="background:var(--ambbg);color:var(--amb)">${ic('back')}</span><span><strong>${esc(short(ev.title))}</strong><span>terminé le ${fmt(rng(ev).e)} · clique pour vérifier</span></span></button>`).join('')}</div>`:''})()}
-      <h2 class="dh2">Retours de matériel <button class="lnk" data-act="view" data-v="ret">Tout voir</button></h2>
-      <div class="card">${rets.map(({ev,r})=>{const j=diff(TODAY,r.back);return `<button class="ret" data-act="openev" data-id="${ev.id}"><span class="jx">${j<=0?'Auj.':'J-'+j}<small>${fmt(r.back,{day:'numeric',month:'short'})}</small></span><span><strong>${esc(short(ev.title))}</strong><span>${itemsTxt(ev)}</span></span></button>`}).join('')||'<div class="empty">Rien à récupérer pour l\'instant.</div>'}</div>
+      <h2 class="dh2">Matériel hors service</h2><div class="card">${hsHTML()}</div>
+      <h2 class="dh2">Casse et pertes <small>30 jours</small></h2><div class="card">${lossHTML()}</div>
     </aside>
   </div>`;
 };
@@ -2046,6 +2087,7 @@ document.addEventListener('mouseup',()=>{if(!DRAG.on)return;DRAG.on=false;const 
 /* ---------- actions ---------- */
 function setView(v){U.view=v;U.reset=false;try{history.replaceState(null,'','#'+VH[v])}catch(e){location.hash=VH[v]}render();$('#main').scrollTop=0}
 const A={
+  qcnew:()=>{const Q=U.qc;openE(null,Q.a<=Q.b?Q.a:Q.b,Q.a<=Q.b?Q.b:Q.a);if(MD&&MD.d){MD.d.desc=Q.txt;drawE()}},
   essaiadd:()=>{const pr=S.products.filter(p=>p.qty>0).sort((a,b)=>b.qty-a.qty);if(!pr.length)return;
     const P=k=>pr[k%pr.length],q=(p,f)=>Math.max(1,Math.ceil(p.qty*f)),D=n=>add(TODAY,n);
     const mk=(title,a,b,lieu,items)=>{const m={};items.forEach(([p,n])=>{m[p.id]=(m[p.id]||0)+n});return{id:'e'+uid(),title:'Essai · '+title,start:D(a),end:D(b),lieu,desc:'Chantier d\'essai créé par StockInfos (Paramètres › Chantiers d\'essai).',src:'manuel',ci:S.events.length%COLORS.length,man:{packs:{},items:m},created:Date.now(),used:Date.now(),essai:true}};
@@ -2179,6 +2221,7 @@ document.addEventListener('keydown',e=>{
 });
 document.addEventListener('input',e=>{
   const t=e.target;
+  if(t.dataset.qc){U.qc[t.dataset.qc]=t.value;if(t.dataset.qc==='a'&&U.qc.b<U.qc.a){U.qc.b=U.qc.a;const bb=document.querySelector('[data-qc=b]');if(bb)bb.value=U.qc.a}clearTimeout(window.__qct);window.__qct=setTimeout(()=>{const r=$('#qcr');if(r)r.innerHTML=qcRes()},180);return}
   if(MD&&MD.k==='imp'&&MD.inv&&MD.inv.rows&&/^inv(cnt|hs|rem)$/.test(t.dataset.in||'')){const r=MD.inv.rows[+t.dataset.k],f={invcnt:'ucnt',invhs:'uhs',invrem:'urem'}[t.dataset.in];r[f]=t.value;const e=document.querySelector(`.invtot[data-k="${t.dataset.k}"]`);if(e)e.innerHTML=invTotTxt(r);return}
   if(t.id==='palq'){PAL.q=t.value;PAL.i=0;drawPal();return}
   if(MD&&MD.k==='ret'&&(t.classList.contains('rok')||t.classList.contains('rcs'))){const i=+t.dataset.i,r=MD.rows[i],v=Math.max(0,parseInt(t.value)||0);
