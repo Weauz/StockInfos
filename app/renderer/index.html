@@ -946,13 +946,15 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .tgcols{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));background:repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px 44px)}
 .tgc{position:relative;border-left:1px solid var(--line);cursor:copy}.tgc:first-child{border-left:0}.tgc.today{background:color-mix(in srgb,var(--acc) 4%,transparent)}
 .tgc.dsel,.tgab.dsel{background:color-mix(in srgb,var(--acc) 14%,transparent)}
-.tge{position:absolute;z-index:1;border:0;border-radius:6px;padding:3px 7px;text-align:left;cursor:pointer;overflow:hidden;background:color-mix(in srgb,var(--c) 24%,var(--card));border-left:4px solid var(--c);color:var(--ink);font:inherit;display:flex;flex-direction:column;gap:1px;box-shadow:0 0 0 1px var(--card)}
+.tge{position:absolute;z-index:1;border:0;border-radius:6px;padding:3px 7px;text-align:left;cursor:pointer;overflow:hidden;background:color-mix(in srgb,var(--c) 24%,var(--card));border-left:4px solid var(--c);color:var(--ink);font:inherit;display:flex;flex-direction:column;justify-content:flex-start;box-shadow:0 0 0 1px var(--card)}
+.tge{overflow:clip}.tgt{display:flex;flex-direction:column;gap:1px;min-width:0}.tge.tiny .tgt{flex-direction:row;align-items:center;gap:5px}
 .tge:hover{filter:brightness(.96);z-index:2}
 .tge b{font-size:12.5px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
 .tge small{font-size:11px;color:var(--mute);overflow:hidden;text-overflow:ellipsis}
 .tge small.tt{font-weight:700;color:color-mix(in srgb,var(--c) 70%,var(--ink));white-space:nowrap}
-.tge.tiny{flex-direction:row;align-items:center;gap:5px;padding-top:1px;padding-bottom:1px}.tge.tiny b{-webkit-line-clamp:1;white-space:nowrap;display:block}
+.tge.tiny{padding-top:1px;padding-bottom:1px}.tge.tiny b{-webkit-line-clamp:1;white-space:nowrap;display:block}
 .tge.short{box-shadow:inset 0 0 0 1.5px var(--red)}
+.tge.ct{border-top-left-radius:0;border-top-right-radius:0}.tge.cb{border-bottom-left-radius:0;border-bottom-right-radius:0}
 .tgnow{position:absolute;left:0;right:0;height:2px;background:var(--red);z-index:3;pointer-events:none}
 .tgnow::before{content:"";position:absolute;left:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--red)}
 </style>
@@ -1329,34 +1331,35 @@ function pvMove(n){const d=U.pd;if(U.pv==='mois'){const x=new Date(+d.slice(0,4)
 const TGH=44; // hauteur d'une heure en pixels
 const tmin=t=>t?(+t.slice(0,2))*60+(+t.slice(3,5)):null;
 function timeGrid(days){
-  const a=days[0],b=days[days.length-1],n=days.length;
-  const all=S.events.filter(VIS).map(ev=>({ev,r:rng(ev)})).filter(x=>x.r.s<=b&&x.r.e>=a);
-  // en haut « journée » : sans heure ou sur plusieurs jours ; dans la grille : un seul jour avec une heure
-  const top=all.filter(x=>!x.ev.t0||x.r.s!==x.r.e).sort((x,y)=>x.r.s<y.r.s?-1:x.r.s>y.r.s?1:(x.ev.t0||'')!==(y.ev.t0||'')?((x.ev.t0||'')<(y.ev.t0||'')?-1:1):(y.r.e>x.r.e?1:-1));
-  const timed=all.filter(x=>x.ev.t0&&x.r.s===x.r.e);
-  const lanes=[];for(const x of top){let l=0;while(lanes[l]&&lanes[l]>=x.r.s)l++;lanes[l]=x.r.e;x.l=l}
-  const L=lanes.length;
+  const n=days.length;
+  const all=S.events.filter(VIS).map(ev=>({ev,r:rng(ev)})).filter(x=>x.r.s<=days[n-1]&&x.r.e>=days[0]);
   const head=days.map(d=>`<button class="ch${d===TODAY?' today':''}" data-act="pvday" data-d="${d}"><small>${fmt(d,{weekday:'short'})}</small><b>${dt(d).getDate()}</b></button>`).join('');
-  const bars=top.map(x=>{const si=Math.max(0,diff(a,x.r.s)),ei=Math.min(n-1,diff(a,x.r.e)),p=P(x.ev),it=Object.entries(p.items).slice(0,n>1?3:20).map(([id,q])=>byId(id)?`${esc(byId(id).name)} ×${q}`:'').filter(Boolean).join(' · ');
-    return `<button class="cev${evShort(x.ev)?' short':''}${x.r.s<a?' cl':''}${x.r.e>b?' cr':''}" style="--c:${evColor(x.ev)};grid-column:${si+1}/${ei+2};grid-row:${x.l+1}" data-act="openev" data-id="${x.ev.id}" title="${esc(x.ev.title)}"><b>${x.ev.t0&&x.r.s>=a?`<i class="tm">${hh(x.ev.t0)}</i>`:''}${esc(x.ev.title)}${x.ev.t1&&x.r.e<=b?`<i class="tm e">→ ${hh(x.ev.t1)}</i>`:''}</b><small>${x.ev.lieu?esc(x.ev.lieu)+' · ':''}${it}</small></button>`}).join('');
-  const bg=days.map((d,i)=>`<div class="tgab${d===TODAY?' today':''}" data-dd="${d}" style="grid-column:${i+1};grid-row:1/${Math.max(L,1)+2}" title="Clique ou glisse pour créer un chantier"></div>`).join('');
-  // colonnes horaires avec placement des chantiers qui se chevauchent côte à côte
-  const cols=days.map(d=>{const es=timed.filter(x=>x.r.s===d).map(x=>{const s0=tmin(x.ev.t0),e0=Math.max(s0+30,x.ev.t1?tmin(x.ev.t1):s0+60);return{...x,s0,e0}}).sort((p,q)=>p.s0-q.s0||q.e0-p.e0);
+  const sd=d=>fmt(d,{weekday:'short',day:'numeric'});
+  // chaque chantier est découpé jour par jour : 1er jour à partir de son heure, jours du milieu en entier, dernier jour jusqu'à son heure de fin
+  const cols=days.map(d=>{const es=all.filter(x=>x.r.s<=d&&x.r.e>=d).map(x=>{const {ev,r}=x,first=d===r.s,last=d===r.e;
+      let s0=first&&ev.t0?tmin(ev.t0):0,e0=last&&ev.t1?tmin(ev.t1):1440;
+      if(first&&last&&ev.t0&&!ev.t1)e0=s0+60;
+      if(e0<=s0)e0=Math.min(1440,s0+60);e0=Math.max(e0,s0+30);
+      let lab;if(first&&last)lab=ev.t0?hh(ev.t0)+(ev.t1?' – '+hh(ev.t1):''):'Toute la journée';
+      else if(first)lab=(ev.t0?hh(ev.t0):'Début')+' → '+sd(r.e)+(ev.t1?' '+hh(ev.t1):'');
+      else if(last)lab='Suite · fin '+(ev.t1?hh(ev.t1):'ce soir');
+      else lab='Suite · toute la journée';
+      return{...x,s0,e0,lab}}).sort((p,q)=>p.s0-q.s0||q.e0-p.e0);
     let grp=[],end=-1;const fin=()=>{const ln=[];grp.forEach(x=>{let k=0;while(ln[k]!==undefined&&ln[k]>x.s0)k++;ln[k]=x.e0;x.k=k});grp.forEach(x=>x.nk=ln.length);grp=[]};
     es.forEach(x=>{if(x.s0>=end&&grp.length){fin();end=-1}grp.push(x);end=Math.max(end,x.e0)});if(grp.length)fin();
     const blocks=es.map(x=>{const p=P(x.ev),it=Object.entries(p.items).slice(0,4).map(([id,q])=>byId(id)?`${esc(byId(id).name)} ×${q}`:'').filter(Boolean).join(' · '),h=(x.e0-x.s0)/60*TGH;
-      return `<button class="tge${evShort(x.ev)?' short':''}${h<40?' tiny':''}" style="--c:${evColor(x.ev)};top:${x.s0/60*TGH}px;height:${Math.max(20,h-2)}px;left:calc(${x.k/x.nk*100}% + 2px);width:calc(${100/x.nk}% - 5px)" data-act="openev" data-id="${x.ev.id}" title="${esc(x.ev.title)}"><small class="tt">${hh(x.ev.t0)}${x.ev.t1?' – '+hh(x.ev.t1):''}</small><b>${esc(x.ev.title)}</b>${h>=58?`<small>${x.ev.lieu?esc(x.ev.lieu)+' · ':''}${it}</small>`:''}</button>`}).join('');
+      return `<button class="tge${evShort(x.ev)?' short':''}${h<40?' tiny':''}${x.s0===0&&x.r.s<d?' ct':''}${x.e0===1440&&x.r.e>d?' cb':''}" style="--c:${evColor(x.ev)};top:${x.s0/60*TGH}px;height:${Math.max(20,h-2)}px;left:calc(${x.k/x.nk*88}% + 2px);width:calc(${88/x.nk}% - 4px)" data-act="openev" data-id="${x.ev.id}" title="${esc(x.ev.title)} · ${esc(x.lab)}"><span class="tgt"><small class="tt">${esc(x.lab)}</small><b>${esc(x.ev.title)}</b>${h>=58?`<small>${x.ev.lieu?esc(x.ev.lieu)+' · ':''}${it}</small>`:''}</span></button>`}).join('');
     const now=d===TODAY?(()=>{const t=new Date(),m=t.getHours()*60+t.getMinutes();return `<i class="tgnow" style="top:${m/60*TGH}px"></i>`})():'';
-    return `<div class="tgc${d===TODAY?' today':''}" data-dd="${d}">${blocks}${now}</div>`}).join('');
+    return `<div class="tgc${d===TODAY?' today':''}" data-dd="${d}" title="Clique sur une heure pour créer un chantier, ou glisse sur plusieurs jours">${blocks}${now}</div>`}).join('');
   const hours=[...Array(24)].map((_,h)=>`<span style="top:${h*TGH}px">${h?h+'h':''}</span>`).join('');
   return `<div class="tg" style="--n:${n}">
     <div class="tgh"><div class="tgg"></div><div class="tgdays">${head}</div></div>
-    <div class="tga"><div class="tgg"><small>Journée</small></div><div class="tgagrid" style="grid-template-rows:repeat(${Math.max(L,1)},auto) 6px">${bg}${bars}</div></div>
     <div class="tgb" id="tgb"><div class="tgin" style="height:${24*TGH}px"><div class="tgg tgl">${hours}</div><div class="tgcols">${cols}</div></div></div>
   </div>`;
 }
-function tgScroll(){const el=document.getElementById('tgb');if(!el||el.dataset.done)return;el.dataset.done=1;
-  const mins=[...el.querySelectorAll('.tge')].map(e=>parseFloat(e.style.top));const first=mins.length?Math.min(...mins):7*TGH;el.scrollTop=Math.max(0,Math.min(first,7*TGH)-TGH*.5)}
+function tgFollow(el){const st=el.scrollTop;el.querySelectorAll('.tge').forEach(b=>{const t=b.querySelector('.tgt');if(!t)return;const top=parseFloat(b.style.top),room=b.clientHeight-t.offsetHeight-6;t.style.transform=st>top&&room>0?`translateY(${Math.min(st-top,room)}px)`:''})}
+function tgScroll(){const el=document.getElementById('tgb');if(!el||el.dataset.done)return;el.dataset.done=1;el.addEventListener('scroll',()=>tgFollow(el),{passive:true});
+  const mins=[...el.querySelectorAll('.tge')].map(e=>parseFloat(e.style.top)).filter(t=>t>0);const first=mins.length?Math.min(...mins):7*TGH;el.scrollTop=Math.max(0,Math.min(first,7*TGH)-TGH*.5);tgFollow(el)}
 function colsHTML(days){
   const a=days[0],b=days[days.length-1],n=days.length;
   const evs=S.events.filter(VIS).map(ev=>({ev,r:rng(ev)})).filter(x=>x.r.s<=b&&x.r.e>=a).sort((x,y)=>x.r.s<y.r.s?-1:x.r.s>y.r.s?1:(x.ev.t0||'')!==(y.ev.t0||'')?((x.ev.t0||'')<(y.ev.t0||'')?-1:1):(y.r.e>x.r.e?1:-1));
@@ -1382,7 +1385,7 @@ VIEWS.plan=()=>{
     <button class="btn" data-act="sync" id="syncb" title="${!S.cfg.cals.length?'Ajoute un agenda dans Paramètres':'Synchroniser maintenant'}">${ic('sync')}Synchroniser</button><button class="btn pri" data-act="newev">${ic('plus')}Nouveau chantier</button></div>
   ${calFilter()}
   ${body}
-  <p class="note" style="margin-top:10px">${U.pv!=='planning'?'Astuce : clique sur une heure pour créer un chantier à cette heure, ou glisse sur plusieurs jours dans la ligne « Journée ». ':''}${!S.cfg.cals.length?'Aucun agenda relié (voir Paramètres)':S.lastSync?'Dernière synchro à '+new Date(S.lastSync).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'Pas encore synchronisé'}</p>`};
+  <p class="note" style="margin-top:10px">${U.pv!=='planning'?'Astuce : clique sur une heure pour créer un chantier à cette heure, ou glisse sur plusieurs jours pour un chantier long. ':''}${!S.cfg.cals.length?'Aucun agenda relié (voir Paramètres)':S.lastSync?'Dernière synchro à '+new Date(S.lastSync).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'Pas encore synchronisé'}</p>`};
 function kitCap(k,days,skip){const its=Object.entries(k.items||{}).filter(([id])=>byId(id));if(!its.length)return {n:0,lim:[]};
   const per=its.map(([id,n])=>{const pr=byId(id);let a=Infinity;for(const d of days)a=Math.min(a,pr.qty-usage(id,d,skip));a=Math.max(0,a);return {pr,n,a,c:Math.floor(a/n)}});
   const m=Math.min(...per.map(x=>x.c));return {n:m,lim:per.filter(x=>x.c===m),per}}
