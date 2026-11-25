@@ -1054,7 +1054,7 @@ const byPack=id=>(S.packs||[]).find(k=>k.id===id);
 const NUMW={un:1,une:1,deux:2,trois:3,quatre:4,cinq:5,six:6,sept:7,huit:8,neuf:9,dix:10,onze:11,douze:12,quinze:15,vingt:20};
 const NW=Object.keys(NUMW).join('|');
 const FILL=new Set(('besoin besoins de du des il faut faudra prevoir prevu aussi ramener prendre apporter emmener et le la les un une avec pour sur au aux en debut fin lundi mardi mercredi jeudi vendredi samedi dimanche matin soir semaine chantier materiel ou plus encore merci doit penser '+NW.replace(/\|/g,' ')).split(' '));
-const norm=s=>String(s||'').split('').map(c=>{const n=c.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();return n.length===1?n:(n[0]||' ')}).join('');
+const norm=s=>String(s||'').split('').map(c=>{if(c==='×'||c==='✕')return 'x';const n=c.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();return n.length===1?n:(n[0]||' ')}).join('');
 const reEsc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 function aliasPat(a){return norm(a).split(/[^a-z0-9œ]+/).filter(Boolean).map(w=>{w=reEsc(w);if(/al$/.test(w))return w.slice(0,-1)+'(?:l|ux)';if(/(eau|eu)$/.test(w))return w+'x?';if(/[sxz]$/.test(w))return w;return w+'s?'}).join("[\\s'’-]+")}
 function mkDate(d,m,y){let Y;if(y){Y=+y;if(Y<100)Y+=2000}else{Y=+TODAY.slice(0,4);if(diff(Y+'-'+pad(+m)+'-'+pad(+d),TODAY)>180)Y++}const r=Y+'-'+pad(+m)+'-'+pad(+d);return(+m>=1&&+m<=12&&+d>=1&&+d<=31)?r:null}
@@ -1219,7 +1219,12 @@ function qcDates(){const Q=U.qc,a=Q.a<=Q.b?Q.a:Q.b,b=Q.a<=Q.b?Q.b:Q.a,n=diff(a,b
     <div class="qcq">${quick.map(([l,x,z])=>`<button class="chip${x===a&&z===b?' on':''}" data-act="qcq" data-a="${x}" data-b="${z}">${l}</button>`).join('')}</div></div>`}
 // propositions pendant la frappe, comme le clavier d'un téléphone
 function qcWord(t){const el=document.querySelector('[data-qc=txt]');if(!el)return null;const c=el.selectionStart??el.value.length,v=el.value;let i=c;while(i>0&&/[\p{L}\d²\-']/u.test(v[i-1]))i--;let j=c;while(j<v.length&&/[\p{L}\d²\-']/u.test(v[j]))j++;const w=v.slice(i,j);return /\p{L}{2,}/u.test(w)&&!/^\d/.test(w)?{i,j,w}:null}
-function qcAmb(txt){const tn=norm(txt),cov=new Uint8Array(tn.length);(parse(txt).hits||[]).forEach(h=>cov.fill(1,h.s,h.e));
+function qcMask(txt){const tn=norm(txt),cov=new Uint8Array(tn.length+1);(parse(txt).hits||[]).forEach(h=>cov.fill(1,h.s,h.e));
+  const isW=c=>/[a-z0-9œ]/.test(c||'');
+  for(const p of S.products){for(const n0 of [p.name,...(p.kw||[])]){const n=norm(n0).trim();if(n.length<3)continue;let k=tn.indexOf(n);
+    while(k>=0){if(!isW(tn[k-1])&&!isW(tn[k+n.length]))cov.fill(1,k,k+n.length);k=tn.indexOf(n,k+1)}}}
+  return cov}
+function qcAmb(txt){const tn=norm(txt),cov=qcMask(txt);
   const STOP=/^(de|des|du|la|le|les|un|une|pour|avec|sans|plus|et|en|au|aux|metre|metres|carre|carres|m2|piece|pieces|x)$/;
   const amb=[],miss=[],seen=new Set();
   for(const m of tn.matchAll(/[a-zœ]{3,}/g)){const w=m[0];if(cov[m.index]||STOP.test(w)||NUMWS.test(w)||seen.has(w))continue;seen.add(w);
@@ -1227,7 +1232,7 @@ function qcAmb(txt){const tn=norm(txt),cov=new Uint8Array(tn.length);(parse(txt)
     if(c.length)amb.push({w,i:m.index,l:w.length,orig:txt.slice(m.index,m.index+w.length),c});else miss.push(w)}
   return{amb,miss}}
 const qcCard=(p,act,extra,first)=>`<button class="qcc" data-act="${act}" data-id="${p.id}" ${extra} tabindex="-1"><b>${esc(p.name)}</b><small>${p.qty} en stock${first?' · <kbd>Tab</kbd>':''}</small></button>`;
-function qcSuggest(){const box=$('#qcsug');if(!box)return;const W=qcWord(),Q=U.qc;
+function qcSuggest(){const box=$('#qcsug');if(!box)return;const Q=U.qc;let W=qcWord();if(W&&Q){const m=qcMask(Q.txt);if(m[W.i])W=null}
   const {amb}=qcAmb(Q?Q.txt:'');let groups=[];
   if(W){const st=norm(W.w).replace(/(s|x)$/,'');if(st.length>=2){
     const L=S.products.map(p=>{const ws=norm(p.name).split(/[^a-z0-9œ]+/).filter(Boolean),kw=(p.kw||[]).map(norm);const k=ws.findIndex(x=>x.startsWith(st));const kk=kw.some(x=>x.startsWith(st));return{p,r:k===0?0:k>0?1:kk?2:9}}).filter(x=>x.r<9).sort((x,y)=>x.r-y.r||x.p.name.localeCompare(y.p.name)).slice(0,8);
@@ -1237,7 +1242,7 @@ function qcSuggest(){const box=$('#qcsug');if(!box)return;const W=qcWord(),Q=U.q
   amb.filter(x=>!(W&&x.i>=W.i&&x.i<W.j)).forEach(x=>groups.push(`<div class="qcg"><span class="qcgt">« ${esc(x.orig)} » ${x.c.length>1?'— lequel ?':'— tu veux dire ?'}</span><div class="qcgl">${x.c.slice(0,8).map(p=>qcCard(p,'qcpick',`data-i="${x.i}" data-l="${x.l}"`,false)).join('')}</div></div>`));
   box.innerHTML=groups.join('');return;
 }
-function qcAccept(id){const pr=byId(id),W=qcWord(),el=document.querySelector('[data-qc=txt]');if(!pr||!W||!el)return;const v=el.value.slice(0,W.i)+pr.name+' '+el.value.slice(W.j).replace(/^ /,'');el.value=v;U.qc.txt=v;const c=W.i+pr.name.length+1;el.focus();el.setSelectionRange(c,c);const r=$('#qcr');if(r)r.innerHTML=qcRes();qcSuggest()}
+function qcAccept(id){const pr=byId(id),W=qcWord(),el=document.querySelector('[data-qc=txt]');if(!pr||!W||!el)return;if(qcMask(el.value)[W.i]){qcSuggest();return}const v=el.value.slice(0,W.i)+pr.name+' '+el.value.slice(W.j).replace(/^ /,'');el.value=v;U.qc.txt=v;const c=W.i+pr.name.length+1;el.focus();el.setSelectionRange(c,c);const r=$('#qcr');if(r)r.innerHTML=qcRes();qcSuggest()}
 function qcRedraw(){const w=$('#qcdw');if(w)w.innerHTML=qcDates();const r=$('#qcr');if(r)r.innerHTML=qcRes();qcSuggest()}
 function qcRes(){const Q=U.qc;if(!Q||!Q.txt.trim())return '<p class="h" style="margin:0">Le résultat s\'affiche ici au fur et à mesure.</p>';
   const a=Q.a<=Q.b?Q.a:Q.b,b=Q.a<=Q.b?Q.b:Q.a,days=[];for(let d=a;d<=b&&days.length<92;d=add(d,1))days.push(d);
