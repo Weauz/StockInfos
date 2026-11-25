@@ -12,3 +12,6 @@ Thumbs.db
 desktop.ini
 .vscode/
 *.log
+
+# codes de connexion Google (ajoutés seulement au moment de fabriquer le .exe)
+app/google.json

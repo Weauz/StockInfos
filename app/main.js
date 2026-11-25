@@ -312,7 +312,8 @@ app.on('child-process-gone', (e, d) => {
 
 // ---- Connexion Google Agenda (envoi des chantiers vers un agenda « Chantiers StockInfos ») ----
 // Client OAuth de type « Application de bureau » : pour Google, ces deux valeurs ne sont pas secrètes.
-const GOOGLE = { id: '', secret: '' };
+// Les codes sont dans app/google.json (jamais publié sur GitHub)
+const GOOGLE = (() => { try { const g = JSON.parse(fs.readFileSync(path.join(__dirname, 'google.json'), 'utf8')); return { id: g.id || '', secret: g.secret || '' }; } catch (e) { return { id: '', secret: '' }; } })();
 const G_SCOPE = 'openid email https://www.googleapis.com/auth/calendar.app.created';
 const G = { access: null, exp: 0, email: null };
 const gFile = () => path.join(app.getPath('userData'), 'google.dat');
