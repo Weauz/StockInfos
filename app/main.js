@@ -433,6 +433,43 @@ ipcMain.handle('g-api', async (e, o) => {
   return { status: r.status, json };
 });
 
+
+// ---- Base de données partagée (Supabase) : code de connexion collé une fois dans Paramètres ----
+const dbFile = () => path.join(app.getPath('userData'), 'base.dat');
+function dbRead() {
+  try { const b = fs.readFileSync(dbFile()); return JSON.parse(safeStorage.isEncryptionAvailable() ? safeStorage.decryptString(b) : b.toString('utf8')); } catch (e) { return null; }
+}
+function dbWrite(o) { const t = JSON.stringify(o); fs.writeFileSync(dbFile(), safeStorage.isEncryptionAvailable() ? safeStorage.encryptString(t) : Buffer.from(t)); }
+const dbDevice = () => { try { return require('os').hostname().slice(0, 60); } catch (e) { return 'PC'; } };
+async function dbFetch(cfg, method, p, body, prefer) {
+  const r = await net.fetch(cfg.u + '/rest/v1/' + p, { method, headers: { apikey: cfg.a, 'x-si-key': cfg.k, 'x-si-device': encodeURIComponent(dbDevice()), 'Content-Type': 'application/json', ...(prefer ? { Prefer: prefer } : {}) }, body: body ? JSON.stringify(body) : undefined });
+  const t = await r.text(); let json = null; try { json = t ? JSON.parse(t) : null; } catch (e) {}
+  return { status: r.status, json };
+}
+function dbParse(code) {
+  const m = /^SI1\.([A-Za-z0-9_\-+/=]+)$/.exec(String(code || '').trim());
+  if (!m) throw new Error('code de connexion invalide');
+  const o = JSON.parse(Buffer.from(m[1].replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'));
+  if (!/^https:\/\/[a-z0-9]+\.supabase\.co$/.test(o.u || '') || !o.a || !o.k) throw new Error('code de connexion invalide');
+  return { u: o.u, a: o.a, k: o.k };
+}
+ipcMain.handle('db-status', () => { const c = dbRead(); return { connected: !!c, host: c ? c.u.replace('https://', '') : null, device: dbDevice() }; });
+ipcMain.handle('db-connect', async (e, code) => {
+  const cfg = dbParse(code);
+  // test : une écriture technique, refusée si la clé n'est pas la bonne
+  const r = await dbFetch(cfg, 'POST', 'si_items?on_conflict=kind,id', [{ kind: 'setting', id: '_ping', data: { at: new Date().toISOString() } }], 'resolution=merge-duplicates,return=minimal');
+  if (r.status >= 300) throw new Error(r.status === 401 || r.status === 403 ? 'clé refusée par la base' : 'base injoignable (' + r.status + ')');
+  dbWrite(cfg); journal('base de données connectée');
+  return true;
+});
+ipcMain.handle('db-disconnect', () => { try { fs.unlinkSync(dbFile()); } catch (e) {} return true; });
+ipcMain.handle('db-req', async (e, o) => {
+  const cfg = dbRead(); if (!cfg) throw new Error('base non connectée');
+  const method = String(o && o.method || 'GET').toUpperCase(), p = String(o && o.path || '');
+  if (!['GET', 'POST', 'PATCH'].includes(method) || !/^si_(items|audit)(\?|$)/.test(p)) throw new Error('appel refusé');
+  return dbFetch(cfg, method, p, o.body, o.prefer);
+});
+
 app.whenReady().then(() => {
   journal(`démarrage v${app.getVersion()} · Electron ${process.versions.electron} · Windows ${require('os').release()}`);
   Menu.setApplicationMenu(null);

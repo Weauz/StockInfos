@@ -966,6 +966,12 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .hnext{align-items:center}.hnext .hlink{display:block;border:0;background:none;padding:0;margin:2px 0;font:inherit;font-size:20px;font-weight:700;color:var(--ink);cursor:pointer;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.hnext .hlink:hover{color:var(--acc)}
 .hnext .hw{color:var(--acc);font-weight:700}.hact{margin-left:auto;align-self:center}.htile .hn{font-size:20px}
 @media(max-width:900px){.hero.two{grid-template-columns:1fr}}
+.aur{display:flex;gap:12px;padding:9px 4px;border-bottom:1px solid var(--line);align-items:flex-start}.aur:last-child{border-bottom:0}
+.aut{display:flex;flex-direction:column;min-width:58px;font-size:11.5px;color:var(--mute)}.aut b{color:var(--ink);font-size:13px}
+.aur>div{flex:1;min-width:0}.aur small{display:block;color:var(--mute);font-size:12px;margin-top:2px;overflow-wrap:anywhere}
+.aua{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;padding:1px 6px;border-radius:5px;background:var(--card2)}
+.aur.ajout .aua{background:var(--okbg);color:var(--ok)}.aur.suppression .aua{background:var(--redbg);color:var(--red)}.aur.modification .aua{background:var(--accbg);color:var(--acc)}
+.auk{font-size:12px;color:var(--mute)}
 .qcbox{display:flex;flex-wrap:wrap;align-items:flex-start;gap:6px;padding:8px;min-height:84px;cursor:text;height:auto}
 .qcbox:focus-within{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 18%,transparent)}
 .qcks{display:contents}
@@ -1059,7 +1065,7 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 const $=s=>document.querySelector(s);
 const COLORS=['#2563eb','#c2410c','#15803d','#7c3aed','#b45309','#be185d','#0e7490'];
 const CATC={'Chapiteaux':'#0e7490','Plancher':'#78716c','Mobilier':'#2563eb','Éclairage':'#b45309','Chauffage':'#c2410c','Scène':'#7c3aed','Décoration':'#be185d','Électroportatif':'#c2410c','Accès':'#2563eb','Gros matériel':'#52525b','Électricité':'#b45309','Mesure':'#7c3aed'};
-const IC={home:'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',box:'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',cal:'M4 5h16v16H4zM4 9h16M8 3v4M16 3v4',gear:'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM19.4 13a7.5 7.5 0 0 0 0-2l2-1.5-2-3.4-2.3 1a7.6 7.6 0 0 0-1.7-1L15 3.6h-4l-.4 2.5a7.6 7.6 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.5a7.5 7.5 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7.6 7.6 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.6 7.6 0 0 0 1.7-1l2.3 1 2-3.4z',plus:'M12 5v14M5 12h14',search:'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4',sync:'M20 12a8 8 0 0 1-14 5.3M4 12a8 8 0 0 1 14-5.3M18 3v4h-4M6 21v-4h4',sun:'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',moon:'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z',alert:'M12 3 2 20h20zM12 10v4M12 17v.5',back:'M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3',cam:'M4 8h3l2-3h6l2 3h3v11H4zM12 10a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z',l:'M15 5l-7 7 7 7',r:'M9 5l7 7-7 7',pin:'M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4z',check:'M5 12l5 5 9-10',x:'M6 6l12 12M18 6 6 18',eye:'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',link:'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',trash:'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',pack:'M12 3 3 7.5l9 4.5 9-4.5zM3 12l9 4.5 9-4.5M3 16.5 12 21l9-4.5',chart:'M4 20V10M10 20V4M16 20v-7M2 20h20',dl:'M12 4v11M7 10l5 5 5-5M5 20h14',ul:'M12 15V4M7 9l5-5 5 5M5 20h14',star:'M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z',truck:'M3 6h11v9H3zM14 9h4l3 3v3h-7M7 18.5a1.5 1.5 0 1 0 0 .01M17 18.5a1.5 1.5 0 1 0 0 .01',tool:'M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z',print:'M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z',hand:'M7 11V6a1.5 1.5 0 0 1 3 0v4M10 10V4.5a1.5 1.5 0 0 1 3 0V10M13 10V5.5a1.5 1.5 0 0 1 3 0V12M16 9a1.5 1.5 0 0 1 3 0v4a8 8 0 0 1-8 8 6 6 0 0 1-5-3l-2.5-4.5a1.5 1.5 0 0 1 2.6-1.5L7 14'};
+const IC={db:'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3zM4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',home:'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',box:'M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9',cal:'M4 5h16v16H4zM4 9h16M8 3v4M16 3v4',gear:'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM19.4 13a7.5 7.5 0 0 0 0-2l2-1.5-2-3.4-2.3 1a7.6 7.6 0 0 0-1.7-1L15 3.6h-4l-.4 2.5a7.6 7.6 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.5a7.5 7.5 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7.6 7.6 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.6 7.6 0 0 0 1.7-1l2.3 1 2-3.4z',plus:'M12 5v14M5 12h14',search:'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4',sync:'M20 12a8 8 0 0 1-14 5.3M4 12a8 8 0 0 1 14-5.3M18 3v4h-4M6 21v-4h4',sun:'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',moon:'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z',alert:'M12 3 2 20h20zM12 10v4M12 17v.5',back:'M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3',cam:'M4 8h3l2-3h6l2 3h3v11H4zM12 10a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z',l:'M15 5l-7 7 7 7',r:'M9 5l7 7-7 7',pin:'M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4z',check:'M5 12l5 5 9-10',x:'M6 6l12 12M18 6 6 18',eye:'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',link:'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',trash:'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',pack:'M12 3 3 7.5l9 4.5 9-4.5zM3 12l9 4.5 9-4.5M3 16.5 12 21l9-4.5',chart:'M4 20V10M10 20V4M16 20v-7M2 20h20',dl:'M12 4v11M7 10l5 5 5-5M5 20h14',ul:'M12 15V4M7 9l5-5 5 5M5 20h14',star:'M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z',truck:'M3 6h11v9H3zM14 9h4l3 3v3h-7M7 18.5a1.5 1.5 0 1 0 0 .01M17 18.5a1.5 1.5 0 1 0 0 .01',tool:'M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z',print:'M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z',hand:'M7 11V6a1.5 1.5 0 0 1 3 0v4M10 10V4.5a1.5 1.5 0 0 1 3 0V10M13 10V5.5a1.5 1.5 0 0 1 3 0V12M16 9a1.5 1.5 0 0 1 3 0v4a8 8 0 0 1-8 8 6 6 0 0 1-5-3l-2.5-4.5a1.5 1.5 0 0 1 2.6-1.5L7 14'};
 const ic=n=>`<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="${IC[n]}"/></svg>`;
 
 /* ---------- données ---------- */
@@ -1092,7 +1098,7 @@ S.cfg=Object.assign({auto:'15',kits:true},S.cfg||{});S.cfg.read=true;if(S.cfg.co
 if(!S.packs)S.packs=[];
 S.events.forEach((e,i)=>{if(!e.created)e.created=Date.now()-(i+1)*36e5});
 const PC=new Map();
-function save(){PC.clear();try{if(API){const r=API.save(S);if(r!==true)throw new Error(r)}else localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Erreur d\'enregistrement : '+e.message)}}
+function save(){PC.clear();if(typeof dbSoon==='function')dbSoon();try{if(API){const r=API.save(S);if(r!==true)throw new Error(r)}else localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Erreur d\'enregistrement : '+e.message)}}
 const U={pv:'4j',pd:TODAY,pvm:false,sort:'az',mode:'jour',a:TODAY,b:add(TODAY,6),pk:'a',dp:false,dpm:TODAY.slice(0,7),view:'dash',date:TODAY,plan:'mois',ym:TODAY.slice(0,7),q:'',cat:'',reset:false};
 const HV={tableau:'dash',stock:'stock',kits:'packs',planning:'plan',reglages:'set'};
 const VH={dash:'tableau',stock:'stock',packs:'kits',plan:'planning',set:'reglages'};
@@ -1218,7 +1224,7 @@ function whenTxt(ev,short){const r=rng(ev),f=d=>short?fmt(d,{weekday:'short',day
 
 /* ---------- vues ---------- */
 const NAV=[['dash','Tableau de bord','home'],['stock','Stock','box'],['packs','Kits','pack'],['plan','Planning','cal'],['ret','Retours','back'],['set','Paramètres','gear']];
-function navHTML(){const rc=retToCheck().length,showRet=rc||retSoon(7).length||U.view==='ret';return NAV.filter(([v])=>(v!=='packs'||S.cfg.kits)&&(v!=='ret'||showRet)).map(([v,l,i])=>`<button class="nb${U.view===v?' on':''}${v==='ret'&&rc?' alert':''}" data-act="view" data-v="${v}" title="${l}">${ic(i)}<span>${l}</span>${v==='dash'&&SH.length?`<b class="badge">${SH.length}</b>`:''}${v==='ret'&&rc?`<b class="badge pulse" title="${rc} retour${rc>1?'s':''} à vérifier">${rc}</b>`:''}</button>`).join('')+`<div class="grow"></div><div class="gs" title="Google Agenda"><i class="dot${!(GS.st&&GS.st.connected)?' off':GS.err?' err':''}"></i><span>${!(GS.st&&GS.st.connected)?'Google non connecté':GS.err?'Synchro en échec':GS.busy?'Synchro en cours…':'Google Agenda · synchro '+(GS.last?new Date(GS.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'—')}</span></div>`}
+function navHTML(){const rc=retToCheck().length,showRet=rc||retSoon(7).length||U.view==='ret';return NAV.filter(([v])=>(v!=='packs'||S.cfg.kits)&&(v!=='ret'||showRet)).map(([v,l,i])=>`<button class="nb${U.view===v?' on':''}${v==='ret'&&rc?' alert':''}" data-act="view" data-v="${v}" title="${l}">${ic(i)}<span>${l}</span>${v==='dash'&&SH.length?`<b class="badge">${SH.length}</b>`:''}${v==='ret'&&rc?`<b class="badge pulse" title="${rc} retour${rc>1?'s':''} à vérifier">${rc}</b>`:''}</button>`).join('')+`<div class="grow"></div>${dbNavHTML()}<div class="gs" title="Google Agenda"><i class="dot${!(GS.st&&GS.st.connected)?' off':GS.err?' err':''}"></i><span>${!(GS.st&&GS.st.connected)?'Google non connecté':GS.err?'Synchro en échec':GS.busy?'Synchro en cours…':'Google Agenda · synchro '+(GS.last?new Date(GS.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'—')}</span></div>`}
 function isDark(){if(S.theme!=='auto')return S.theme==='dark';const r=document.documentElement.dataset.theme;if(r==='dark'||r==='light')return r==='dark';return matchMedia('(prefers-color-scheme: dark)').matches}
 function dateHTML(){
   const per=U.mode==='periode';let pop='';
@@ -1976,6 +1982,8 @@ function printInv(mode){
 }
 VIEWS.set=()=>{const cals=S.cfg.cals;
   return `<div class="setw">
+  <h3 class="seth">Base de données</h3>
+  ${dbSetHTML()}
   <h3 class="seth">Aide</h3>
   ${setRow('eye','Visite guidée','Fait le tour de l\'appli, page par page, avec une explication pour chaque partie.','<button class="btn sm pri" data-act="tour">Lancer la visite</button>')}
   <h3 class="seth">Google Agenda</h3>
@@ -2462,6 +2470,78 @@ function tourShow(){const st=TSTEPS[TOUR.i];if(!st)return tourEnd();
       const bb=o.querySelector('.tbub'),bh=bb.offsetHeight;if(!big){const t2=(top+h+12+bh<H-8)?top+h+12:(top-12-bh>8?top-12-bh:Math.max(8,H-bh-8));bb.style.top=t2+'px'}else{bb.style.top=Math.max(8,Math.min(H-bh-8,top+24))+'px'}
       const nb=o.querySelector('[data-act=tournext]');if(nb)nb.focus()})},U.view===st.v?30:220)}
 window.addEventListener('resize',()=>{if(TOUR.on)tourShow()});
+/* ---------- base de données partagée ---------- */
+const DB={st:null,busy:false,again:false,timer:null,err:null,last:0,applying:false};
+const dbKey=(k,id)=>k+':'+id;
+function dbEntities(){const M=new Map();
+  for(const p of S.products)M.set(dbKey('product',p.id),{kind:'product',id:p.id,data:p});
+  for(const k of S.packs||[])M.set(dbKey('pack',k.id),{kind:'pack',id:k.id,data:k});
+  for(const e of S.events)M.set(dbKey('event',e.id),{kind:'event',id:e.id,data:e});
+  for(const c of S.casse||[])M.set(dbKey('casse',c.id),{kind:'casse',id:c.id,data:c});
+  M.set(dbKey('setting','company'),{kind:'setting',id:'company',data:{name:'Entreprise',company:S.cfg.company||''}});
+  return M}
+const dbHash=d=>hashId(JSON.stringify(d));
+function dbApply(row){const {kind,id,data}=row,arr=kind==='product'?S.products:kind==='pack'?(S.packs=S.packs||[]):kind==='event'?S.events:kind==='casse'?(S.casse=S.casse||[]):null;
+  if(kind==='setting'){if(id==='company'&&!row.deleted)S.cfg.company=data.company||'';return}
+  if(!arr)return;const i=arr.findIndex(x=>x.id===id);
+  if(row.deleted){if(i>=0)arr.splice(i,1);return}
+  const v={...data,id};if(i>=0)arr[i]=v;else arr.push(v)}
+async function dbStatus(){if(!API||!API.dbStatus)return null;try{DB.st=await API.dbStatus()}catch(e){DB.st=null}return DB.st}
+function dbSoon(ms){if(DB.applying||!(DB.st&&DB.st.connected))return;clearTimeout(DB.timer);DB.timer=setTimeout(()=>dbSync(false),ms??600)}
+async function dbSync(manual,first){
+  if(!API||!API.dbReq||!(DB.st&&DB.st.connected))return;
+  if(DB.busy){DB.again=true;return}DB.busy=true;DB.err=null;let pulled=0,pushed=0;
+  const req=async(method,path,body,prefer)=>{const r=await API.dbReq({method,path,body,prefer});if(r.status>=300)throw new Error((r.json&&(r.json.message||r.json.hint))||('erreur '+r.status));return r.json};
+  try{
+    S.dbm=S.dbm||{};
+    // 1. récupérer ce qui a changé ailleurs
+    const since=S.dbcur?new Date(new Date(S.dbcur).getTime()-15000).toISOString():'1970-01-01T00:00:00Z';
+    let rows=[],off=0;for(;;){const r=await req('GET',`si_items?select=kind,id,data,deleted,updated_at&updated_at=gt.${encodeURIComponent(since)}&order=updated_at.asc&limit=1000&offset=${off}`);rows=rows.concat(r||[]);if(!r||r.length<1000)break;off+=1000}
+    rows=rows.filter(r=>!r.id.startsWith('_'));
+    if(first){const total=await req('GET','si_items?select=id&deleted=eq.false&id=not.like._*&limit=1');
+      if(total&&total.length){try{API.backupNow&&API.backupNow()}catch(e){}
+        // la base a déjà des données : elle fait foi, ce PC les reprend (copie de sécurité faite juste avant)
+        S.products=[];S.packs=[];S.events=[];S.casse=[];S.dbm={};
+        let all=[],o2=0;for(;;){const r=await req('GET',`si_items?select=kind,id,data,deleted,updated_at&order=updated_at.asc&limit=1000&offset=${o2}`);all=all.concat(r||[]);if(!r||r.length<1000)break;o2+=1000}
+        rows=all.filter(r=>!r.id.startsWith('_'))}}
+    DB.applying=true;
+    for(const r of rows){const k=dbKey(r.kind,r.id);if(r.updated_at&&(!S.dbcur||r.updated_at>S.dbcur))S.dbcur=r.updated_at;
+      if(r.deleted){if(S.dbm[k]!==undefined||first){dbApply(r);delete S.dbm[k];pulled++}continue}
+      const h=dbHash({...r.data,id:r.id});if(S.dbm[k]===h)continue;dbApply(r);S.dbm[k]=h;pulled++}
+    DB.applying=false;
+    // 2. envoyer ce qui a changé ici
+    const cur=dbEntities(),up=[];
+    for(const [k,e] of cur){const h=dbHash(e.data);if(S.dbm[k]!==h)up.push({kind:e.kind,id:e.id,data:e.data,deleted:false,_h:h,_k:k})}
+    for(const k of Object.keys(S.dbm)){if(!cur.has(k)){const [kind,...rest]=k.split(':');up.push({kind,id:rest.join(':'),data:{},deleted:true,_k:k})}}
+    for(let i=0;i<up.length;i+=200){const part=up.slice(i,i+200);await req('POST','si_items?on_conflict=kind,id',part.map(({_h,_k,...x})=>x),'resolution=merge-duplicates,return=minimal');
+      part.forEach(x=>{if(x.deleted)delete S.dbm[x._k];else S.dbm[x._k]=x._h});pushed+=part.length}
+    DB.last=Date.now();
+    if(pulled||pushed){DB.applying=true;save();DB.applying=false}
+    if(pulled){const a=document.activeElement;if(!MD&&!(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)))render()}
+    if(manual)toast(pulled||pushed?`Base de données : ${pushed} envoyé${pushed>1?'s':''}, ${pulled} reçu${pulled>1?'s':''}`:'Base de données : déjà à jour');
+  }catch(e){DB.applying=false;DB.err=String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,'');if(manual)toast('Base de données : '+DB.err)}
+  DB.busy=false;{const n=document.querySelector('.dbs');if(n)n.outerHTML=dbNavHTML()}
+  if(U.view==='set'&&!MD){const a=document.activeElement;if(!(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)))render()}
+  if(DB.again){DB.again=false;dbSoon(200)}}
+setInterval(()=>{if(!document.hidden&&DB.st&&DB.st.connected&&!DB.busy)dbSync(false)},6000);
+window.addEventListener('focus',()=>{if(DB.st&&DB.st.connected&&Date.now()-DB.last>3000)dbSync(false)});
+function dbNavHTML(){if(!(DB.st&&DB.st.connected))return '<div class="dbs" style="display:none"></div>';
+  return `<div class="dbs gs" title="Base de données"><i class="dot${DB.err?' err':''}"></i><span>${DB.err?'Base : synchro en échec':DB.busy?'Base : synchro…':'Base · synchro '+(DB.last?new Date(DB.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'—')}</span></div>`}
+function dbSetHTML(){const st=DB.st;
+  if(!API||!API.dbStatus)return setRow('db','Base de données','Disponible dans l\'app installée.','');
+  if(!st)return setRow('db','Base de données','Vérification…','');
+  if(!st.connected)return `<div class="gcon"><span class="seti">${ic('db')}</span><div><b>Relier la base de données</b><small>Le stock, les kits, les chantiers et la casse sont enregistrés en ligne : tous tes appareils voient la même chose, et chaque changement est noté dans l'historique. Colle ici le code de connexion de ton entreprise.</small><input class="in" id="dbcode" placeholder="SI1.…" autocomplete="off" spellcheck="false" style="margin-top:8px"></div><button class="btn pri" data-act="dbconnect">Connecter</button></div>`;
+  return setRow('db','Base de données',`Connectée (${esc(st.device||'ce PC')})${DB.busy?' · synchro…':DB.err?` · <span style="color:var(--red)">${esc(DB.err)}</span>`:DB.last?' · à jour à '+new Date(DB.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}. Tout changement est envoyé aussitôt ; les changements des autres appareils arrivent en quelques secondes.`,`<button class="btn sm" data-act="dbaudit">Historique</button><button class="btn sm" data-act="dbsync">Synchroniser</button><button class="btn sm" data-act="dbdisc">Déconnecter</button>`)}
+const AUK={product:'Produit',pack:'Kit',event:'Chantier',casse:'Casse',setting:'Réglage'},AUA={ajout:'Ajout',modification:'Modification',suppression:'Suppression',restauration:'Restauration'};
+function auDiff(a,b){if(!a||!b)return '';const skip=new Set(['log','gh','gcal','gid','used','created','ci','id']),out=[],lab={qty:'Quantité',name:'Nom',title:'Titre',start:'Début',end:'Fin',t0:'Heure début',t1:'Heure fin',lieu:'Lieu',desc:'Texte',hs:'Hors service',man:'Matériel',cat:'Catégorie',ref:'Référence',q:'Quantité',note:'Remarque',checked:'Retour',company:'Entreprise',items:'Contenu',unit:'Unité'};
+  for(const k of new Set([...Object.keys(a),...Object.keys(b)])){if(skip.has(k))continue;const x=a[k],y=b[k];if(JSON.stringify(x)===JSON.stringify(y))continue;
+    const f=v=>v===undefined||v===null||v===''?'—':typeof v==='object'?null:String(v);const fx=f(x),fy=f(y);if(fx===fy&&fx!==null)continue;
+    out.push(fx!==null&&fy!==null&&(fx+fy).length<70?`${lab[k]||k} : ${esc(fx)} → ${esc(fy)}`:`${lab[k]||k} modifié`)}
+  return out.join(' · ')}
+async function dbAudit(){MD={k:'audit'};$('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(860px,100%)"><div class="dh"><h3 id="mt">Historique des changements</h3><span class="sp" style="flex:1"></span><button class="ib" data-act="close" aria-label="Fermer">${ic('x')}</button></div><div class="dpb"><input class="in" id="auq" placeholder="Filtrer : produit, chantier, appareil…" autocomplete="off"><div id="aul"><div class="empty">Chargement…</div></div></div></div></div>`;
+  try{const r=await API.dbReq({method:'GET',path:'si_audit?select=*&order=id.desc&limit=300'});if(r.status>=300)throw new Error('erreur '+r.status);DB.audit=r.json||[];auDraw()}catch(e){const l=$('#aul');if(l)l.innerHTML=`<div class="empty">Impossible de charger l'historique : ${esc(String(e.message||e))}</div>`}}
+function auDraw(){const l=$('#aul');if(!l)return;const q=norm(($('#auq')||{}).value||'');const L=(DB.audit||[]).filter(x=>!q||norm([x.label,x.device,AUK[x.kind],AUA[x.action]].join(' ')).includes(q));
+  l.innerHTML=L.length?L.map(x=>{const d=new Date(x.at),dev=(()=>{try{return decodeURIComponent(x.device||'')}catch(e){return x.device||''}})();return `<div class="aur ${x.action}"><span class="aut">${d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}<b>${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</b></span><div><span class="aua">${AUA[x.action]||x.action}</span> <span class="auk">${AUK[x.kind]||x.kind}</span> <b>${esc(x.label||'')}</b><small>${[x.action==='modification'?auDiff(x.before,x.after):x.action==='ajout'&&x.kind==='product'?'Quantité : '+esc(String(x.after&&x.after.qty)):'',dev?esc(dev):''].filter(Boolean).join(' · ')}</small></div></div>`}).join(''):'<div class="empty">Aucun changement enregistré.</div>'}
 let DPANELS=null;
 const DRAG={on:false,a:null,b:null,moved:false,skip:false};
 function dragPaint(){const x=DRAG.a<DRAG.b?DRAG.a:DRAG.b,y=DRAG.a<DRAG.b?DRAG.b:DRAG.a;document.querySelectorAll('[data-dd]').forEach(el=>el.classList.toggle('dsel',DRAG.on&&el.dataset.dd>=x&&el.dataset.dd<=y))}
@@ -2514,6 +2594,11 @@ const A={
     else{take();casseAdd(pr,n,h.note,'stock','');toast(`${n} ${pr.name} cassé${n>1?'s':''} : retiré${n>1?'s':''} du stock`)}
     save();closeM();render();if(back)A.dpanel({dataset:{k:back}})},
   tour:()=>tourStart(),tournext:()=>{TOUR.i++;if(TOUR.i>=TSTEPS.length)tourEnd();else tourShow()},tourprev:()=>{TOUR.i=Math.max(0,TOUR.i-1);tourShow()},tourskip:()=>tourEnd(),
+  dbconnect:async()=>{const c=($('#dbcode')||{}).value||'';if(!c.trim()){toast('Colle le code de connexion');return}toast('Connexion à la base…');
+    try{await API.dbConnect(c.trim());await dbStatus();S.dbm={};S.dbcur=null;save();await dbSync(false,true);render();toast(S.products.length||S.events.length?'Base de données connectée : tout est synchronisé':'Base de données connectée')}catch(e){toast('Base de données : '+String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,''))}},
+  dbsync:()=>dbSync(true),
+  dbdisc:async()=>{await API.dbDisconnect();await dbStatus();DB.err=null;render();toast('Base de données déconnectée sur ce PC (les données restent en ligne)')},
+  dbaudit:()=>dbAudit(),
   qcnew:()=>{const Q=U.qc;openE(null,Q.a<=Q.b?Q.a:Q.b,Q.a<=Q.b?Q.b:Q.a);if(MD&&MD.d){MD.d.desc=Q.txt;MD.d.man.items={...qcMan()};drawE()}},
   essaiadd:()=>{const pr=S.products.filter(p=>p.qty>0).sort((a,b)=>b.qty-a.qty);if(!pr.length)return;
     const P=k=>pr[k%pr.length],q=(p,f)=>Math.max(1,Math.ceil(p.qty*f)),D=n=>add(TODAY,n);
@@ -2578,7 +2663,7 @@ const A={
   glogout:async()=>{await API.gLogout();await gStatus();GS.err=null;render();toast('Déconnecté de Google sur ce PC. Reconnecte-toi avec le même compte pour retrouver le même agenda.')},
   folder:()=>API?API.openDataFolder():toast('Disponible dans l\'app installée'),
   export:async()=>{if(!API)return toast('Disponible dans l\'app installée');const f=await API.exportData(JSON.stringify(S,null,1));if(f)toast('Données exportées')},
-  import:async()=>{if(!API)return toast('Disponible dans l\'app installée');const t=await API.importData();if(!t)return;try{const o=JSON.parse(t);if(!Array.isArray(o.products)||!Array.isArray(o.events))throw 0;S=o;S.cfg=Object.assign({read:true,auto:'15',kits:true},S.cfg||{});migrateCals();S.ui=S.ui||{};S.packs=S.packs||[];
+  import:async()=>{if(!API)return toast('Disponible dans l\'app installée');const t=await API.importData();if(!t)return;try{const o=JSON.parse(t);if(!Array.isArray(o.products)||!Array.isArray(o.events))throw 0;const keepDb={dbm:S.dbm,dbcur:S.dbcur};S=o;S.dbm=keepDb.dbm;S.dbcur=keepDb.dbcur;S.cfg=Object.assign({read:true,auto:'15',kits:true},S.cfg||{});migrateCals();S.ui=S.ui||{};S.packs=S.packs||[];
     // une sauvegarde remise : ses chantiers sont renvoyés vers Google (et non pris pour des chantiers supprimés)
     {const ids=new Set(S.events.map(e=>e.id));S.events.forEach(e=>{delete e.gh;delete e.gcal});S.cfg.gdel=(S.cfg.gdel||[]).filter(x=>!ids.has(x))}
     save();render();gSoon(300);toast('Données importées')}catch(e){toast('Ce fichier n\'est pas une sauvegarde StockInfos')}},
@@ -2669,6 +2754,7 @@ document.addEventListener('input',e=>{
   const t=e.target;
   // « 50chaises » : on sépare tout de suite le nombre du mot pour que l'appli le comprenne
   if(t.classList&&t.classList.contains('ht')&&MD&&MD.k==='p'){readP();drawP();return}
+  if(t.id==='auq'){auDraw();return}
   if(t.id==='wpt'){const g=document.querySelector('.wpgo');if(g)g.disabled=t.value.trim().toUpperCase()!=='SUPPRIMER';return}
   if(t.dataset.qk!==undefined&&U.qc&&U.qc.items){const x=U.qc.items[+t.dataset.qk];if(x){x.q=Math.max(0,parseInt(t.value)||0);const r=$('#qcr');if(r)r.innerHTML=qcRes()}return}
   if(t.dataset.qc==='txt'||t.dataset.ev==='desc'){const re=/(\d)(?=[a-zà-ÿœA-ZÀ-Ÿ]{3,})/g;if(re.test(t.value)){const c=t.selectionStart,before=t.value.slice(0,c),nb=(before.match(re)||[]).length;t.value=t.value.replace(re,'$1 ');t.setSelectionRange(c+nb,c+nb)}}
@@ -2713,6 +2799,7 @@ U.sort=S.ui.sort||'az';
 render();
 if(FIRST){MD={k:'w'};$('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(460px,100%)"><div class="dh"><h3 id="mt">Bienvenue dans StockInfos</h3></div><div class="wel"><div class="f" style="margin:0"><label for="w-co">Nom de ton entreprise</label><input class="in" id="w-co" placeholder="Ex : Location Martin" autocomplete="off"><span class="h">Il s'affichera en haut de l'app. Tu pourras le changer dans Paramètres.</span></div><p style="margin:8px 0 0">Comment veux-tu commencer ?</p><button class="btn" data-act="welcome" data-v="ex"><span><b>Avec des exemples</b><small>Du matériel, des kits et des chantiers fictifs pour tout essayer. Tu pourras les effacer dans Paramètres.</small></span></button><button class="btn" data-act="welcome" data-v="vide"><span><b>Avec un stock vide</b><small>Pour saisir directement ton vrai matériel et relier Google Agenda.</small></span></button></div></div></div>`}
 else{if(!S.cfg.coAsked){MD={k:'co'};$('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(420px,100%)"><div class="dh"><h3 id="mt">Nom de ton entreprise</h3></div><div class="wel"><p style="margin:0">L'app s'appelle maintenant <b>StockInfos</b>. Quel nom d'entreprise veux-tu afficher en haut ?</p><input class="in" id="w-co" value="${esc(S.cfg.company||'')}" placeholder="Ex : Location Martin" autocomplete="off"><span class="h">Tu pourras le changer dans Paramètres.</span></div><div class="df"><button class="btn" data-act="co-skip">Ne rien afficher</button><button class="btn pri" data-act="co-ok">Valider</button></div></div></div>`;setTimeout(()=>$('#w-co')?.focus(),50)}
+  dbStatus().then(st=>{if(st&&st.connected)dbSync(false);const n=document.querySelector('.dbs');if(n)n.outerHTML=dbNavHTML()});
   if(!S.cfg.tourDone&&!MD)setTimeout(()=>{if(!MD&&!TOUR.on)tourStart()},700);
   if(S.cfg.cals.length)syncNow(false);gStatus().then(st=>{if(st&&st.connected)gSync(false);if(U.view==='set')render()});}
 }
