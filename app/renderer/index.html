@@ -1079,6 +1079,8 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .mcard .mini{display:grid;place-items:center;background:var(--accbg);color:var(--acc);font-weight:700;font-size:24px}.mcard b{font-size:20px;line-height:1.2}.mcard small{display:block;color:var(--mute);margin-top:2px}
 .mexp{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;padding:0 4px}.mexp span{color:var(--mute)}.mexp b{font-size:22px}.mexp small{width:100%;color:var(--mute);font-size:13px}
 .mval{text-align:center;font-size:44px;font-weight:700;padding:10px;border-radius:14px;background:var(--card);border:2px solid var(--acc);min-height:76px}.mval.empty{font-size:17px;font-weight:500;color:var(--mute);border-color:var(--line);display:grid;place-items:center}
+.mlab{font-size:13px;font-weight:600;color:var(--mute);margin:0 0 -6px 4px}
+.msteps{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mstep{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:12px;background:var(--card);border:1px solid var(--line)}.mstep span{flex:1;font-size:13px;font-weight:600;white-space:nowrap}.mstep b{min-width:24px;text-align:center;font-size:18px}.mstep button{width:34px;height:38px;flex:none;border-radius:10px;border:1px solid var(--line);background:var(--bg);font:inherit;font-size:20px;color:var(--ink)}.mstep.rep span{color:var(--amb)}.mstep.cas span{color:var(--red)}
 .mpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.mpad button{height:58px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:inherit;font-size:24px;font-weight:600}.mpad button:active{background:var(--accbg)}
 .mbtns{display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:8px}.mbtns .btn{height:52px;justify-content:center;font-size:15px;white-space:normal;line-height:1.15}.mbtns.col{grid-template-columns:1fr}
 .msum{display:flex;gap:8px}.msum span{flex:1;padding:10px;border-radius:12px;background:var(--card);border:1px solid var(--line);text-align:center;font-size:13px}.msum b{display:block;font-size:24px}.msum .bad b{color:var(--red)}
@@ -2621,6 +2623,7 @@ VIEWS.avenir=()=>`<div class="seg wks" role="tablist" style="margin:0 0 10px"><b
 
 /* ---------- téléphone : inventaire produit par produit ---------- */
 const outToday=pid=>usage(pid,TODAY)-((byId(pid)||{}).hs||[]).filter(h=>(!h.from||h.from<=TODAY)&&(!h.until||h.until>=TODAY)).reduce((n,h)=>n+(+h.q||0),0);
+const repNow=pid=>((byId(pid)||{}).hs||[]).filter(h=>h.t!=='cas'&&(!h.from||h.from<=TODAY)&&(!h.until||h.until>=TODAY)).reduce((n,h)=>n+(+h.q||0),0);
 const invExp=pid=>{const p=byId(pid);return p?Math.max(0,p.qty-Math.max(0,outToday(pid))):0};
 VIEWS.minv=()=>{const D=S.cfg.minvDraft;
   if(!D){const cats=[...new Set(S.products.map(p=>p.cat).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
@@ -2635,14 +2638,16 @@ VIEWS.minv=()=>{const D=S.cfg.minvDraft;
     <div class="mprog"><span>${D.i+1} / ${D.list.length}</span><i style="--w:${Math.round(D.i/D.list.length*100)}%"></i><button class="lnk" data-act="minvfin">Terminer</button></div>
     <div class="mcard">${p.photo?`<img src="${p.photo}" alt="">`:`<span class="mini">${esc(ini(p.name))}</span>`}<div><b>${esc(p.name)}</b><small>${[p.ref,p.cat].filter(Boolean).map(esc).join(' · ')}</small></div></div>
     <div class="mexp"><span>Prévu à l'entrepôt</span><b>${exp}</b>${out?`<small>${p.qty} au total − ${out} sorti${out>1?'s':''} sur chantier</small>`:''}</div>
-    <div class="mval${cur===''?' empty':''}">${cur===''?'Combien en comptes-tu ?':cur}</div>
+    <div class="mlab">En bon état</div><div class="mval${cur===''?' empty':''}">${cur===''?'Combien en bon état ?':cur}</div>
+    <div class="msteps">${[['rep','À réparer',D.rep&&D.rep[pid]!==undefined?D.rep[pid]:repNow(pid)],['cas','Cassés',D.cas&&D.cas[pid]!==undefined?D.cas[pid]:0]].map(([k,l,n])=>`<div class="mstep ${k}"><span>${l}</span><button data-act="minvst" data-k="${k}" data-v="-1" aria-label="${l} moins un">−</button><b>${n}</b><button data-act="minvst" data-k="${k}" data-v="1" aria-label="${l} plus un">+</button></div>`).join('')}</div>
     <div class="mpad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-act="minvk" data-v="${n}">${n}</button>`).join('')}<button data-act="minvk" data-v="-">−1</button><button data-act="minvk" data-v="0">0</button><button data-act="minvk" data-v="del" aria-label="Effacer">⌫</button></div>
-    <div class="mbtns"><button class="btn" data-act="minvprev"${D.i?'':' disabled'}>Précédent</button><button class="btn" data-act="minvsame">Comme prévu (${exp})</button><button class="btn pri" data-act="minvnext"${cur===''?' disabled':''}>Suivant</button></div>
+    <div class="mbtns"><button class="btn" data-act="minvprev"${D.i?'':' disabled'}>Précédent</button><button class="btn" data-act="minvsame">Comme prévu (${Math.max(0,exp-(D.rep&&D.rep[pid]!==undefined?D.rep[pid]:repNow(pid))-(D.cas&&D.cas[pid]||0))})</button><button class="btn pri" data-act="minvnext"${cur===''?' disabled':''}>Suivant</button></div>
   </div>`};
-function invSummary(D){const L=D.list.map(pid=>{const p=byId(pid);if(!p)return null;const e=invExp(pid),c=D.counts[pid];return{p,e,c,d:c===undefined?null:c-e}}).filter(Boolean);
-  const diffs=L.filter(x=>x.d),miss=L.filter(x=>x.c===undefined),ok=L.filter(x=>x.d===0);
-  return `<div class="minv"><h3 style="margin:0 0 8px">Récapitulatif</h3><div class="msum"><span><b>${ok.length}</b> justes</span><span class="bad"><b>${diffs.length}</b> écart${diffs.length>1?'s':''}</span><span><b>${miss.length}</b> non comptés</span></div>
-    ${diffs.length?`<div class="mdl">${diffs.map(x=>`<div class="mdr"><b>${esc(x.p.name)}</b><span>prévu ${x.e} · compté ${x.c}</span><em class="${x.d<0?'neg':'pos'}">${x.d>0?'+':''}${x.d}</em></div>`).join('')}</div>`:'<p class="h">Aucun écart : tout est juste.</p>'}
+const invTot=(D,pid)=>{const c=D.counts[pid];if(c===undefined)return undefined;const r=D.rep&&D.rep[pid]!==undefined?D.rep[pid]:repNow(pid),k=D.cas&&D.cas[pid]||0;return{bon:c,rep:r,cas:k,all:c+r+k}};
+function invSummary(D){const L=D.list.map(pid=>{const p=byId(pid);if(!p)return null;const e=invExp(pid),t=invTot(D,pid);return{p,e,t,c:t?t.all:undefined,d:t?t.all-e:null}}).filter(Boolean);
+  const diffs=L.filter(x=>x.d),miss=L.filter(x=>x.c===undefined),ok=L.filter(x=>x.d===0),nr=L.reduce((n,x)=>n+(x.t?x.t.rep:0),0),nc=L.reduce((n,x)=>n+(x.t?x.t.cas:0),0);
+  return `<div class="minv"><h3 style="margin:0 0 8px">Récapitulatif</h3><div class="msum"><span><b>${ok.length}</b> justes</span><span class="bad"><b>${diffs.length}</b> écart${diffs.length>1?'s':''}</span><span><b>${miss.length}</b> non comptés</span></div>${nr||nc?`<p class="h" style="margin:0">${nc?`<b>${nc} cassé${nc>1?'s':''}</b> : retirés du stock et notés dans « Casse et pertes ». `:''}${nr?`<b>${nr} à réparer</b> : mis dans « À réparer ».`:''}</p>`:''}
+    ${diffs.length?`<div class="mdl">${diffs.map(x=>`<div class="mdr"><b>${esc(x.p.name)}</b><span>prévu ${x.e} · compté ${x.c}${x.t&&(x.t.rep||x.t.cas)?` (dont ${[x.t.rep?x.t.rep+' à réparer':'',x.t.cas?x.t.cas+' cassé'+(x.t.cas>1?'s':''):''].filter(Boolean).join(', ')})`:''}</span><em class="${x.d<0?'neg':'pos'}">${x.d>0?'+':''}${x.d}</em></div>`).join('')}</div>`:'<p class="h">Aucun écart : tout est juste.</p>'}
     ${miss.length?`<p class="h">Non comptés (leur quantité ne change pas) : ${miss.slice(0,12).map(x=>esc(x.p.name)).join(', ')}${miss.length>12?'…':''}</p>`:''}
     <div class="mbtns col"><button class="btn pri big" data-act="minvok">${ic('check')}Valider l'inventaire</button><button class="btn" data-act="minvback">Revenir au comptage</button><button class="btn" data-act="minvcancel">Abandonner</button></div></div>`}
 function invRepHTML(){const L=S.invRep||[];return L.length?L.map(r=>`<div class="lrow2"><div><b>Inventaire du ${fmt(r.date,{day:'numeric',month:'long',year:'numeric'})}</b><small>${r.time||''}${r.device?' · '+esc(r.device):''} · ${r.lines.length} produits · ${r.lines.filter(l=>l.d).length} écart(s)${r.cat?' · '+esc(r.cat):''}</small></div><button class="btn sm" data-act="minvpdf" data-id="${r.id}">${ic('print')}PDF</button></div>`).join(''):'<div class="empty">Aucun inventaire fait au téléphone.</div>'}
@@ -2650,9 +2655,9 @@ function invReportPrint(r){const co=(S.cfg.company||'').trim();const tot=r.lines
   $('#print').innerHTML=`<div class="ld ir"><div class="lhead"><div class="lco">${co?esc(co):'&nbsp;'}</div><div class="ldate">Fait le ${fmt(r.date,{day:'numeric',month:'long',year:'numeric'})} à ${r.time||''}${r.device?' · '+esc(r.device):''}</div></div>
     <div class="ltitle"><h1>Rapport d'inventaire</h1><h2>${r.cat?esc(r.cat):'Tout le stock'}</h2></div>
     <div class="linfo"><div><span>Produits</span><b>${r.lines.length}</b></div><div><span>Comptés</span><b>${r.lines.filter(l=>l.c!==null).length}</b></div><div><span>Écarts</span><b>${tot.n}</b></div></div>
-    <table class="ptbl"><thead><tr><th class="pr">Produit</th><th class="q">Prévu</th><th class="q">Compté</th><th class="q">Écart</th><th class="q">Sortis</th><th class="q">Nouveau total</th></tr></thead><tbody>
-    ${r.lines.map(l=>`<tr${l.d?' class="hsl"':''}><td class="pr"><b>${esc(l.name)}</b>${l.ref?`<span class="meta">${esc(l.ref)}</span>`:''}</td><td class="q">${l.e}</td><td class="q">${l.c===null?'—':l.c}</td><td class="q">${l.d?(l.d>0?'+':'')+l.d:l.c===null?'':'0'}</td><td class="q">${l.out||''}</td><td class="q">${l.nt}</td></tr>`).join('')}
-    </tbody></table><p class="irnote">Prévu = ce qui devait être à l'entrepôt (total − sorti sur chantier). Le nouveau total = compté + sorti.</p></div>`;
+    <table class="ptbl"><thead><tr><th class="pr">Produit</th><th class="q">Prévu</th><th class="q">Compté</th><th class="q">À réparer</th><th class="q">Cassés</th><th class="q">Écart</th><th class="q">Sortis</th><th class="q">Nouveau total</th></tr></thead><tbody>
+    ${r.lines.map(l=>`<tr${l.d?' class="hsl"':''}><td class="pr"><b>${esc(l.name)}</b>${l.ref?`<span class="meta">${esc(l.ref)}</span>`:''}</td><td class="q">${l.e}</td><td class="q">${l.c===null?'—':l.c}</td><td class="q">${l.rep||''}</td><td class="q">${l.cas||''}</td><td class="q">${l.d?(l.d>0?'+':'')+l.d:l.c===null?'':'0'}</td><td class="q">${l.out||''}</td><td class="q">${l.nt}</td></tr>`).join('')}
+    </tbody></table><p class="irnote">Prévu = ce qui devait être à l'entrepôt (total − sorti sur chantier). Compté = en bon état + à réparer + cassés. Les cassés sont retirés du stock ; nouveau total = compté − cassés + sorti.</p></div>`;
   outPrint('pdf',`Inventaire-${r.date}${r.cat?'-'+r.cat.replace(/[^\w\-]+/g,'_'):''}.pdf`)}
 let DPANELS=null;
 const DRAG={on:false,a:null,b:null,moved:false,skip:false};
@@ -2717,7 +2722,8 @@ const A={
   minvk:e=>{const D=S.cfg.minvDraft;if(!D)return;const pid=D.list[D.i];let cur=D.cur!==undefined&&D.cur!==null?String(D.cur):(D.counts[pid]!==undefined?String(D.counts[pid]):'');const k=e.dataset.v;
     if(k==='del')cur=cur.slice(0,-1);else if(k==='-')cur=String(Math.max(0,(parseInt(cur)||invExp(pid))-1));else cur=(cur==='0'?'':cur)+k;if(cur.length>5)cur=cur.slice(0,5);D.cur=cur;render()},
   minvnext:()=>{const D=S.cfg.minvDraft;if(!D)return;const pid=D.list[D.i];const cur=D.cur!==undefined&&D.cur!==null?D.cur:(D.counts[pid]!==undefined?String(D.counts[pid]):'');if(cur==='')return;D.counts[pid]=parseInt(cur)||0;D.cur=null;D.i++;if(D.i>=D.list.length){D.i=D.list.length-1;D.done=true}save();render();$('#main').scrollTop=0},
-  minvsame:()=>{const D=S.cfg.minvDraft;if(!D)return;D.cur=String(invExp(D.list[D.i]));A.minvnext()},
+  minvsame:()=>{const D=S.cfg.minvDraft;if(!D)return;const pid=D.list[D.i],r=D.rep&&D.rep[pid]!==undefined?D.rep[pid]:repNow(pid),c=D.cas&&D.cas[pid]||0;D.cur=String(Math.max(0,invExp(pid)-r-c));A.minvnext()},
+  minvst:e=>{const D=S.cfg.minvDraft;if(!D)return;const pid=D.list[D.i],k=e.dataset.k;D[k]=D[k]||{};const cur=D[k][pid]!==undefined?D[k][pid]:(k==='rep'?repNow(pid):0);D[k][pid]=Math.max(0,cur+(+e.dataset.v));save();render()},
   minvprev:()=>{const D=S.cfg.minvDraft;if(!D||!D.i)return;D.cur=null;D.i--;save();render()},
   minvfin:()=>{const D=S.cfg.minvDraft;if(!D)return;D.cur=null;D.done=true;save();render()},
   minvback:()=>{const D=S.cfg.minvDraft;if(!D)return;D.done=false;save();render()},
@@ -2725,8 +2731,14 @@ const A={
   minvok:()=>{const D=S.cfg.minvDraft;if(!D)return;const now=new Date(),lines=[];let n=0;
     for(const pid of D.list){const p=byId(pid);if(!p)continue;const e=invExp(pid),out=Math.max(0,outToday(pid)),c=D.counts[pid];
       if(c===undefined){lines.push({pid,name:p.name,ref:p.ref||'',e,c:null,d:0,out,nt:p.qty});continue}
-      const nt=c+out,d=c-e;if(nt!==p.qty){logP(p,'qty',`Inventaire : ${p.qty} → ${nt} (compté ${c}${out?', '+out+' sortis':''})`);p.qty=nt;n++}
-      lines.push({pid,name:p.name,ref:p.ref||'',e,c,d,out,nt})}
+      const t=invTot(D,pid),all=t.all,nt0=all+out,d=all-e;
+      if(nt0!==p.qty){logP(p,'qty',`Inventaire : ${p.qty} → ${nt0} (compté ${all}${out?', '+out+' sortis':''})`);p.qty=nt0;n++}
+      // à réparer : on remplace les déclarations en cours par ce qui a été compté
+      const keep=(p.hs||[]).filter(h=>h.t==='cas'||!((!h.from||h.from<=TODAY)&&(!h.until||h.until>=TODAY)));
+      const oldRep=repNow(pid);p.hs=keep;if(t.rep>0)p.hs.push({q:t.rep,from:TODAY,until:'',note:'Inventaire',t:'rep'});
+      if(t.rep!==oldRep)logP(p,'hs',`Inventaire : ${t.rep} à réparer (avant ${oldRep})`);
+      if(t.cas>0)casseAdd(p,t.cas,'Inventaire','stock','');
+      lines.push({pid,name:p.name,ref:p.ref||'',e,c:all,bon:t.bon,rep:t.rep,cas:t.cas,d,out,nt:p.qty})}
     const rep={id:'i'+uid(),date:TODAY,time:now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),cat:D.cat||'',device:(DB.st&&DB.st.device)||'',lines};
     S.invRep=[rep,...(S.invRep||[])].slice(0,50);delete S.cfg.minvDraft;save();render();toast(`Inventaire validé : ${n} quantité${n>1?'s':''} mise${n>1?'s':''} à jour`);setTimeout(()=>invReportPrint(rep),300)},
   minvpdf:e=>{const r=(S.invRep||[]).find(x=>x.id===e.dataset.id);if(r)invReportPrint(r)},
