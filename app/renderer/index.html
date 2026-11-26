@@ -956,6 +956,12 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .hsfo{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;cursor:pointer;text-align:left}
 .hsfo span{display:flex;flex-direction:column}.hsfo b{font-size:14.5px}.hsfo small{color:var(--mute);font-size:12.5px}.hsfo svg{width:22px;height:22px;flex:none}
 .hsfo.ok svg{color:var(--ok)}.hsfo.ok:hover{border-color:var(--ok);background:var(--okbg)}.hsfo.bad svg{color:var(--red)}.hsfo.bad:hover{border-color:var(--red);background:var(--redbg)}
+#tour{position:fixed;inset:0;z-index:60}
+.tspot{position:fixed;border-radius:10px;box-shadow:0 0 0 9999px rgba(0,0,0,.55);outline:2px solid var(--acc);pointer-events:none;transition:all .2s}
+.tbub{position:fixed;background:var(--card);color:var(--ink);border-radius:12px;padding:16px 18px;box-shadow:0 18px 50px rgba(0,0,0,.35);border:1px solid var(--line)}
+.tbub small{color:var(--acc);font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em}.tbub h3{margin:4px 0 6px;font-size:17px}.tbub p{margin:0 0 14px;font-size:13.5px;line-height:1.5}
+.tbb{display:flex;align-items:center;gap:6px}
+@media(prefers-reduced-motion:reduce){.tspot{transition:none}}
 .qcbox{display:flex;flex-wrap:wrap;align-items:flex-start;gap:6px;padding:8px;min-height:84px;cursor:text;height:auto}
 .qcbox:focus-within{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 18%,transparent)}
 .qcks{display:contents}
@@ -1962,6 +1968,8 @@ function printInv(mode){
 }
 VIEWS.set=()=>{const cals=S.cfg.cals;
   return `<div class="setw">
+  <h3 class="seth">Aide</h3>
+  ${setRow('eye','Visite guidée','Fait le tour de l\'appli, page par page, avec une explication pour chaque partie.','<button class="btn sm pri" data-act="tour">Lancer la visite</button>')}
   <h3 class="seth">Google Agenda</h3>
   ${gSetHTML()}
   ${cals.length?`<h3 class="seth">Anciens liens iCal</h3><p class="note" style="margin:-4px 0 8px">Ces liens marchent encore, mais ne sont plus nécessaires : tu peux les retirer. Les chantiers qu'ils ont importés disparaîtront de l'appli.</p>${cals.map(c=>`<div class="setr"><span class="seti" style="color:${esc(c.color)}">${ic('cal')}</span><span class="sett"><b>${esc(c.name)}</b><small>${c.err?`<span style="color:var(--red)">Échec : ${esc(c.err)}</span>`:`${S.events.filter(e=>e.cal===c.id).length} événement(s)`}</small></span><span class="setc">${U.delcal===c.id?`<button class="btn sm" data-act="caldel-no">Annuler</button><button class="btn sm pri" data-act="caldel-yes" data-id="${c.id}">Retirer</button>`:`<button class="btn sm" data-act="caldel" data-id="${c.id}">Retirer</button>`}</span></div>`).join('')}`:''}
@@ -2410,6 +2418,41 @@ function drawPal(){const el=$('#pal');if(!PAL.on){el.innerHTML='';return}PAL.res
 function openPal(){closeM();PAL.on=true;PAL.q='';PAL.i=0;drawPal()}
 function closePal(){PAL.on=false;drawPal()}
 /* ---------- glisser pour créer un chantier ---------- */
+/* ---------- visite guidée ---------- */
+const TSTEPS=[
+  {v:'dash',s:'.hero',t:'Le tableau de bord',x:'Ton point de départ. En haut, l\'essentiel du jour : le matériel sorti, les chantiers en cours et ce qui est à surveiller. Clique sur une tuile pour voir le détail.'},
+  {v:'dash',s:'.qc',t:'La vérif rapide pour un devis',x:'Un client appelle ? Choisis les dates, écris le matériel (« 120 chaises, 2 barnums ») : l\'appli te dit tout de suite si tu as assez de stock. Les produits proposés deviennent des blocs, la croix les retire. « Créer un chantier » reprend tout.'},
+  {v:'dash',s:'.dsec:has(.wks)',t:'À venir',x:'Les 5 prochains jours. Le bouton « Chantiers » montre les départs, « Retours » ce qui doit revenir, avec l\'heure.'},
+  {v:'dash',s:'.dbar',t:'Les autres infos',x:'En bas : les alertes, les retours à vérifier, le matériel le plus demandé, ce qui est à réparer, et l\'historique de la casse et des pertes. Un clic ouvre chaque liste.'},
+  {v:'stock',s:'.pgrid,.stbl,.plist',t:'Le stock',x:'Tout ton matériel, avec ce qui est dispo à la date choisie en haut. Clique sur un produit pour changer sa quantité, déclarer du matériel à réparer ou cassé, et voir sa disponibilité sur 14 jours.'},
+  {v:'stock',s:'[data-act=impopen]',t:'Importer',x:'Pour remplir ton stock d\'un coup depuis un fichier Excel, CSV ou PDF. L\'appli devine les colonnes, tu vérifies avant de valider.'},
+  {v:'stock',s:'[data-act=invopen]',t:'L\'inventaire',x:'Imprime une feuille d\'inventaire, remplis-la à la main dans l\'entrepôt, puis scanne-la ou prends-la en photo : l\'appli lit les chiffres et met le stock à jour.'},
+  {v:'packs',s:'main > .tools,main',t:'Les kits',x:'Un kit regroupe du matériel qui part toujours ensemble (ex : « Kit mariage 100 pers. »). Écris « 1 kit mariage » dans un chantier et tout son contenu est réservé.'},
+  {v:'plan',s:'.tg,.month,main',t:'Le planning',x:'Tes chantiers comme dans Google Agenda : ceux avec une heure dans la grille, ceux sans heure dans la ligne « Journée » en haut. Clique sur une heure pour créer un chantier, glisse sur plusieurs jours pour un chantier long.'},
+  {v:'plan',s:'.vsel',t:'Changer de vue',x:'Jour, 4 jours, semaine, mois ou liste : choisis la vue qui te va.'},
+  {v:'plan',s:'[data-act=newev]',t:'Nouveau chantier',x:'Donne un nom, choisis les dates et les heures, puis écris le matériel en texte libre. L\'appli le reconnaît et vérifie le stock jour par jour.'},
+  {v:'ret',s:'.retpage,main',t:'Les retours',x:'Quand un chantier revient, ouvre-le ici et compte ce qui est revenu en bon état, cassé ou perdu. Le stock se met à jour tout seul. La pastille rouge dans le menu te rappelle les retours à vérifier.'},
+  {v:'set',s:'.gcon,.setr:has([data-act=gsync]),.setr',t:'Google Agenda',x:'Connecte ton compte Google : tes chantiers vont dans un agenda « Chantiers StockInfos », et ce que tu y ajoutes depuis Google revient ici, en quelques secondes.'},
+  {v:'set',s:'[data-act=tour]',t:'C\'est tout !',x:'Tu peux revoir cette visite quand tu veux, ici dans les Paramètres.'}
+];
+const TOUR={on:false,i:0};
+function tourStart(){TOUR.on=true;TOUR.i=0;closeM();tourShow()}
+function tourEnd(){TOUR.on=false;const o=$('#tour');if(o)o.remove();S.cfg.tourDone=true;save()}
+function tourShow(){const st=TSTEPS[TOUR.i];if(!st)return tourEnd();
+  if(U.view!==st.v){setView(st.v)}
+  setTimeout(()=>{let el=null;for(const sel of st.s.split(',')){try{el=document.querySelector(sel)}catch(e){}if(el)break}el=el||$('main');
+    if(el&&el!==$('main'))el.scrollIntoView({block:'center',behavior:'instant'});
+    requestAnimationFrame(()=>{const r=el.getBoundingClientRect(),pad=6,W=innerWidth,H=innerHeight;
+      const top=Math.max(4,r.top-pad),left=Math.max(4,r.left-pad),w=Math.min(W-8,r.width+pad*2),h=Math.min(H-8,r.height+pad*2);
+      let o=$('#tour');if(!o){o=document.createElement('div');o.id='tour';document.body.appendChild(o)}
+      const bw=Math.min(380,W-24),below=top+h+12+190<H,bt=below?top+h+12:Math.max(12,top-12-190),bl=Math.min(Math.max(12,left),W-bw-12);
+      const big=h>H*0.6,btop=big?Math.max(12,Math.min(H-220,top+24)):bt,bleft=big?Math.min(W-bw-24,left+w-bw-16):bl;
+      o.innerHTML=`<div class="tspot" style="top:${top}px;left:${left}px;width:${w}px;height:${h}px"></div>
+        <div class="tbub" role="dialog" aria-modal="true" aria-labelledby="tbt" style="top:${btop}px;left:${bleft}px;width:${bw}px">
+          <small>Visite guidée · ${TOUR.i+1} / ${TSTEPS.length}</small><h3 id="tbt">${st.t}</h3><p>${st.x}</p>
+          <div class="tbb"><button class="btn sm" data-act="tourskip">Passer la visite</button><span class="sp"></span>${TOUR.i?'<button class="btn sm" data-act="tourprev">Précédent</button>':''}<button class="btn sm pri" data-act="tournext">${TOUR.i===TSTEPS.length-1?'Terminer':'Suivant'}</button></div></div>`;
+      const nb=o.querySelector('[data-act=tournext]');if(nb)nb.focus()})},U.view===st.v?30:220)}
+window.addEventListener('resize',()=>{if(TOUR.on)tourShow()});
 let DPANELS=null;
 const DRAG={on:false,a:null,b:null,moved:false,skip:false};
 function dragPaint(){const x=DRAG.a<DRAG.b?DRAG.a:DRAG.b,y=DRAG.a<DRAG.b?DRAG.b:DRAG.a;document.querySelectorAll('[data-dd]').forEach(el=>el.classList.toggle('dsel',DRAG.on&&el.dataset.dd>=x&&el.dataset.dd<=y))}
@@ -2461,6 +2504,7 @@ const A={
     else if(v==='cas'){take();pr.hs.push({q:n,from:TODAY,until:'',note:h.note||'',t:'cas'});logP(pr,'casse',`${n} déclaré${n>1?'s':''} cassé${n>1?'s':''}${h.note?' ('+h.note+')':''}`);toast(`${n} ${pr.name} passé${n>1?'s':''} en casse`)}
     else{take();casseAdd(pr,n,h.note,'stock','');toast(`${n} ${pr.name} cassé${n>1?'s':''} : retiré${n>1?'s':''} du stock`)}
     save();closeM();render();if(back)A.dpanel({dataset:{k:back}})},
+  tour:()=>tourStart(),tournext:()=>{TOUR.i++;if(TOUR.i>=TSTEPS.length)tourEnd();else tourShow()},tourprev:()=>{TOUR.i=Math.max(0,TOUR.i-1);tourShow()},tourskip:()=>tourEnd(),
   qcnew:()=>{const Q=U.qc;openE(null,Q.a<=Q.b?Q.a:Q.b,Q.a<=Q.b?Q.b:Q.a);if(MD&&MD.d){MD.d.desc=Q.txt;MD.d.man.items={...qcMan()};drawE()}},
   essaiadd:()=>{const pr=S.products.filter(p=>p.qty>0).sort((a,b)=>b.qty-a.qty);if(!pr.length)return;
     const P=k=>pr[k%pr.length],q=(p,f)=>Math.max(1,Math.ceil(p.qty*f)),D=n=>add(TODAY,n);
@@ -2541,7 +2585,7 @@ const A={
   calvis:b=>{const v=b.dataset.v,H=S.ui.hide=S.ui.hide||[];const i=H.indexOf(v);if(i<0)H.push(v);else H.splice(i,1);save();render()},
   'co-ok':()=>{S.cfg.company=($('#w-co').value||'').trim();S.cfg.coAsked=true;save();closeM();render()},
   'co-skip':()=>{S.cfg.company='';S.cfg.coAsked=true;save();closeM();render()},
-  welcome:b=>{const co=($('#w-co')?.value||'').trim();if(b.dataset.v==='vide'){S={...S,products:[],packs:[],events:[]}}S.cfg.company=co;S.cfg.coAsked=true;save();closeM();U.view=b.dataset.v==='vide'?'set':'dash';render()},
+  welcome:b=>{const co=($('#w-co')?.value||'').trim();if(b.dataset.v==='vide'){S={...S,products:[],packs:[],events:[]}}S.cfg.company=co;S.cfg.coAsked=true;save();closeM();U.view='dash';render();setTimeout(tourStart,300)},
   close:closeM,
   addto:b=>openA(b.dataset.id),
   aq:b=>{MD.q=Math.max(1,(parseInt($('#a-q').value)||1)+(+b.dataset.n));drawA()},
@@ -2598,6 +2642,7 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b)return;const f=A[b.dataset.act];if(f){e.preventDefault();f(b)}
 });
 document.addEventListener('keydown',e=>{
+  if(TOUR.on){if(e.key==='Escape'){e.preventDefault();tourEnd();return}if(e.key==='ArrowRight'){e.preventDefault();A.tournext();return}if(e.key==='ArrowLeft'){e.preventDefault();A.tourprev();return}}
   if(e.target.dataset&&e.target.dataset.qc==='txt'&&e.key==='Backspace'&&e.target.selectionStart===0&&e.target.selectionEnd===0&&U.qc&&(U.qc.items||[]).length){e.preventDefault();U.qc.items.pop();$('#qcchips').innerHTML=qcChips();const r=$('#qcr');if(r)r.innerHTML=qcRes();return}
   if(e.target.dataset&&e.target.dataset.qc==='txt'){const f=document.querySelector('#qcsug [data-act=qcsug]');if(e.key==='Tab'&&f&&!e.shiftKey){e.preventDefault();qcAccept(f.dataset.id);return}if(e.key==='Escape'&&f){$('#qcsug').innerHTML='';e.stopPropagation();return}}
   if(e.key==='Enter'&&e.target.matches('.cname'))e.target.blur();
@@ -2659,6 +2704,7 @@ U.sort=S.ui.sort||'az';
 render();
 if(FIRST){MD={k:'w'};$('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(460px,100%)"><div class="dh"><h3 id="mt">Bienvenue dans StockInfos</h3></div><div class="wel"><div class="f" style="margin:0"><label for="w-co">Nom de ton entreprise</label><input class="in" id="w-co" placeholder="Ex : Location Martin" autocomplete="off"><span class="h">Il s'affichera en haut de l'app. Tu pourras le changer dans Paramètres.</span></div><p style="margin:8px 0 0">Comment veux-tu commencer ?</p><button class="btn" data-act="welcome" data-v="ex"><span><b>Avec des exemples</b><small>Du matériel, des kits et des chantiers fictifs pour tout essayer. Tu pourras les effacer dans Paramètres.</small></span></button><button class="btn" data-act="welcome" data-v="vide"><span><b>Avec un stock vide</b><small>Pour saisir directement ton vrai matériel et relier Google Agenda.</small></span></button></div></div></div>`}
 else{if(!S.cfg.coAsked){MD={k:'co'};$('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(420px,100%)"><div class="dh"><h3 id="mt">Nom de ton entreprise</h3></div><div class="wel"><p style="margin:0">L'app s'appelle maintenant <b>StockInfos</b>. Quel nom d'entreprise veux-tu afficher en haut ?</p><input class="in" id="w-co" value="${esc(S.cfg.company||'')}" placeholder="Ex : Location Martin" autocomplete="off"><span class="h">Tu pourras le changer dans Paramètres.</span></div><div class="df"><button class="btn" data-act="co-skip">Ne rien afficher</button><button class="btn pri" data-act="co-ok">Valider</button></div></div></div>`;setTimeout(()=>$('#w-co')?.focus(),50)}
+  if(!S.cfg.tourDone&&!MD)setTimeout(()=>{if(!MD&&!TOUR.on)tourStart()},700);
   if(S.cfg.cals.length)syncNow(false);gStatus().then(st=>{if(st&&st.connected)gSync(false);if(U.view==='set')render()});}
 }
 </script>
