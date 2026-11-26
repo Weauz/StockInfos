@@ -1081,8 +1081,16 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .mtile.warn .mti{background:var(--ambbg);color:var(--amb)}
 .minv{display:flex;flex-direction:column;gap:12px}
 .minv .btn.big{height:46px;font-size:15px;justify-content:center}
-.invpap{display:flex;align-items:center;gap:12px;padding:14px;margin-top:14px}.invpap>div{flex:1;display:flex;flex-direction:column}.invpap small{color:var(--mute)}
-body:not(.x) .minv{max-width:640px}
+.minvh{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:16px;align-items:start}
+.minvh .card{padding:18px}.minvh h3{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:16px}.minvh h3 svg{color:var(--acc)}
+.invsync{margin:0 0 10px;font-size:12.5px;line-height:1.45;color:var(--ok)}.invsync svg{width:15px;height:15px;vertical-align:-3px;margin-right:5px}.invsync .lnk{margin-left:4px}.invsync.off{color:var(--amb)}
+.ihl{display:flex;flex-direction:column}.ihr{display:flex;align-items:center;gap:14px;padding:11px 4px;border-bottom:1px solid var(--line)}.ihr:last-child{border-bottom:0}
+.ihd{display:flex;flex-direction:column;min-width:92px}.ihd small,.ihi small{color:var(--mute);font-size:12px}.ihi{flex:1;display:flex;flex-direction:column}
+.ihe{font-size:12px;font-weight:700;padding:3px 9px;border-radius:10px;background:var(--okbg);color:var(--ok);white-space:nowrap}.ihe.bad{background:var(--redbg);color:var(--red)}
+.iha{display:flex;align-items:center;gap:6px}
+.mob .minvh{grid-template-columns:1fr}.mob .ihr{flex-wrap:wrap;gap:8px}.mob .iha{width:100%;justify-content:flex-end}
+.invpap{display:flex;align-items:center;gap:12px;padding:14px 0 0;margin-top:16px;border-top:1px solid var(--line)}.invpap>div{flex:1;display:flex;flex-direction:column}.invpap small{color:var(--mute)}
+.minv{max-width:640px}
 .mcats{display:flex;flex-wrap:wrap;gap:8px}.mcats .btn{height:44px}.mcats small{color:var(--mute);margin-left:4px}
 .mrep{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:inherit;text-align:left}.mrep span{display:flex;flex-direction:column}.mrep small{color:var(--mute)}
 .mprog{display:flex;align-items:center;gap:10px;font-weight:700;position:relative}.mprog i{flex:1;height:6px;border-radius:3px;background:var(--line);position:relative;overflow:hidden}
@@ -2632,12 +2640,7 @@ const outToday=pid=>usage(pid,TODAY)-((byId(pid)||{}).hs||[]).filter(h=>(!h.from
 const repNow=pid=>((byId(pid)||{}).hs||[]).filter(h=>h.t!=='cas'&&(!h.from||h.from<=TODAY)&&(!h.until||h.until>=TODAY)).reduce((n,h)=>n+(+h.q||0),0);
 const invExp=pid=>{const p=byId(pid);return p?Math.max(0,p.qty-Math.max(0,outToday(pid))):0};
 VIEWS.minv=()=>{const D=S.cfg.minvDraft;
-  if(!D){const cats=[...new Set(S.products.map(p=>p.cat).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
-    return `<div class="minv"><p class="h" style="margin:0">Compte ce qui est à l'entrepôt, produit par produit. Le matériel parti sur un chantier n'est pas à compter : l'appli le déduit toute seule.</p>
-      <button class="btn pri big" data-act="minvgo" data-v="">${ic('box')}Tout le stock (${S.products.length})</button>
-      ${cats.length?`<p class="h" style="margin:14px 0 6px">Ou une seule catégorie :</p><div class="mcats">${cats.map(c=>`<button class="btn" data-act="minvgo" data-v="${esc(c)}">${esc(c)} <small>${S.products.filter(p=>p.cat===c).length}</small></button>`).join('')}</div>`:''}
-      ${MOB?'':`<div class="card invpap"><span class="seti">${ic('dl')}</span><div><b>Inventaire sur papier</b><small>Imprime la feuille, remplis-la dans l'entrepôt, puis scanne-la : l'appli lit les chiffres.</small></div><button class="btn" data-act="invopen">${ic('dl')}Feuille papier</button></div>`}
-      ${(S.invRep||[]).length?`<p class="h" style="margin:18px 0 6px">Inventaires précédents :</p>${S.invRep.slice(0,MOB?5:50).map(r=>`<button class="mrep" data-act="minvpdf" data-id="${r.id}">${ic('print')}<span><b>${fmt(r.date,{day:'numeric',month:'long',year:'numeric'})}${r.time?' · '+r.time:''}</b><small>${r.device?esc(r.device)+' · ':''}${r.lines.length} produits · ${r.lines.filter(l=>l.d).length} écart${r.lines.filter(l=>l.d).length>1?'s':''}${r.cat?' · '+esc(r.cat):''}</small></span></button>`).join('')}`:''}</div>`}
+  if(!D)return invHome();
   if(D.done)return invSummary(D);
   const pid=D.list[D.i],p=byId(pid);if(!p){D.i=Math.min(D.i+1,D.list.length);if(D.i>=D.list.length)D.done=true;save();return VIEWS.minv()}
   const exp=invExp(pid),out=Math.max(0,outToday(pid)),v=D.counts[pid],cur=D.cur!==undefined&&D.cur!==null?D.cur:(v!==undefined?String(v):'');
@@ -2651,6 +2654,24 @@ VIEWS.minv=()=>{const D=S.cfg.minvDraft;
     <div class="mbtns"><button class="btn" data-act="minvprev"${D.i?'':' disabled'}>Précédent</button><button class="btn" data-act="minvsame">Comme prévu (${Math.max(0,exp-(D.rep&&D.rep[pid]!==undefined?D.rep[pid]:repNow(pid))-(D.cas&&D.cas[pid]||0))})</button><button class="btn pri" data-act="minvnext"${cur===''?' disabled':''}>Suivant</button></div>
   </div>`};
 const invTot=(D,pid)=>{const c=D.counts[pid];if(c===undefined)return undefined;const r=D.rep&&D.rep[pid]!==undefined?D.rep[pid]:repNow(pid),k=D.cas&&D.cas[pid]||0;return{bon:c,rep:r,cas:k,all:c+r+k}};
+// page d'accueil de l'inventaire : nouveau comptage + historique (PC et téléphone)
+function invSync(){const st=DB.st;if(!(st&&st.connected))return `<p class="invsync off">${ic('db')}Cet appareil n'est pas relié à la base : les inventaires faits sur ${MOB?'le PC':'le téléphone'} n'apparaîtront pas ici. <button class="lnk" data-act="view" data-v="set">Relier la base</button></p>`;
+  return `<p class="invsync${DB.err?' off':''}">${ic('db')}${DB.err?'Base injoignable : '+esc(DB.err):'Synchronisé avec la base'+(DB.last?' à '+new Date(DB.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'')}. Les inventaires de tous les appareils apparaissent ici.</p>`}
+function invHist(){const L=[...(S.invRep||[])].sort((a,b)=>((b.date+(b.time||''))>(a.date+(a.time||''))?1:-1));
+  if(!L.length)return '<div class="empty">Aucun inventaire pour l\'instant.</div>';
+  return `<div class="ihl">${L.map(r=>{const ec=r.lines.filter(l=>l.d).length,cs=r.lines.reduce((n,l)=>n+(l.cas||0),0),rp=r.lines.reduce((n,l)=>n+(l.rep||0),0),del=U.invdel===r.id;
+    return `<div class="ihr"><div class="ihd"><b>${fmt(r.date,{day:'numeric',month:'short',year:'numeric'})}</b><small>${r.time||''}</small></div>
+      <div class="ihi"><b>${r.cat?esc(r.cat):'Tout le stock'}</b><small>${r.device?esc(r.device)+' · ':''}${r.lines.length} produit${r.lines.length>1?'s':''}${rp?` · ${rp} à réparer`:''}${cs?` · ${cs} cassé${cs>1?'s':''}`:''}</small></div>
+      <span class="ihe${ec?' bad':''}">${ec?`${ec} écart${ec>1?'s':''}`:'Tout juste'}</span>
+      <div class="iha">${del?`<button class="btn sm" data-act="invdelno">Annuler</button><button class="btn sm dan" data-act="invdelyes" data-id="${r.id}">Supprimer</button>`:`${MOB?'':`<button class="btn sm" data-act="minvprint" data-id="${r.id}" title="Imprimer">${ic('print')}Imprimer</button>`}<button class="btn sm" data-act="minvpdf" data-id="${r.id}">${ic('dl')}PDF</button><button class="ib" data-act="invdel" data-id="${r.id}" title="Supprimer" aria-label="Supprimer cet inventaire">${ic('trash')}</button>`}</div></div>`}).join('')}</div>`}
+function invHome(){const cats=[...new Set(S.products.map(p=>p.cat).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
+  const nw=`<section class="card invnew"><h3>${ic('check')}Nouvel inventaire</h3>
+    <p class="h">Compte ce qui est à l'entrepôt, produit par produit${MOB?'':' (au clavier : le chiffre puis Entrée)'}. Le matériel parti sur un chantier est déduit tout seul.</p>
+    <button class="btn pri big" data-act="minvgo" data-v="">${ic('box')}Tout le stock · ${S.products.length} produit${S.products.length>1?'s':''}</button>
+    ${cats.length?`<p class="h" style="margin:12px 0 6px">Ou une catégorie :</p><div class="mcats">${cats.map(c=>`<button class="btn" data-act="minvgo" data-v="${esc(c)}">${esc(c)} <small>${S.products.filter(p=>p.cat===c).length}</small></button>`).join('')}</div>`:''}
+    ${MOB?'':`<div class="invpap"><span class="seti">${ic('dl')}</span><div><b>Sur papier</b><small>Imprime la feuille, remplis-la dans l'entrepôt, puis scanne-la : l'appli lit les chiffres.</small></div><button class="btn" data-act="invopen">Feuille papier</button></div>`}</section>`;
+  const hi=`<section class="card invhist"><h3>${ic('print')}Historique des inventaires</h3>${invSync()}${invHist()}</section>`;
+  return `<div class="minvh">${nw}${hi}</div>`}
 function invSummary(D){const L=D.list.map(pid=>{const p=byId(pid);if(!p)return null;const e=invExp(pid),t=invTot(D,pid);return{p,e,t,c:t?t.all:undefined,d:t?t.all-e:null}}).filter(Boolean);
   const diffs=L.filter(x=>x.d),miss=L.filter(x=>x.c===undefined),ok=L.filter(x=>x.d===0),nr=L.reduce((n,x)=>n+(x.t?x.t.rep:0),0),nc=L.reduce((n,x)=>n+(x.t?x.t.cas:0),0);
   return `<div class="minv"><h3 style="margin:0 0 8px">Récapitulatif</h3><div class="msum"><span><b>${ok.length}</b> justes</span><span class="bad"><b>${diffs.length}</b> écart${diffs.length>1?'s':''}</span><span><b>${miss.length}</b> non comptés</span></div>${nr||nc?`<p class="h" style="margin:0">${nc?`<b>${nc} cassé${nc>1?'s':''}</b> : retirés du stock et notés dans « Casse et pertes ». `:''}${nr?`<b>${nr} à réparer</b> : mis dans « À réparer ».`:''}</p>`:''}
@@ -2658,14 +2679,14 @@ function invSummary(D){const L=D.list.map(pid=>{const p=byId(pid);if(!p)return n
     ${miss.length?`<p class="h">Non comptés (leur quantité ne change pas) : ${miss.slice(0,12).map(x=>esc(x.p.name)).join(', ')}${miss.length>12?'…':''}</p>`:''}
     <div class="mbtns col"><button class="btn pri big" data-act="minvok">${ic('check')}Valider l'inventaire</button><button class="btn" data-act="minvback">Revenir au comptage</button><button class="btn" data-act="minvcancel">Abandonner</button></div></div>`}
 function invRepHTML(){const L=S.invRep||[];return L.length?L.map(r=>`<div class="lrow2"><div><b>Inventaire du ${fmt(r.date,{day:'numeric',month:'long',year:'numeric'})}</b><small>${r.time||''}${r.device?' · '+esc(r.device):''} · ${r.lines.length} produits · ${r.lines.filter(l=>l.d).length} écart(s)${r.cat?' · '+esc(r.cat):''}</small></div><button class="btn sm" data-act="minvpdf" data-id="${r.id}">${ic('print')}PDF</button></div>`).join(''):'<div class="empty">Aucun inventaire fait au téléphone.</div>'}
-function invReportPrint(r){const co=(S.cfg.company||'').trim();const tot=r.lines.reduce((a,l)=>{a.e+=l.e;a.c+=l.c??0;if(l.d)a.n++;return a},{e:0,c:0,n:0});
+function invReportPrint(r,mode){const co=(S.cfg.company||'').trim();const tot=r.lines.reduce((a,l)=>{a.e+=l.e;a.c+=l.c??0;if(l.d)a.n++;return a},{e:0,c:0,n:0});
   $('#print').innerHTML=`<div class="ld ir"><div class="lhead"><div class="lco">${co?esc(co):'&nbsp;'}</div><div class="ldate">Fait le ${fmt(r.date,{day:'numeric',month:'long',year:'numeric'})} à ${r.time||''}${r.device?' · '+esc(r.device):''}</div></div>
     <div class="ltitle"><h1>Rapport d'inventaire</h1><h2>${r.cat?esc(r.cat):'Tout le stock'}</h2></div>
     <div class="linfo"><div><span>Produits</span><b>${r.lines.length}</b></div><div><span>Comptés</span><b>${r.lines.filter(l=>l.c!==null).length}</b></div><div><span>Écarts</span><b>${tot.n}</b></div></div>
     <table class="ptbl"><thead><tr><th class="pr">Produit</th><th class="q">Prévu</th><th class="q">Compté</th><th class="q">À réparer</th><th class="q">Cassés</th><th class="q">Écart</th><th class="q">Sortis</th><th class="q">Nouveau total</th></tr></thead><tbody>
     ${r.lines.map(l=>`<tr${l.d?' class="hsl"':''}><td class="pr"><b>${esc(l.name)}</b>${l.ref?`<span class="meta">${esc(l.ref)}</span>`:''}</td><td class="q">${l.e}</td><td class="q">${l.c===null?'—':l.c}</td><td class="q">${l.rep||''}</td><td class="q">${l.cas||''}</td><td class="q">${l.d?(l.d>0?'+':'')+l.d:l.c===null?'':'0'}</td><td class="q">${l.out||''}</td><td class="q">${l.nt}</td></tr>`).join('')}
     </tbody></table><p class="irnote">Prévu = ce qui devait être à l'entrepôt (total − sorti sur chantier). Compté = en bon état + à réparer + cassés. Les cassés sont retirés du stock ; nouveau total = compté − cassés + sorti.</p></div>`;
-  outPrint('pdf',`Inventaire-${r.date}${r.cat?'-'+r.cat.replace(/[^\w\-]+/g,'_'):''}.pdf`)}
+  outPrint(mode||'pdf',`Inventaire-${r.date}${r.cat?'-'+r.cat.replace(/[^\w\-]+/g,'_'):''}.pdf`)}
 /* ---------- téléphone : logo flottant déplaçable + menu en cercle ---------- */
 const FAB={x:null,y:null,open:false,drag:null};
 function fabItems(){const rc=retToCheck().length;return [['home','home','Accueil'],['stock','box','Stock'],['minv','check','Inventaire'],['+','plus','Ajouter'],['plan','cal','Planning'],['ret','back',rc?`Retours (${rc})`:'Retours'],['set','gear','Réglages']]}
@@ -2775,6 +2796,9 @@ const A={
     const rep={id:'i'+uid(),date:TODAY,time:now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}),cat:D.cat||'',device:(DB.st&&DB.st.device)||'',lines};
     S.invRep=[rep,...(S.invRep||[])].slice(0,50);delete S.cfg.minvDraft;save();render();toast(`Inventaire validé : ${n} quantité${n>1?'s':''} mise${n>1?'s':''} à jour`);setTimeout(()=>invReportPrint(rep),300)},
   minvpdf:e=>{const r=(S.invRep||[]).find(x=>x.id===e.dataset.id);if(r)invReportPrint(r)},
+  minvprint:e=>{const r=(S.invRep||[]).find(x=>x.id===e.dataset.id);if(r)invReportPrint(r,'print')},
+  invdel:e=>{U.invdel=e.dataset.id;render()},invdelno:()=>{U.invdel=null;render()},
+  invdelyes:e=>{const i=(S.invRep||[]).findIndex(x=>x.id===e.dataset.id);U.invdel=null;if(i>=0){S.invRep.splice(i,1);save();toast('Inventaire supprimé (les quantités du stock ne changent pas)')}render()},
   qcnew:()=>{const Q=U.qc;openE(null,Q.a<=Q.b?Q.a:Q.b,Q.a<=Q.b?Q.b:Q.a);if(MD&&MD.d){MD.d.desc=Q.txt;MD.d.man.items={...qcMan()};drawE()}},
   essaiadd:()=>{const pr=S.products.filter(p=>p.qty>0).sort((a,b)=>b.qty-a.qty);if(!pr.length)return;
     const P=k=>pr[k%pr.length],q=(p,f)=>Math.max(1,Math.ceil(p.qty*f)),D=n=>add(TODAY,n);
