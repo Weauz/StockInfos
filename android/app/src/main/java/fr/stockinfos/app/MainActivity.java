@@ -58,6 +58,16 @@ public class MainActivity extends Activity {
         super.onCreate(b);
         web = new WebView(this);
         setContentView(web);
+        // Android 15 affiche l'appli sous la barre d'état : on garde une marge pour que rien ne passe dessous
+        web.setOnApplyWindowInsetsListener((v, insets) -> {
+            int top, bottom;
+            if (Build.VERSION.SDK_INT >= 30) {
+                android.graphics.Insets i = insets.getInsets(android.view.WindowInsets.Type.systemBars() | android.view.WindowInsets.Type.displayCutout());
+                top = i.top; bottom = i.bottom;
+            } else { top = insets.getSystemWindowInsetTop(); bottom = insets.getSystemWindowInsetBottom(); }
+            v.setPadding(0, top, 0, bottom);
+            return insets;
+        });
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
@@ -136,7 +146,7 @@ public class MainActivity extends Activity {
     @Override
     public void onBackPressed() {
         // Retour : ferme la fenêtre ouverte dans l'appli, sinon quitte
-        web.evaluateJavascript("(function(){var m=document.querySelector('#modal .ov');if(m){var c=document.querySelector('#modal [data-act=close]');if(c){c.click();return 1}}return 0})()", v -> {
+        web.evaluateJavascript("(function(){return window.siBack?window.siBack():0})()", v -> {
             if (!"1".equals(v)) MainActivity.super.onBackPressed();
         });
     }

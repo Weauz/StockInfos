@@ -1058,14 +1058,19 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .mob input,.mob select,.mob textarea{font-size:16px}
 .mob .dsh h2 small,.mob .dsh .lnk{display:none}.mob .dsh{flex-wrap:wrap}
 
-.mob nav{display:none!important}.mob .body{grid-template-rows:minmax(0,1fr)!important}
+.mob nav{display:none!important}
+#fab{position:fixed;z-index:70;width:56px;height:56px;border-radius:50%;border:0;background:var(--acc);color:var(--accink);opacity:.55;box-shadow:0 6px 18px rgba(0,0,0,.25);display:grid;place-items:center;touch-action:none;transition:left .2s,top .2s,opacity .2s,transform .15s;-webkit-tap-highlight-color:transparent}
+#fab svg{width:28px;height:28px;stroke-width:1.8}#fab.on,#fab.open{opacity:1}#fab.on{transform:scale(1.08)}#fab.open{transform:rotate(-12deg)}
+#fabm{position:fixed;inset:0;z-index:69;background:rgba(0,0,0,0);transition:background .16s}#fabm.show{background:rgba(0,0,0,.35)}
+.fabi{position:fixed;width:72px;height:72px;margin:-36px 0 0 -36px;border-radius:50%;border:0;background:var(--card);color:var(--ink);box-shadow:0 6px 16px rgba(0,0,0,.25);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:inherit;font-size:11px;font-weight:600;transform:scale(.3);opacity:0;transition:transform .16s,opacity .16s}
+#fabm.show .fabi{transform:scale(1);opacity:1}.fabi svg{width:24px;height:24px;color:var(--acc)}.fabi.cur{background:var(--acc);color:var(--accink)}.fabi.cur svg{color:inherit}.fabi span{max-width:66px;line-height:1.1;text-align:center}.mob .body{grid-template-rows:minmax(0,1fr)!important}
 .mob main{padding:0 12px 24px}
-.mhead{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:8px;margin:0 -12px 10px;padding:10px 12px;background:var(--bg);border-bottom:1px solid var(--line)}
-.mhead b{font-size:18px}.mhead .ib{width:40px;height:40px}.mhead .ib svg{width:22px;height:22px}
+.mhead{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:6px;margin:0 -12px 12px;padding:14px 12px 10px;background:var(--bg);border-bottom:1px solid var(--line)}
+.mhead b{font-size:19px}.mhead .ib{width:52px;height:52px;border-radius:14px;background:var(--card);border:1px solid var(--line)}.mhead .ib svg{width:26px;height:26px}
 .mob main>.top h1,.mob main>.top>.sub{display:none}
 .mhome{padding:18px 0}
 .mob .mhh{padding-top:14px}.mqs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 4px}
-.mq{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:inherit;font-size:13px;font-weight:600}.mq svg{width:22px;height:22px;color:var(--acc)}
+.mqs[hidden]{display:none}.mq{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:inherit;font-size:13px;font-weight:600}.mq svg{width:22px;height:22px;color:var(--acc)}
 .mq.acc{background:var(--acc);border-color:var(--acc);color:var(--accink)}.mq.acc svg{color:inherit}.mq.warn svg{color:var(--amb)}
 .mob .dash>.top{display:none}.mhh{display:flex;flex-direction:column;margin-bottom:16px}.mhh b{font-size:24px}.mhh small{color:var(--mute);font-size:14px;margin-top:2px}
 .mgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -1075,6 +1080,9 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .mtile.acc{background:var(--acc);border-color:var(--acc);color:var(--accink)}.mtile.acc small{color:inherit;opacity:.85}.mtile.acc .mti{background:rgba(255,255,255,.2);color:inherit}
 .mtile.warn .mti{background:var(--ambbg);color:var(--amb)}
 .minv{display:flex;flex-direction:column;gap:12px}
+.minv .btn.big{height:46px;font-size:15px;justify-content:center}
+.invpap{display:flex;align-items:center;gap:12px;padding:14px;margin-top:14px}.invpap>div{flex:1;display:flex;flex-direction:column}.invpap small{color:var(--mute)}
+body:not(.x) .minv{max-width:640px}
 .mcats{display:flex;flex-wrap:wrap;gap:8px}.mcats .btn{height:44px}.mcats small{color:var(--mute);margin-left:4px}
 .mrep{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:inherit;text-align:left}.mrep span{display:flex;flex-direction:column}.mrep small{color:var(--mute)}
 .mprog{display:flex;align-items:center;gap:10px;font-weight:700;position:relative}.mprog i{flex:1;height:6px;border-radius:3px;background:var(--line);position:relative;overflow:hidden}
@@ -1284,7 +1292,7 @@ function whenTxt(ev,short){const r=rng(ev),f=d=>short?fmt(d,{weekday:'short',day
   return `${f(r.s)}${ev.t0?' '+hh(ev.t0):''} → ${f(r.e)}${ev.t1?' '+hh(ev.t1):''}`}
 
 /* ---------- vues ---------- */
-const NAV=[['dash','Tableau de bord','home'],['stock','Stock','box'],['packs','Kits','pack'],['plan','Planning','cal'],['ret','Retours','back'],['set','Paramètres','gear']];
+const NAV=[['dash','Tableau de bord','home'],['stock','Stock','box'],['minv','Inventaire','check'],['packs','Kits','pack'],['plan','Planning','cal'],['ret','Retours','back'],['set','Paramètres','gear']];
 function navHTML(){const rc=retToCheck().length,showRet=rc||retSoon(7).length||U.view==='ret';return NAV.filter(([v])=>(v!=='packs'||S.cfg.kits)&&(v!=='ret'||showRet)).map(([v,l,i])=>`<button class="nb${U.view===v?' on':''}${v==='ret'&&rc?' alert':''}" data-act="view" data-v="${v}" title="${l}">${ic(i)}<span>${l}</span>${v==='dash'&&SH.length?`<b class="badge">${SH.length}</b>`:''}${v==='ret'&&rc?`<b class="badge pulse" title="${rc} retour${rc>1?'s':''} à vérifier">${rc}</b>`:''}</button>`).join('')+`<div class="grow"></div>${dbNavHTML()}<div class="gs" title="Google Agenda"><i class="dot${!(GS.st&&GS.st.connected)?' off':GS.err?' err':''}"></i><span>${!(GS.st&&GS.st.connected)?'Google non connecté':GS.err?'Synchro en échec':GS.busy?'Synchro en cours…':'Google Agenda · synchro '+(GS.last?new Date(GS.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'—')}</span></div>`}
 function isDark(){if(S.theme!=='auto')return S.theme==='dark';const r=document.documentElement.dataset.theme;if(r==='dark'||r==='light')return r==='dark';return matchMedia('(prefers-color-scheme: dark)').matches}
 function dateHTML(){
@@ -1297,7 +1305,7 @@ function dateHTML(){
   return `<div class="dw"><div style="position:relative"><div class="datebar"><button class="ib" data-act="dprev" aria-label="Reculer d'un jour">${ic('l')}</button><button class="dbtn" data-act="dp-toggle" title="Choisir un jour ou une période">${ic('cal')}${lab}</button><button class="ib" data-act="dnext" aria-label="Avancer d'un jour">${ic('r')}</button>${per||U.date!==TODAY?`<button class="ib" data-act="dtoday" title="Revenir à aujourd'hui" aria-label="Revenir à aujourd'hui">${ic('x')}</button>`:''}</div>${pop}</div></div>`;
 }
 function topHTML(){
-  const T={dash:'Tableau de bord',stock:'Stock',packs:'Kits de matériel',plan:'Planning des chantiers',ret:'Retours de matériel',set:'Paramètres'};
+  const T={dash:'Tableau de bord',stock:'Stock',minv:'Inventaire',packs:'Kits de matériel',plan:'Planning des chantiers',ret:'Retours de matériel',set:'Paramètres'};
   const dark=isDark();
   if(U.view==='dash')return `<div class="top ctr"><h1>${T.dash}</h1><p>${fmt(TODAY,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</p></div>`;
   return `<div class="top"><h1>${T[U.view]}</h1>${U.view==='stock'?dateHTML():''}</div>`;
@@ -1490,7 +1498,7 @@ function plistHTML(){
 VIEWS.stock=()=>{
   const cats=[...new Set(S.products.map(p=>p.cat).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
   const all=S.products.map(p=>({p,I:stockInfo(p)})),miss=all.filter(x=>x.I.a<0),out=all.reduce((n,x)=>n+x.I.u,0);
-  return `<div class="tools"><label class="search">${ic('search')}<input id="q" data-in="q" placeholder="Rechercher un produit ou une référence" value="${esc(U.q)}" autocomplete="off"></label><select id="sort" data-in="sort" aria-label="Trier par">${[['az','Nom A → Z'],['za','Nom Z → A'],['dispo','Le moins dispo d\'abord'],['qty','Plus grand stock d\'abord']].map(([v,l])=>`<option value="${v}"${U.sort===v?' selected':''}>${l}</option>`).join('')}</select><span class="sp"></span><button class="btn" data-act="impopen">${ic('ul')}Importer</button><button class="btn" data-act="invopen">${ic('dl')}Inventaire</button>${(S.invRep||[]).length?`<button class="btn" data-act="dpanel" data-k="invs">${ic('print')}Rapports d'inventaire</button>`:''}<button class="btn pri" data-act="addp">${ic('plus')}Ajouter un produit</button></div>
+  return `<div class="tools"><label class="search">${ic('search')}<input id="q" data-in="q" placeholder="Rechercher un produit ou une référence" value="${esc(U.q)}" autocomplete="off"></label><select id="sort" data-in="sort" aria-label="Trier par">${[['az','Nom A → Z'],['za','Nom Z → A'],['dispo','Le moins dispo d\'abord'],['qty','Plus grand stock d\'abord']].map(([v,l])=>`<option value="${v}"${U.sort===v?' selected':''}>${l}</option>`).join('')}</select><span class="sp"></span><button class="btn" data-act="impopen">${ic('ul')}Importer</button><button class="btn pri" data-act="addp">${ic('plus')}Ajouter un produit</button></div>
   ${cats.length?`<div class="cchips"><button class="${!U.cat?'on':''}" data-act="catf" data-v="">Tout <small>${S.products.length}</small></button>${cats.map(c=>`<button class="${U.cat===c?'on':''}" data-act="catf" data-v="${esc(c)}">${esc(c)} <small>${S.products.filter(p=>p.cat===c).length}</small></button>`).join('')}</div>`:''}
   <p class="note">${U.mode==='periode'?`Du <b>${fmt(U.a,{weekday:'long',day:'numeric',month:'long'})}</b> au <b>${fmt(U.b,{weekday:'long',day:'numeric',month:'long'})}</b> : en grand, ce que tu auras une fois les retours faits ; en dessous, le jour le plus juste`:`Le <b>${fmt(U.date,{weekday:'long',day:'numeric',month:'long'})}</b> : ${out} article${out>1?'s':''} sorti${out>1?'s':''}`}${miss.length?` · <b style="color:var(--red)">${miss.length} produit${miss.length>1?'s':''} en manque</b>`:' · aucun manque'}. <span class="h">Clique sur la date en haut pour choisir un jour ou une période.</span></p>
   <div id="plist">${plistHTML()}</div>`};
@@ -2070,7 +2078,7 @@ VIEWS.set=()=>{const cals=S.cfg.cals;
 
 if(S&&S.cfg&&(S.cfg.logo||S.cfg.site)){delete S.cfg.logo;delete S.cfg.site}
 function render(){setTimeout(()=>{tgScroll();if($("#qcsug")){qcSuggest();qcGrow()}},0);
-  if(!VIEWS[U.view])U.view=MOB?'home':'dash';if(!MOB&&['home','qc','minv','avenir'].includes(U.view))U.view='dash';
+  if(!VIEWS[U.view])U.view=MOB?'home':'dash';if(!MOB&&['home','qc','avenir'].includes(U.view))U.view='dash';
   if(U.view==='packs'&&!S.cfg.kits)U.view='dash';
   {const t=iso(new Date());if(t!==TODAY){if(U.date===TODAY)U.date=t;TODAY=t;PC.clear()}}
   SH=shortages();
@@ -2505,7 +2513,7 @@ const TSTEPS=[
   {v:'dash',s:'.dbar',t:'La barre du bas',x:'Un clic ouvre chaque liste : « Retours à vérifier », « Matériel le plus demandé », « À réparer » (clique sur une ligne quand c\'est réparé ou cassé) et « Casse et pertes » (l\'historique de ce qui a été retiré du stock, avec « Annuler » en cas d\'erreur). « Mots non reconnus » apparaît quand un chantier contient un mot que l\'appli ne comprend pas.'},
   {v:'stock',s:'.pgrid,.stbl,.plist',t:'Le stock',x:'Tout ton matériel, avec ce qui est dispo à la date choisie en haut. Clique sur un produit pour changer sa quantité, utiliser « Déclarer à réparer » ou « Déclarer cassé », et voir sa disponibilité sur 14 jours. « Ajouter un produit » en crée un nouveau.'},
   {v:'stock',s:'[data-act=impopen]',t:'Importer',x:'Remplis ton stock d\'un coup depuis un fichier Excel, CSV ou PDF. L\'appli devine les colonnes, et tu vérifies avant de valider.'},
-  {v:'stock',s:'[data-act=invopen]',t:'Inventaire',x:'Imprime une feuille d\'inventaire, remplis-la à la main dans l\'entrepôt, puis scanne-la ou prends-la en photo : l\'appli lit les chiffres et met le stock à jour.'},
+  {v:'minv',s:'.minv',t:'Inventaire',x:'Compte le stock produit par produit, à l\'écran ou sur le téléphone, ou utilise la « Feuille papier » à imprimer puis scanner. À la fin, l\'appli met les quantités à jour et garde un rapport PDF de chaque inventaire.'},
   {v:'packs',s:'main > .tools,main',t:'Les kits',x:'Un kit regroupe des produits qui partent toujours ensemble. Crée-le avec « Nouveau kit », puis écris son nom dans un chantier (par exemple « 1 chapiteau réception ») : tout son contenu est réservé.'},
   {v:'plan',s:'.tg,.month,main',t:'Le planning',x:'Les chantiers avec une heure sont dans la grille, ceux sans heure dans la ligne « Journée » en haut. Clique sur une heure pour créer un chantier à cette heure, ou glisse sur plusieurs jours dans la ligne « Journée ».'},
   {v:'plan',s:'.vsel',t:'Changer de vue',x:'Choisis la vue : Jour, 4 jours, Semaine, Mois ou Liste.'},
@@ -2608,12 +2616,13 @@ async function dbAudit(){MD={k:'audit'};$('#modal').innerHTML=`<div class="ov"><
 function auDraw(){const l=$('#aul');if(!l)return;const q=norm(($('#auq')||{}).value||'');const L=(DB.audit||[]).filter(x=>!q||norm([x.label,x.device,AUK[x.kind],AUA[x.action]].join(' ')).includes(q));
   l.innerHTML=L.length?L.map(x=>{const d=new Date(x.at),dev=(()=>{try{return decodeURIComponent(x.device||'')}catch(e){return x.device||''}})();return `<div class="aur ${x.action}"><span class="aut">${d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}<b>${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</b></span><div><span class="aua">${AUA[x.action]||x.action}</span> <span class="auk">${AUK[x.kind]||x.kind}</span> <b>${esc(x.label||'')}</b><small>${[x.action==='modification'?auDiff(x.before,x.after):x.action==='ajout'&&x.kind==='product'?'Quantité : '+esc(String(x.after&&x.after.qty)):'',dev?esc(dev):''].filter(Boolean).join(' · ')}</small></div></div>`}).join(''):'<div class="empty">Aucun changement enregistré.</div>'}
 /* ---------- téléphone : accueil à gros boutons ---------- */
-const MTITLE={stock:'Stock',qc:'Vérif rapide',minv:'Inventaire',avenir:'À venir',plan:'Planning',ret:'Retours',set:'Paramètres',packs:'Kits',dash:'Tableau de bord'};
+const MTITLE0={stock:'Stock',qc:'Vérif rapide',minv:'Inventaire',avenir:'À venir',plan:'Planning',ret:'Retours',set:'Paramètres',packs:'Kits',dash:'Tableau de bord'};
 // accueil du téléphone : le tableau de bord, avec une rangée de raccourcis en haut
+const MTITLE=MTITLE0;
 VIEWS.home=()=>{const dr=S.cfg.minvDraft,rc=retToCheck().length;
   const Q=(act,v,icon,t,tone)=>`<button class="mq${tone?' '+tone:''}" data-act="${act}"${v?` data-v="${v}"`:''}>${ic(icon)}<span>${t}</span></button>`;
   return `<div class="mhh"><b>${esc(S.cfg.company||'StockInfos')}</b><small>${fmt(TODAY,{weekday:'long',day:'numeric',month:'long'})}${DB.st&&DB.st.connected?(DB.err?' · base hors ligne':' · base à jour'):' · base non reliée'}</small></div>
-  <div class="mqs">${Q('view','stock','box','Stock')}${Q('view','minv','check',dr?'Inventaire…':'Inventaire','acc')}${Q('addp','','plus','Ajouter')}${Q('view','plan','cal','Planning')}${Q('view','ret','back',rc?`Retours (${rc})`:'Retours',rc?'warn':'')}${Q('view','set','gear','Réglages')}</div>
+  <div class="mqs" hidden>${Q('view','stock','box','Stock')}${Q('view','minv','check',dr?'Inventaire…':'Inventaire','acc')}${Q('addp','','plus','Ajouter')}${Q('view','plan','cal','Planning')}${Q('view','ret','back',rc?`Retours (${rc})`:'Retours',rc?'warn':'')}${Q('view','set','gear','Réglages')}</div>
   ${VIEWS.dash()}`};
 VIEWS.qc=()=>`<section class="card dsec qc qcbig"><div class="dsb" style="padding:12px">${qcHTML()}</div></section>`;
 VIEWS.avenir=()=>`<div class="seg wks" role="tablist" style="margin:0 0 10px"><button class="${(U.wkm||'out')==='out'?'on':''}" data-act="wkm" data-v="out" role="tab">Départs <span class="wkn">${wkCount('out')}</span></button><button class="${U.wkm==='in'?'on':''}" data-act="wkm" data-v="in" role="tab">Retours <span class="wkn">${wkCount('in')}</span></button></div>${weekHTML()}`;
@@ -2624,10 +2633,11 @@ const repNow=pid=>((byId(pid)||{}).hs||[]).filter(h=>h.t!=='cas'&&(!h.from||h.fr
 const invExp=pid=>{const p=byId(pid);return p?Math.max(0,p.qty-Math.max(0,outToday(pid))):0};
 VIEWS.minv=()=>{const D=S.cfg.minvDraft;
   if(!D){const cats=[...new Set(S.products.map(p=>p.cat).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
-    return `<div class="minv"><p class="h">Compte ce qui est à l'entrepôt, produit par produit. Le matériel parti sur un chantier n'est pas à compter : l'appli le déduit toute seule.</p>
+    return `<div class="minv"><p class="h" style="margin:0">Compte ce qui est à l'entrepôt, produit par produit. Le matériel parti sur un chantier n'est pas à compter : l'appli le déduit toute seule.</p>
       <button class="btn pri big" data-act="minvgo" data-v="">${ic('box')}Tout le stock (${S.products.length})</button>
       ${cats.length?`<p class="h" style="margin:14px 0 6px">Ou une seule catégorie :</p><div class="mcats">${cats.map(c=>`<button class="btn" data-act="minvgo" data-v="${esc(c)}">${esc(c)} <small>${S.products.filter(p=>p.cat===c).length}</small></button>`).join('')}</div>`:''}
-      ${(S.invRep||[]).length?`<p class="h" style="margin:18px 0 6px">Inventaires précédents :</p>${S.invRep.slice(0,5).map(r=>`<button class="mrep" data-act="minvpdf" data-id="${r.id}">${ic('print')}<span><b>${fmt(r.date,{day:'numeric',month:'long',year:'numeric'})}</b><small>${r.lines.length} produits · ${r.lines.filter(l=>l.d).length} écart${r.lines.filter(l=>l.d).length>1?'s':''}${r.cat?' · '+esc(r.cat):''}</small></span></button>`).join('')}`:''}</div>`}
+      ${MOB?'':`<div class="card invpap"><span class="seti">${ic('dl')}</span><div><b>Inventaire sur papier</b><small>Imprime la feuille, remplis-la dans l'entrepôt, puis scanne-la : l'appli lit les chiffres.</small></div><button class="btn" data-act="invopen">${ic('dl')}Feuille papier</button></div>`}
+      ${(S.invRep||[]).length?`<p class="h" style="margin:18px 0 6px">Inventaires précédents :</p>${S.invRep.slice(0,MOB?5:50).map(r=>`<button class="mrep" data-act="minvpdf" data-id="${r.id}">${ic('print')}<span><b>${fmt(r.date,{day:'numeric',month:'long',year:'numeric'})}${r.time?' · '+r.time:''}</b><small>${r.device?esc(r.device)+' · ':''}${r.lines.length} produits · ${r.lines.filter(l=>l.d).length} écart${r.lines.filter(l=>l.d).length>1?'s':''}${r.cat?' · '+esc(r.cat):''}</small></span></button>`).join('')}`:''}</div>`}
   if(D.done)return invSummary(D);
   const pid=D.list[D.i],p=byId(pid);if(!p){D.i=Math.min(D.i+1,D.list.length);if(D.i>=D.list.length)D.done=true;save();return VIEWS.minv()}
   const exp=invExp(pid),out=Math.max(0,outToday(pid)),v=D.counts[pid],cur=D.cur!==undefined&&D.cur!==null?D.cur:(v!==undefined?String(v):'');
@@ -2656,6 +2666,32 @@ function invReportPrint(r){const co=(S.cfg.company||'').trim();const tot=r.lines
     ${r.lines.map(l=>`<tr${l.d?' class="hsl"':''}><td class="pr"><b>${esc(l.name)}</b>${l.ref?`<span class="meta">${esc(l.ref)}</span>`:''}</td><td class="q">${l.e}</td><td class="q">${l.c===null?'—':l.c}</td><td class="q">${l.rep||''}</td><td class="q">${l.cas||''}</td><td class="q">${l.d?(l.d>0?'+':'')+l.d:l.c===null?'':'0'}</td><td class="q">${l.out||''}</td><td class="q">${l.nt}</td></tr>`).join('')}
     </tbody></table><p class="irnote">Prévu = ce qui devait être à l'entrepôt (total − sorti sur chantier). Compté = en bon état + à réparer + cassés. Les cassés sont retirés du stock ; nouveau total = compté − cassés + sorti.</p></div>`;
   outPrint('pdf',`Inventaire-${r.date}${r.cat?'-'+r.cat.replace(/[^\w\-]+/g,'_'):''}.pdf`)}
+/* ---------- téléphone : logo flottant déplaçable + menu en cercle ---------- */
+const FAB={x:null,y:null,open:false,drag:null};
+function fabItems(){const rc=retToCheck().length;return [['home','home','Accueil'],['stock','box','Stock'],['minv','check','Inventaire'],['+','plus','Ajouter'],['plan','cal','Planning'],['ret','back',rc?`Retours (${rc})`:'Retours'],['set','gear','Réglages']]}
+function fabInit(){if(!MOB||$('#fab'))return;
+  try{const p=JSON.parse(localStorage.getItem('si-fab')||'null');if(p){FAB.x=p.x;FAB.y=p.y}}catch(e){}
+  const f=document.createElement('button');f.id='fab';f.setAttribute('aria-label','Menu');f.innerHTML='<svg class="i" viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9"/></svg>';
+  document.body.appendChild(f);const m=document.createElement('div');m.id='fabm';m.hidden=true;document.body.appendChild(m);fabPlace();
+  f.addEventListener('pointerdown',e=>{f.setPointerCapture(e.pointerId);FAB.drag={sx:e.clientX,sy:e.clientY,ox:f.offsetLeft,oy:f.offsetTop,moved:false};f.classList.add('on')});
+  f.addEventListener('pointermove',e=>{const d=FAB.drag;if(!d)return;const dx=e.clientX-d.sx,dy=e.clientY-d.sy;if(!d.moved&&Math.hypot(dx,dy)<8)return;d.moved=true;if(FAB.open)fabClose();
+    f.style.transition='none';f.style.left=Math.min(innerWidth-f.offsetWidth,Math.max(0,d.ox+dx))+'px';f.style.top=Math.min(innerHeight-f.offsetHeight,Math.max(0,d.oy+dy))+'px'});
+  f.addEventListener('pointerup',()=>{const d=FAB.drag;FAB.drag=null;f.classList.remove('on');if(!d)return;
+    if(d.moved){const W=innerWidth,H=innerHeight,s=f.offsetWidth,cx=f.offsetLeft+s/2;FAB.x=cx<W/2?0:1;FAB.y=Math.min(1,Math.max(0,f.offsetTop/(H-s)));try{localStorage.setItem('si-fab',JSON.stringify({x:FAB.x,y:FAB.y}))}catch(e){}f.style.transition='';fabPlace()}
+    else FAB.open?fabClose():fabOpen()});
+  m.addEventListener('click',e=>{const b=e.target.closest('[data-fv]');fabClose();if(!b)return;const v=b.dataset.fv;if(v==='+')A.addp();else setView(v)});
+  window.addEventListener('resize',fabPlace)}
+function fabPlace(){const f=$('#fab');if(!f)return;const s=f.offsetWidth||56,W=innerWidth,H=innerHeight,x=FAB.x??1,y=FAB.y??0.82;
+  f.style.left=(x?W-s-8:8)+'px';f.style.top=Math.round(Math.min(H-s-8,Math.max(8,y*(H-s))))+'px'}
+function fabOpen(){const f=$('#fab'),m=$('#fabm');if(!f||!m)return;FAB.open=true;f.classList.add('open');
+  const s=f.offsetWidth,cx=f.offsetLeft+s/2,right=cx>innerWidth/2,it=fabItems(),n=it.length,H=innerHeight,W=innerWidth;
+  // demi-cercle tourné vers le milieu de l'écran, recentré si le logo est trop près du haut ou du bas
+  const R=Math.min(175,W-60,(H-100)/2),cy=Math.min(H-R-44,Math.max(R+44,f.offsetTop+s/2));
+  m.innerHTML=it.map(([v,i,l],k)=>{const deg=right?105+150*k/(n-1):75-150*k/(n-1),a=deg*Math.PI/180,x=cx+Math.cos(a)*R,y=cy-Math.sin(a)*R;
+    return `<button class="fabi${U.view===v?' cur':''}" data-fv="${v}" style="left:${Math.round(x)}px;top:${Math.round(y)}px;transition-delay:${k*18}ms">${ic(i)}<span>${l}</span></button>`}).join('');
+  m.hidden=false;requestAnimationFrame(()=>m.classList.add('show'))}
+window.siBack=()=>{if(FAB.open){fabClose();return 1}const ov=document.querySelector('#modal .ov');if(ov){const c=document.querySelector('#modal [data-act=close],#modal [data-act=hsback]');if(c){c.click();return 1}closeM();return 1}if(TOUR.on){tourEnd();return 1}if(U.view!=='home'){setView('home');return 1}return 0};
+function fabClose(){const f=$('#fab'),m=$('#fabm');FAB.open=false;if(f)f.classList.remove('open');if(m){m.classList.remove('show');setTimeout(()=>{if(!FAB.open)m.hidden=true},160)}}
 let DPANELS=null;
 const DRAG={on:false,a:null,b:null,moved:false,skip:false};
 function dragPaint(){const x=DRAG.a<DRAG.b?DRAG.a:DRAG.b,y=DRAG.a<DRAG.b?DRAG.b:DRAG.a;document.querySelectorAll('[data-dd]').forEach(el=>el.classList.toggle('dsel',DRAG.on&&el.dataset.dd>=x&&el.dataset.dd<=y))}
@@ -2876,6 +2912,7 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b)return;const f=A[b.dataset.act];if(f){e.preventDefault();f(b)}
 });
 document.addEventListener('keydown',e=>{
+  if(U.view==='minv'&&S.cfg.minvDraft&&!S.cfg.minvDraft.done&&!MD&&!(e.target&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))){if(/^[0-9]$/.test(e.key)){e.preventDefault();A.minvk({dataset:{v:e.key}});return}if(e.key==='Backspace'){e.preventDefault();A.minvk({dataset:{v:'del'}});return}if(e.key==='Enter'){e.preventDefault();A.minvnext();return}}
   if(TOUR.on){if(e.key==='Escape'){e.preventDefault();tourEnd();return}if(e.key==='ArrowRight'){e.preventDefault();A.tournext();return}if(e.key==='ArrowLeft'){e.preventDefault();A.tourprev();return}}
   if(e.target.dataset&&e.target.dataset.qc==='txt'&&e.key==='Backspace'&&e.target.selectionStart===0&&e.target.selectionEnd===0&&U.qc&&(U.qc.items||[]).length){e.preventDefault();U.qc.items.pop();$('#qcchips').innerHTML=qcChips();const r=$('#qcr');if(r)r.innerHTML=qcRes();return}
   if(e.target.dataset&&e.target.dataset.qc==='txt'){const f=document.querySelector('#qcsug [data-act=qcsug]');if(e.key==='Tab'&&f&&!e.shiftKey){e.preventDefault();qcAccept(f.dataset.id);return}if(e.key==='Escape'&&f){$('#qcsug').innerHTML='';e.stopPropagation();return}}
@@ -2936,6 +2973,7 @@ window.addEventListener('hashchange',()=>{const v=HV[location.hash.slice(1)];if(
 for(const p of S.products){if(!p.unit)continue;const k=unitKey(p.unit);if(UV[k]){p.unit=UL[k];continue}const m=/^(\d+(?:[.,]\d+)?)\s*(.+)$/.exec(String(p.unit).trim());if(m&&UV[unitKey(m[2])]){p.usize=parseFloat(m[1].replace(',','.'))||1;p.unit=UL[unitKey(m[2])]}else p.unit=''}
 migrateCals();migrateCasse();
 U.view=HV[location.hash.slice(1)]||(MOB?'home':'dash');
+if(MOB)setTimeout(fabInit,0);
 if(!S.packs)S.packs=[];
 U.sort=S.ui.sort||'az';
 render();
