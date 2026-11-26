@@ -1063,7 +1063,11 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .mhead{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:8px;margin:0 -12px 10px;padding:10px 12px;background:var(--bg);border-bottom:1px solid var(--line)}
 .mhead b{font-size:18px}.mhead .ib{width:40px;height:40px}.mhead .ib svg{width:22px;height:22px}
 .mob main>.top h1,.mob main>.top>.sub{display:none}
-.mhome{padding:18px 0}.mhh{display:flex;flex-direction:column;margin-bottom:16px}.mhh b{font-size:24px}.mhh small{color:var(--mute);font-size:14px;margin-top:2px}
+.mhome{padding:18px 0}
+.mob .mhh{padding-top:14px}.mqs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 4px}
+.mq{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:inherit;font-size:13px;font-weight:600}.mq svg{width:22px;height:22px;color:var(--acc)}
+.mq.acc{background:var(--acc);border-color:var(--acc);color:var(--accink)}.mq.acc svg{color:inherit}.mq.warn svg{color:var(--amb)}
+.mob .dash>.top{display:none}.mhh{display:flex;flex-direction:column;margin-bottom:16px}.mhh b{font-size:24px}.mhh small{color:var(--mute);font-size:14px;margin-top:2px}
 .mgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .mtile{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-height:118px;padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--card);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
 .mtile:active{transform:scale(.98)}.mtile b{font-size:17px;margin-top:auto}.mtile small{color:var(--mute);font-size:13px;line-height:1.3}
@@ -2605,19 +2609,12 @@ function auDraw(){const l=$('#aul');if(!l)return;const q=norm(($('#auq')||{}).va
   l.innerHTML=L.length?L.map(x=>{const d=new Date(x.at),dev=(()=>{try{return decodeURIComponent(x.device||'')}catch(e){return x.device||''}})();return `<div class="aur ${x.action}"><span class="aut">${d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}<b>${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</b></span><div><span class="aua">${AUA[x.action]||x.action}</span> <span class="auk">${AUK[x.kind]||x.kind}</span> <b>${esc(x.label||'')}</b><small>${[x.action==='modification'?auDiff(x.before,x.after):x.action==='ajout'&&x.kind==='product'?'Quantité : '+esc(String(x.after&&x.after.qty)):'',dev?esc(dev):''].filter(Boolean).join(' · ')}</small></div></div>`}).join(''):'<div class="empty">Aucun changement enregistré.</div>'}
 /* ---------- téléphone : accueil à gros boutons ---------- */
 const MTITLE={stock:'Stock',qc:'Vérif rapide',minv:'Inventaire',avenir:'À venir',plan:'Planning',ret:'Retours',set:'Paramètres',packs:'Kits',dash:'Tableau de bord'};
-VIEWS.home=()=>{const rc=retToCheck().length,nx=S.events.filter(ev=>counts(ev)&&Object.keys(P(ev).items).length&&ev.start>=TODAY).sort((x,y)=>evKey(x)<evKey(y)?-1:1)[0],dr=S.cfg.minvDraft;
-  const T=(act,v,icon,t,sub,tone)=>`<button class="mtile${tone?' '+tone:''}" data-act="${act}"${v?` data-v="${v}"`:''}><span class="mti">${ic(icon)}</span><b>${t}</b>${sub?`<small>${sub}</small>`:''}</button>`;
-  return `<div class="mhome"><div class="mhh"><b>${esc(S.cfg.company||'StockInfos')}</b><small>${fmt(TODAY,{weekday:'long',day:'numeric',month:'long'})}${DB.st&&DB.st.connected?(DB.err?' · base hors ligne':' · base à jour'):' · base non reliée'}</small></div>
-  <div class="mgrid">
-    ${T('view','stock','box','Stock',`${S.products.length} produit${S.products.length>1?'s':''}`)}
-    ${T('view','qc','search','Vérif rapide','Assez de stock ?')}
-    ${T('view','minv','check','Inventaire',dr?`En cours : ${Object.keys(dr.counts||{}).length} / ${dr.list.length}`:'Compter le stock','acc')}
-    ${T('addp','','plus','Ajouter un produit','Avec une photo')}
-    ${T('view','avenir','truck','À venir',nx?`${esc(short(nx.title))} · ${diff(TODAY,nx.start)===0?'aujourd\'hui':diff(TODAY,nx.start)===1?'demain':fmt(nx.start,{day:'numeric',month:'short'})}`:'Rien de prévu')}
-    ${T('view','ret','back','Retours',rc?`${rc} à vérifier`:'Rien à vérifier',rc?'warn':'')}
-    ${T('view','plan','cal','Planning','Les chantiers')}
-    ${T('view','set','gear','Paramètres','Base de données')}
-  </div></div>`};
+// accueil du téléphone : le tableau de bord, avec une rangée de raccourcis en haut
+VIEWS.home=()=>{const dr=S.cfg.minvDraft,rc=retToCheck().length;
+  const Q=(act,v,icon,t,tone)=>`<button class="mq${tone?' '+tone:''}" data-act="${act}"${v?` data-v="${v}"`:''}>${ic(icon)}<span>${t}</span></button>`;
+  return `<div class="mhh"><b>${esc(S.cfg.company||'StockInfos')}</b><small>${fmt(TODAY,{weekday:'long',day:'numeric',month:'long'})}${DB.st&&DB.st.connected?(DB.err?' · base hors ligne':' · base à jour'):' · base non reliée'}</small></div>
+  <div class="mqs">${Q('view','stock','box','Stock')}${Q('view','minv','check',dr?'Inventaire…':'Inventaire','acc')}${Q('addp','','plus','Ajouter')}${Q('view','plan','cal','Planning')}${Q('view','ret','back',rc?`Retours (${rc})`:'Retours',rc?'warn':'')}${Q('view','set','gear','Réglages')}</div>
+  ${VIEWS.dash()}`};
 VIEWS.qc=()=>`<section class="card dsec qc qcbig"><div class="dsb" style="padding:12px">${qcHTML()}</div></section>`;
 VIEWS.avenir=()=>`<div class="seg wks" role="tablist" style="margin:0 0 10px"><button class="${(U.wkm||'out')==='out'?'on':''}" data-act="wkm" data-v="out" role="tab">Départs <span class="wkn">${wkCount('out')}</span></button><button class="${U.wkm==='in'?'on':''}" data-act="wkm" data-v="in" role="tab">Retours <span class="wkn">${wkCount('in')}</span></button></div>${weekHTML()}`;
 
