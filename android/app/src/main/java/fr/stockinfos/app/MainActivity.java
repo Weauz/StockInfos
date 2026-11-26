@@ -9,6 +9,8 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.print.PrintAttributes;
+import android.print.PrintManager;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.webkit.JavascriptInterface;
@@ -209,6 +211,15 @@ public class MainActivity extends Activity {
                 File[] all = dir.listFiles(); if (all != null && all.length > 10) { Arrays.sort(all); for (int k = 0; k < all.length - 10; k++) all[k].delete(); }
                 return t.getName();
             } catch (Exception e) { return ""; }
+        }
+        @JavascriptInterface public void printPage(String name) {
+            runOnUiThread(() -> {
+                try {
+                    PrintManager pm = (PrintManager) getSystemService(PRINT_SERVICE);
+                    String n = (name == null || name.isEmpty()) ? "StockInfos" : name.replaceAll("\\.pdf$", "");
+                    pm.print(n, web.createPrintDocumentAdapter(n), new PrintAttributes.Builder().setMediaSize(PrintAttributes.MediaSize.ISO_A4).build());
+                } catch (Exception ignored) {}
+            });
         }
         @JavascriptInterface public String dbStatus() {
             try { JSONObject o = new JSONObject(); String c = prefs().getString("cfg", null); o.put("connected", c != null); o.put("device", device()); return o.toString(); } catch (Exception e) { return "{}"; }
