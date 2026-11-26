@@ -1030,6 +1030,33 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .tge.ct{border-top-left-radius:0;border-top-right-radius:0}.tge.cb{border-bottom-left-radius:0;border-bottom-right-radius:0}
 .tgnow{position:absolute;left:0;right:0;height:2px;background:var(--red);z-index:3;pointer-events:none}
 .tgnow::before{content:"";position:absolute;left:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--red)}
+
+/* ---------- téléphone (app Android) ---------- */
+.qrbig{width:260px;max-width:100%;padding:12px;background:#fff;border-radius:10px}.qrbig svg{width:100%;height:auto;display:block}
+.mob body{font-size:15px}
+.mob .win{grid-template-rows:minmax(0,1fr)}.mob .tb{display:none}
+.mob .body{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto}
+.mob nav{order:2;flex-direction:row;justify-content:space-around;padding:4px 2px calc(4px + env(safe-area-inset-bottom));border-top:1px solid var(--line);gap:0}
+.mob nav .grow,.mob nav .gs,.mob nav .dbs{display:none}
+.mob .nb{flex-direction:column;gap:2px;height:auto;padding:6px 4px;font-size:10.5px;flex:1;align-items:center;text-align:center}
+.mob .nb svg{width:22px;height:22px}.mob .nb .badge{position:absolute;top:2px;right:calc(50% - 20px)}
+.mob main{order:1;padding:12px 12px 24px}
+.mob .top h1{font-size:20px}
+.mob .hero.two,.mob .dgrid,.mob .dgrid2{grid-template-columns:1fr}
+.mob .hnext{flex-wrap:wrap}.mob .hact{margin-left:0;width:100%}
+.mob .qcmain{grid-template-columns:1fr}.mob .qcbig .qcmain .qcr{max-height:none;position:static}
+.mob .wk{grid-template-columns:repeat(5,minmax(140px,1fr));overflow-x:auto}
+.mob .dbar-b{flex:1 1 45%}
+.mob .tools{flex-wrap:wrap}
+.mob .dlg{width:100%!important;max-height:100%;border-radius:12px 12px 0 0;align-self:end}
+.mob .ov{align-items:flex-end;padding:0}
+.mob .setr{flex-wrap:wrap}.mob .setc{width:100%;justify-content:flex-start;flex-wrap:wrap}
+.mob .btn.big{height:48px;font-size:16px;margin-top:10px;width:100%;justify-content:center}
+.mob .mobcon{flex-direction:column;align-items:stretch}
+.mob [data-act=printload],.mob [data-act=pdfload],.mob [data-act=invopen],.mob [data-act=impopen],.mob [data-act=export],.mob [data-act=import],.mob [data-act=tour],.mob [data-act=print]{display:none!important}
+.mob .tg .tgb{height:auto}
+.mob input,.mob select,.mob textarea{font-size:16px}
+.mob .dsh h2 small,.mob .dsh .lnk{display:none}.mob .dsh{flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -1091,6 +1118,7 @@ function seed(){
 const CALC=['#2563eb','#0e7490','#7c3aed','#be185d','#15803d','#b45309','#c2410c'];
 const KEY='stockinfos-v4';
 const API=window.api||null;
+const MOB=!!(API&&API.platform==='android');if(MOB)document.documentElement.classList.add('mob');
 let S=null,FIRST=false;
 try{S=API?API.load():JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||!Array.isArray(S.products)){S=seed();FIRST=true}
@@ -1984,8 +2012,8 @@ VIEWS.set=()=>{const cals=S.cfg.cals;
   return `<div class="setw">
   <h3 class="seth">Base de données</h3>
   ${dbSetHTML()}
-  <h3 class="seth">Aide</h3>
-  ${setRow('eye','Visite guidée','Fait le tour de l\'appli, page par page, avec une explication pour chaque partie.','<button class="btn sm pri" data-act="tour">Lancer la visite</button>')}
+  ${MOB?'':`<h3 class="seth">Aide</h3>`}
+  ${MOB?'':setRow('eye','Visite guidée','Fait le tour de l\'appli, page par page, avec une explication pour chaque partie.','<button class="btn sm pri" data-act="tour">Lancer la visite</button>')}
   <h3 class="seth">Google Agenda</h3>
   ${gSetHTML()}
   ${cals.length?`<h3 class="seth">Anciens liens iCal</h3><p class="note" style="margin:-4px 0 8px">Ces liens marchent encore, mais ne sont plus nécessaires : tu peux les retirer. Les chantiers qu'ils ont importés disparaîtront de l'appli.</p>${cals.map(c=>`<div class="setr"><span class="seti" style="color:${esc(c.color)}">${ic('cal')}</span><span class="sett"><b>${esc(c.name)}</b><small>${c.err?`<span style="color:var(--red)">Échec : ${esc(c.err)}</span>`:`${S.events.filter(e=>e.cal===c.id).length} événement(s)`}</small></span><span class="setc">${U.delcal===c.id?`<button class="btn sm" data-act="caldel-no">Annuler</button><button class="btn sm pri" data-act="caldel-yes" data-id="${c.id}">Retirer</button>`:`<button class="btn sm" data-act="caldel" data-id="${c.id}">Retirer</button>`}</span></div>`).join('')}`:''}
@@ -2411,6 +2439,7 @@ async function gSync(manual){
   GS.busy=false;{const a=document.activeElement;if(!MD&&!(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)))render();else{const n=document.querySelector('.gs');if(n)n.outerHTML=navHTML().match(/<div class="gs"[\s\S]*$/)[0]}}planSync();if(GS.again){GS.again=false;gSoon(300)}
 }
 function gSetHTML(){const st=GS.st;
+  if(MOB)return setRow('cal','Google Agenda','La synchro avec Google Agenda se fait depuis le PC. Les chantiers arrivent ici par la base de données.','');
   if(!API||!API.gStatus)return setRow('cal','Google Agenda','Disponible dans l\'app installée.','');
   if(!st)return setRow('cal','Google Agenda','Vérification…','');
   if(!st.configured)return setRow('cal','Google Agenda','Bientôt : cette version ne contient pas encore la connexion Google.','');
@@ -2530,8 +2559,9 @@ function dbNavHTML(){if(!(DB.st&&DB.st.connected))return '<div class="dbs" style
 function dbSetHTML(){const st=DB.st;
   if(!API||!API.dbStatus)return setRow('db','Base de données','Disponible dans l\'app installée.','');
   if(!st)return setRow('db','Base de données','Vérification…','');
+  if(!st.connected&&MOB)return `<div class="gcon mobcon"><span class="seti">${ic('db')}</span><div><b>Relier ce téléphone à ta base</b><small>Sur le PC : Paramètres › Base de données › « QR pour le téléphone ». Puis scanne ce QR code ici.</small><button class="btn pri big" data-act="dbscan">${ic('cam')}Scanner le QR code du PC</button><input type="file" id="qrfile" accept="image/*" capture="environment" hidden><small style="margin-top:8px">Ou colle le code de connexion :</small><input class="in" id="dbcode" placeholder="SI1.…" autocomplete="off" spellcheck="false"><button class="btn" data-act="dbconnect" style="margin-top:6px">Connecter</button></div></div>`;
   if(!st.connected)return `<div class="gcon"><span class="seti">${ic('db')}</span><div><b>Relier la base de données</b><small>Le stock, les kits, les chantiers et la casse sont enregistrés en ligne : tous tes appareils voient la même chose, et chaque changement est noté dans l'historique. Colle ici le code de connexion de ton entreprise.</small><input class="in" id="dbcode" placeholder="SI1.…" autocomplete="off" spellcheck="false" style="margin-top:8px"></div><button class="btn pri" data-act="dbconnect">Connecter</button></div>`;
-  return setRow('db','Base de données',`Connectée (${esc(st.device||'ce PC')})${DB.busy?' · synchro…':DB.err?` · <span style="color:var(--red)">${esc(DB.err)}</span>`:DB.last?' · à jour à '+new Date(DB.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}. Tout changement est envoyé aussitôt ; les changements des autres appareils arrivent en quelques secondes.`,`<button class="btn sm" data-act="dbaudit">Historique</button><button class="btn sm" data-act="dbsync">Synchroniser</button><button class="btn sm" data-act="dbdisc">Déconnecter</button>`)}
+  return setRow('db','Base de données',`Connectée (${esc(st.device||'ce PC')})${DB.busy?' · synchro…':DB.err?` · <span style="color:var(--red)">${esc(DB.err)}</span>`:DB.last?' · à jour à '+new Date(DB.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}. Tout changement est envoyé aussitôt ; les changements des autres appareils arrivent en quelques secondes.`,`${MOB?'':'<button class="btn sm" data-act="dbqr">QR pour le téléphone</button>'}<button class="btn sm" data-act="dbaudit">Historique</button><button class="btn sm" data-act="dbsync">Synchroniser</button><button class="btn sm" data-act="dbdisc">Déconnecter</button>`)}
 const AUK={product:'Produit',pack:'Kit',event:'Chantier',casse:'Casse',setting:'Réglage'},AUA={ajout:'Ajout',modification:'Modification',suppression:'Suppression',restauration:'Restauration'};
 function auDiff(a,b){if(!a||!b)return '';const skip=new Set(['log','gh','gcal','gid','used','created','ci','id']),out=[],lab={qty:'Quantité',name:'Nom',title:'Titre',start:'Début',end:'Fin',t0:'Heure début',t1:'Heure fin',lieu:'Lieu',desc:'Texte',hs:'Hors service',man:'Matériel',cat:'Catégorie',ref:'Référence',q:'Quantité',note:'Remarque',checked:'Retour',company:'Entreprise',items:'Contenu',unit:'Unité'};
   for(const k of new Set([...Object.keys(a),...Object.keys(b)])){if(skip.has(k))continue;const x=a[k],y=b[k];if(JSON.stringify(x)===JSON.stringify(y))continue;
@@ -2597,6 +2627,8 @@ const A={
   dbconnect:async()=>{const c=($('#dbcode')||{}).value||'';if(!c.trim()){toast('Colle le code de connexion');return}toast('Connexion à la base…');
     try{await API.dbConnect(c.trim());await dbStatus();S.dbm={};S.dbcur=null;save();await dbSync(false,true);render();toast(S.products.length||S.events.length?'Base de données connectée : tout est synchronisé':'Base de données connectée')}catch(e){toast('Base de données : '+String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,''))}},
   dbsync:()=>dbSync(true),
+  dbqr:async()=>{const c=API.dbCode&&await API.dbCode();if(!c)return;MD={k:'dbqr'};$('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(440px,100%)"><div class="dh"><h3 id="mt">Relier le téléphone</h3><span class="sp" style="flex:1"></span><button class="ib" data-act="close" aria-label="Fermer">${ic('x')}</button></div><div class="dpb" style="align-items:center;text-align:center"><p style="margin:0">Dans l'app StockInfos du téléphone : Paramètres › Base de données › <b>Scanner le QR code du PC</b>, puis prends ce code en photo.</p><div class="qrbig">${qrSvg(c)}</div><p class="h" style="margin:0">Ne montre ce code à personne d'autre : il donne accès à ton stock.</p></div></div></div>`},
+  dbscan:()=>{const f=$('#qrfile');if(f){f.value='';f.click()}},
   dbdisc:async()=>{await API.dbDisconnect();await dbStatus();DB.err=null;render();toast('Base de données déconnectée sur ce PC (les données restent en ligne)')},
   dbaudit:()=>dbAudit(),
   qcnew:()=>{const Q=U.qc;openE(null,Q.a<=Q.b?Q.a:Q.b,Q.a<=Q.b?Q.b:Q.a);if(MD&&MD.d){MD.d.desc=Q.txt;MD.d.man.items={...qcMan()};drawE()}},
@@ -2755,6 +2787,8 @@ document.addEventListener('input',e=>{
   // « 50chaises » : on sépare tout de suite le nombre du mot pour que l'appli le comprenne
   if(t.classList&&t.classList.contains('ht')&&MD&&MD.k==='p'){readP();drawP();return}
   if(t.id==='auq'){auDraw();return}
+  if(t.id==='qrfile'&&t.files&&t.files[0]){const img=new Image(),url=URL.createObjectURL(t.files[0]);img.onload=()=>{let w=img.naturalWidth,h=img.naturalHeight,sc=Math.min(1,1600/Math.max(w,h));const tryRead=s0=>{const c=document.createElement('canvas');c.width=Math.round(w*s0);c.height=Math.round(h*s0);const x=c.getContext('2d');x.drawImage(img,0,0,c.width,c.height);const d=x.getImageData(0,0,c.width,c.height);return jsQR(d.data,c.width,c.height)};
+    const q=tryRead(sc)||tryRead(sc*0.5);URL.revokeObjectURL(url);if(q&&/^SI1\./.test(q.data)){$('#dbcode').value=q.data;A.dbconnect()}else toast('QR code non reconnu : rapproche-toi et réessaie')};img.src=url;return}
   if(t.id==='wpt'){const g=document.querySelector('.wpgo');if(g)g.disabled=t.value.trim().toUpperCase()!=='SUPPRIMER';return}
   if(t.dataset.qk!==undefined&&U.qc&&U.qc.items){const x=U.qc.items[+t.dataset.qk];if(x){x.q=Math.max(0,parseInt(t.value)||0);const r=$('#qcr');if(r)r.innerHTML=qcRes()}return}
   if(t.dataset.qc==='txt'||t.dataset.ev==='desc'){const re=/(\d)(?=[a-zà-ÿœA-ZÀ-Ÿ]{3,})/g;if(re.test(t.value)){const c=t.selectionStart,before=t.value.slice(0,c),nb=(before.match(re)||[]).length;t.value=t.value.replace(re,'$1 ');t.setSelectionRange(c+nb,c+nb)}}
@@ -2800,7 +2834,7 @@ render();
 if(FIRST){MD={k:'w'};$('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(460px,100%)"><div class="dh"><h3 id="mt">Bienvenue dans StockInfos</h3></div><div class="wel"><div class="f" style="margin:0"><label for="w-co">Nom de ton entreprise</label><input class="in" id="w-co" placeholder="Ex : Location Martin" autocomplete="off"><span class="h">Il s'affichera en haut de l'app. Tu pourras le changer dans Paramètres.</span></div><p style="margin:8px 0 0">Comment veux-tu commencer ?</p><button class="btn" data-act="welcome" data-v="ex"><span><b>Avec des exemples</b><small>Du matériel, des kits et des chantiers fictifs pour tout essayer. Tu pourras les effacer dans Paramètres.</small></span></button><button class="btn" data-act="welcome" data-v="vide"><span><b>Avec un stock vide</b><small>Pour saisir directement ton vrai matériel et relier Google Agenda.</small></span></button></div></div></div>`}
 else{if(!S.cfg.coAsked){MD={k:'co'};$('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(420px,100%)"><div class="dh"><h3 id="mt">Nom de ton entreprise</h3></div><div class="wel"><p style="margin:0">L'app s'appelle maintenant <b>StockInfos</b>. Quel nom d'entreprise veux-tu afficher en haut ?</p><input class="in" id="w-co" value="${esc(S.cfg.company||'')}" placeholder="Ex : Location Martin" autocomplete="off"><span class="h">Tu pourras le changer dans Paramètres.</span></div><div class="df"><button class="btn" data-act="co-skip">Ne rien afficher</button><button class="btn pri" data-act="co-ok">Valider</button></div></div></div>`;setTimeout(()=>$('#w-co')?.focus(),50)}
   dbStatus().then(st=>{if(st&&st.connected)dbSync(false);const n=document.querySelector('.dbs');if(n)n.outerHTML=dbNavHTML()});
-  if(!S.cfg.tourDone&&!MD)setTimeout(()=>{if(!MD&&!TOUR.on)tourStart()},700);
+  if(!S.cfg.tourDone&&!MD&&!MOB)setTimeout(()=>{if(!MD&&!TOUR.on)tourStart()},700);
   if(S.cfg.cals.length)syncNow(false);gStatus().then(st=>{if(st&&st.connected)gSync(false);if(U.view==='set')render()});}
 }
 </script>

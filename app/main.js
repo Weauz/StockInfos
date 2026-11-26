@@ -462,6 +462,7 @@ ipcMain.handle('db-connect', async (e, code) => {
   dbWrite(cfg); journal('base de données connectée');
   return true;
 });
+ipcMain.handle('db-code', () => { const c = dbRead(); return c ? 'SI1.' + Buffer.from(JSON.stringify({ u: c.u, a: c.a, k: c.k })).toString('base64').replace(/\+/g, '-').replace(/\//g, '_') : null; });
 ipcMain.handle('db-disconnect', () => { try { fs.unlinkSync(dbFile()); } catch (e) {} return true; });
 ipcMain.handle('db-req', async (e, o) => {
   const cfg = dbRead(); if (!cfg) throw new Error('base non connectée');

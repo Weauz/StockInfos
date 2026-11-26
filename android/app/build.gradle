@@ -1,0 +1,49 @@
+plugins {
+    id 'com.android.application'
+}
+
+// La version suit celle de l'application PC (package.json)
+def pkg = new groovy.json.JsonSlurper().parse(file('../../package.json'))
+def ver = (pkg.version ?: '1.0.0') as String
+def parts = ver.tokenize('.').collect { it as int }
+def code = parts[0] * 10000 + parts[1] * 100 + parts[2]
+
+android {
+    namespace 'fr.stockinfos.app'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'fr.stockinfos.app'
+        minSdk 26
+        targetSdk 35
+        versionCode code
+        versionName ver
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            // signée avec la clé de debug tant qu'on ne passe pas par le Play Store
+            signingConfig signingConfigs.debug
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+// Copie l'interface de l'appli PC dans l'app Android avant chaque fabrication
+tasks.register('copierInterface', Copy) {
+    from('../../app/renderer') { exclude 'index.html' }
+    from('../../app/renderer/index.html') {
+        filter { String line -> line.contains('<script src="vendor/qr/qrcode.js"></script>') ? '<script src="android-api.js"></script>\n' + line : line }
+    }
+    from('android-api.js')
+    into 'src/main/assets/www'
+}
+preBuild.dependsOn copierInterface
+
+dependencies {
+    implementation 'androidx.core:core:1.13.1'
+}

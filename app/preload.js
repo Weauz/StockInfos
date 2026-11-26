@@ -20,6 +20,7 @@ contextBridge.exposeInMainWorld('api', {
   backupNow: () => ipcRenderer.sendSync('backup-now'),
   dbStatus: () => ipcRenderer.invoke('db-status'),
   dbConnect: c => ipcRenderer.invoke('db-connect', c),
+  dbCode: () => ipcRenderer.invoke('db-code'),
   dbDisconnect: () => ipcRenderer.invoke('db-disconnect'),
   dbReq: o => ipcRenderer.invoke('db-req', o),
   gStatus: () => ipcRenderer.invoke('g-status'),
