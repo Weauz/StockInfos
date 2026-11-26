@@ -962,6 +962,10 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .tbub small{color:var(--acc);font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em}.tbub h3{margin:4px 0 6px;font-size:17px}.tbub p{margin:0 0 14px;font-size:13.5px;line-height:1.5}
 .tbb{display:flex;align-items:center;gap:6px}
 @media(prefers-reduced-motion:reduce){.tspot{transition:none}}
+.hero.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.hnext{align-items:center}.hnext .hlink{display:block;border:0;background:none;padding:0;margin:2px 0;font:inherit;font-size:20px;font-weight:700;color:var(--ink);cursor:pointer;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.hnext .hlink:hover{color:var(--acc)}
+.hnext .hw{color:var(--acc);font-weight:700}.hact{margin-left:auto;align-self:center}.htile .hn{font-size:20px}
+@media(max-width:900px){.hero.two{grid-template-columns:1fr}}
 .qcbox{display:flex;flex-wrap:wrap;align-items:flex-start;gap:6px;padding:8px;min-height:84px;cursor:text;height:auto}
 .qcbox:focus-within{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 18%,transparent)}
 .qcks{display:contents}
@@ -1348,10 +1352,14 @@ VIEWS.dash=()=>{
   const sec=(icon,title,sub,body,o={})=>`<section class="card dsec${o.cls?' '+o.cls:''}"><header class="dsh"><span class="dsi${o.tone?' '+o.tone:''}">${ic(icon)}</span><h2>${title}${sub?`<small>${sub}</small>`:''}</h2>${o.link||''}</header><div class="dsb">${body}</div></section>`;
   const tc=S.events.filter(ev=>{const r=rng(ev);return counts(ev)&&r.e<=TODAY&&r.e>=add(TODAY,-30)&&!ev.checked&&Object.keys(P(ev).items).length}).sort((a,b)=>rng(b).e<rng(a).e?-1:1);
   return `<div class="dash">
-  <div class="hero">
-    <button class="htile" data-act="view" data-v="plan"><span class="hi">${ic('cal')}</span><span><small>Chantiers en cours</small><b>${act.length}</b><em>${act.length?act.slice(0,2).map(e=>esc(short(e.title))).join(', ')+(act.length>2?'…':''):'Aucun aujourd\'hui'}</em></span></button>
-    ${(()=>{const ten=S.products.filter(p=>{const a=p.qty-usage(p.id,d);return p.qty>0&&usage(p.id,d)>0&&a<=Math.max(1,Math.round(p.qty*.2))});return `<button class="htile${ten.length?' warn':''}" data-act="view" data-v="stock"><span class="hi">${ic('box')}</span><span><small>Produits presque épuisés aujourd'hui</small><b>${ten.length}<i> / ${S.products.length}</i></b><em>${ten.length?ten.slice(0,3).map(p=>esc(p.name)).join(', ')+(ten.length>3?'…':''):'Le stock est large'}</em></span></button>`})()}
-    <button class="htile${nAl?' bad':' good'}" data-act="dpanel" data-k="al"><span class="hi">${ic(nAl?'alert':'check')}</span><span><small>À surveiller</small><b>${nAl}</b><em>${nAl?(SH.length?`${SH.length} manque${SH.length>1?'s':''} prévu${SH.length>1?'s':''}`:'')+(SH.length&&unk.length?' · ':'')+(unk.length?`${unk.length} à vérifier`:''):'Tout est en ordre'}</em></span></button>
+  <div class="hero two">
+    ${(()=>{const now=new Date(),hm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+      const nx=S.events.filter(ev=>counts(ev)&&Object.keys(P(ev).items).length&&(ev.start>TODAY||(ev.start===TODAY&&(!ev.t0||ev.t0>=hm))&&!evOut(ev,add(TODAY,-1)))).sort((x,y)=>evKey(x)<evKey(y)?-1:1)[0];
+      if(!nx)return `<div class="htile"><span class="hi">${ic('truck')}</span><span><small>Prochain départ</small><b class="hn">Aucun</b><em>Pas de chantier prévu avec du matériel.</em></span></div>`;
+      const dd=diff(TODAY,nx.start),when=(dd===0?'Aujourd\'hui':dd===1?'Demain':fmt(nx.start,{weekday:'long',day:'numeric',month:'short'}))+(nx.t0?' à '+hh(nx.t0):''),pi=P(nx).items,np=Object.values(pi).reduce((n,q)=>n+q,0),nr=Object.keys(pi).length;
+      return `<div class="htile hnext"><span class="hi">${ic('truck')}</span><span><small>Prochain départ · <span class="hw">${when}</span></small><button class="hlink" data-act="openev" data-id="${nx.id}">${esc(nx.title)}</button><em>${nr} produit${nr>1?'s':''} · ${np} pièce${np>1?'s':''}${nx.lieu?' · '+esc(nx.lieu):''}</em></span><span class="hact"><button class="btn sm" data-act="printload" data-id="${nx.id}">${ic('print')}Liste de chargement</button></span></div>`})()}
+    ${(()=>{const lim=add(TODAY,30),sh=SH.filter(x=>x.from<=lim),evs=new Map();sh.forEach(x=>x.evs.forEach(e=>evs.set(e.id,e)));const n=evs.size,first=sh[0];
+      return `<button class="htile${n?' bad':' good'}" data-act="dpanel" data-k="man"><span class="hi">${ic(n?'alert':'check')}</span><span><small>Manques à venir · 30 jours</small><b>${n?`${n} chantier${n>1?'s':''}`:'Aucun'}</b><em>${first?`Il manque ${first.miss} ${esc(first.p.name)} ${first.from===first.to?'le '+fmt(first.from,{day:'numeric',month:'short'}):'dès le '+fmt(first.from,{day:'numeric',month:'short'})}${sh.length>1?` · et ${sh.length-1} autre${sh.length>2?'s':''}`:''}`:'Tout le matériel est disponible.'}</em></span></button>`})()}
   </div>
   ${sec('search','Vérif rapide pour un devis','Écris le matériel, l\'appli vérifie le stock sur les dates choisies',qcHTML(),{cls:'qc qcbig'})}
   ${sec('truck','À venir','5 prochains jours',weekHTML(),{link:`<button class="lnk" data-act="view" data-v="plan" style="margin-left:auto">Ouvrir le planning</button><div class="seg wks" role="tablist"><button class="${(U.wkm||'out')==='out'?'on':''}" data-act="wkm" data-v="out" role="tab">Chantiers <span class="wkn">${wkCount('out')}</span></button><button class="${U.wkm==='in'?'on':''}" data-act="wkm" data-v="in" role="tab">Retours <span class="wkn">${wkCount('in')}</span></button></div>`})}
@@ -1359,8 +1367,8 @@ VIEWS.dash=()=>{
     const lossN=(S.casse||[]).filter(c=>c.date>=add(TODAY,-30)).reduce((n,c)=>n+c.q,0)+S.events.filter(ev=>ev.checked&&ev.checked.date>=add(TODAY,-30)).reduce((n,ev)=>n+(ev.checked.losses||[]).filter(l=>l.fate==='perdu'&&!l.undone).reduce((m,l)=>m+l.q,0),0);
     DPANELS={
       evs:{t:'Chantiers en cours et à venir',i:'cal',h:`<div class="dlist">${allEv.map(dcard).join('')||'<div class="empty">Aucun chantier prévu.</div>'}</div>`},
-      al:{t:'À surveiller',i:'alert',h:nAl?`<div class="al-card">
-        ${SH.map(sh=>`<button class="al" data-act="openp" data-id="${sh.p.id}">${ic('alert')}<span><strong>Il manque ${sh.miss} ${esc(sh.p.name)}</strong><small>${sh.from===sh.to?'le '+fmt(sh.from):'du '+fmt(sh.from)+' au '+fmt(sh.to)} · ${sh.evs.map(e=>esc(short(e.title))).join(', ')}</small></span></button>`).join('')}
+      man:{t:'Manques à venir',i:'alert',h:SH.length?`<div class="al-card">${SH.map(sh=>`<button class="al" data-act="openp" data-id="${sh.p.id}">${ic('alert')}<span><strong>Il manque ${sh.miss} ${esc(sh.p.name)}</strong><small>${sh.from===sh.to?'le '+fmt(sh.from):'du '+fmt(sh.from)+' au '+fmt(sh.to)} · ${sh.evs.map(e=>esc(short(e.title))).join(', ')}</small></span></button>`).join('')}</div>`:'<div class="empty">Tout le matériel est disponible sur les chantiers prévus.</div>'},
+      al:{t:'À vérifier dans les chantiers',i:'eye',h:unk.length?`<div class="al-card">
         ${unk.map(ev=>`<button class="al w" data-act="openev" data-id="${ev.id}">${ic('eye')}<span><strong>${[...P(ev).amb.map(a=>`« ${esc(a.label)} » : plusieurs produits possibles`),...(P(ev).umiss||[]).map(a=>`« ${esc(a.label)} » : aucun produit dans cette unité`),...(P(ev).unknown.length?['Pas reconnu : '+P(ev).unknown.map(u=>esc(u.name)).join(', ')]:[])].join(' · ')}</strong><small>dans « ${esc(short(ev.title))} » · clique pour préciser</small></span></button>`).join('')}
       </div>`:'<div class="empty">Tout est en ordre.</div>'},
       ret:{t:'Retours à vérifier',i:'back',h:tc.length?`${tc.map(ev=>`<button class="ret" data-act="retopen" data-id="${ev.id}"><span class="jx" style="background:var(--ambbg);color:var(--amb)">${ic('back')}</span><span><strong>${esc(short(ev.title))}</strong><span>terminé le ${fmt(rng(ev).e)} · clique pour vérifier</span></span></button>`).join('')}`:'<div class="empty">Aucun retour à vérifier.</div>'},
@@ -1368,7 +1376,7 @@ VIEWS.dash=()=>{
       hs:{t:'Hors service · à réparer',i:'tool',h:hsHTML()},
       loss:{t:'Casse et pertes',i:'alert',h:lossHTML()}};
     const B=(k,l,n,tone)=>`<button class="dbar-b${tone?' '+tone:''}" data-act="dpanel" data-k="${k}">${ic(DPANELS[k].i)}<span>${l}</span>${n!==''?`<b>${n}</b>`:''}</button>`;
-    return `<div class="dbar" role="navigation" aria-label="Autres informations">${nAl?B('al','À surveiller',nAl,'bad'):''}${tc.length?B('ret','Retours à vérifier',tc.length,'warn'):''}${B('top','Matériel le plus demandé','')}${B('hs','À réparer',hsN,hsN?'warn':'')}${B('loss','Casse et pertes',lossN,lossN?'bad':'')}</div>`})()}
+    return `<div class="dbar" role="navigation" aria-label="Autres informations">${unk.length?B('al','Mots non reconnus',unk.length,'warn'):''}${tc.length?B('ret','Retours à vérifier',tc.length,'warn'):''}${B('top','Matériel le plus demandé','')}${B('hs','À réparer',hsN,hsN?'warn':'')}${B('loss','Casse et pertes',lossN,lossN?'bad':'')}</div>`})()}
   </div>`;
 };
 function stockInfo(p){
@@ -2420,7 +2428,7 @@ function closePal(){PAL.on=false;drawPal()}
 /* ---------- glisser pour créer un chantier ---------- */
 /* ---------- visite guidée ---------- */
 const TSTEPS=[
-  {v:'dash',s:'.hero',t:'Le tableau de bord',x:'Ton point de départ. En haut, l\'essentiel du jour : le matériel sorti, les chantiers en cours et ce qui est à surveiller. Clique sur une tuile pour voir le détail.'},
+  {v:'dash',s:'.hero',t:'Le tableau de bord',x:'Ton point de départ. En haut : le prochain chantier qui part (avec sa liste de chargement à imprimer) et les manques de matériel prévus sur les 30 prochains jours. Clique dessus pour voir le détail.'},
   {v:'dash',s:'.qc',t:'La vérif rapide pour un devis',x:'Un client appelle ? Choisis les dates, écris le matériel (« 120 chaises, 2 barnums ») : l\'appli te dit tout de suite si tu as assez de stock. Les produits proposés deviennent des blocs, la croix les retire. « Créer un chantier » reprend tout.'},
   {v:'dash',s:'.dsec:has(.wks)',t:'À venir',x:'Les 5 prochains jours. Le bouton « Chantiers » montre les départs, « Retours » ce qui doit revenir, avec l\'heure.'},
   {v:'dash',s:'.dbar',t:'Les autres infos',x:'En bas : les alertes, les retours à vérifier, le matériel le plus demandé, ce qui est à réparer, et l\'historique de la casse et des pertes. Un clic ouvre chaque liste.'},
