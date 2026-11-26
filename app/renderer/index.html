@@ -1056,6 +1056,38 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .mob [data-act=printload],.mob [data-act=pdfload],.mob [data-act=invopen],.mob [data-act=impopen],.mob [data-act=export],.mob [data-act=import],.mob [data-act=tour],.mob [data-act=print]{display:none!important}
 .mob .tg .tgb{height:auto}
 .mob input,.mob select,.mob textarea{font-size:16px}
+/* téléphone : tout plus gros et plus facile à toucher */
+.mob{font-size:15.5px}
+.mob .btn{height:46px;padding:0 16px;font-size:15.5px;border-radius:12px;gap:8px}
+.mob .btn.sm{height:42px;padding:0 13px;font-size:14.5px;border-radius:10px}
+.mob .btn svg{width:19px;height:19px}
+.mob .ib{width:46px;height:46px;border-radius:12px}.mob .ib svg{width:22px;height:22px}
+.mob select,.mob .in{height:50px;font-size:16px;border-radius:12px;padding:0 14px}
+.mob textarea.in{height:auto;padding:12px 14px}
+.mob .search{height:50px;border-radius:12px}.mob .search input{height:48px;font-size:16px}
+.mob .step{gap:8px}.mob .step .btn{width:50px;height:50px;font-size:22px}
+.mob .chip{font-size:14px;padding:4px 10px;border-radius:12px}
+.mob .lnk{font-size:15px;padding:6px 0}
+.mob h4{font-size:15px;margin:18px 0 8px}
+.mob .h,.mob .note{font-size:14px}
+.mob .card{padding:16px;border-radius:16px}
+.mob .dh{padding:14px 12px 14px 18px}.mob .dh h3{font-size:19px}
+.mob .df{padding:12px;gap:10px}.mob .df .btn{flex:1 1 auto;justify-content:center}.mob .df .ib{flex:none}
+.mob .dpb,.mob .wel,.mob .db{font-size:15.5px}
+.mob .f label{font-size:14.5px}
+.mob .ri{padding:12px 0;font-size:15.5px}
+.mob .mpad button{min-height:62px;font-size:26px}
+.mob .mstep button{width:48px;height:48px;font-size:24px}.mob .mstep b{font-size:22px}.mob .mstep span{font-size:15px}
+.mob .mbtns .btn{height:54px;font-size:16px}
+.mob .mprog{font-size:16px}.mob .mrhead b{font-size:17px}
+.mob .mrc{padding:18px;border-radius:18px}.mob .mrt b{font-size:18px}.mob .mrt small{font-size:14px}
+.mob .mrr{padding:14px 0}.mob .mrr b{font-size:16px}.mob .mrr small{font-size:14px}
+.mob .ihr{padding:14px 2px}.mob .ihd b,.mob .ihi b{font-size:16px}.mob .ihd small,.mob .ihi small{font-size:13.5px}
+.mob .ivr{font-size:16px}.mob .ivn{height:48px}
+.mob .mcats .btn{height:48px}
+.mob .tg .tgb{min-height:44px}
+.mob .msteps{grid-template-columns:1fr}.mob .mstep{padding:8px 12px}
+.mob .dsh:has(.wks){flex-wrap:wrap;row-gap:10px}.mob .dsh:has(.wks) h2{white-space:nowrap}.mob .dsh .wks{flex:1 1 100%;margin-left:0;display:flex}.mob .dsh .wks button{flex:1;justify-content:center}.mob .dsh:has(.wks) h2{flex:1;overflow:visible}.mob .wks button{height:40px;padding:0 14px;font-size:14.5px}
 .mob .dsh h2 small,.mob .dsh .lnk{display:none}.mob .dsh{flex-wrap:wrap}
 
 .mob nav{display:none!important}
@@ -2136,8 +2168,7 @@ function drawP(){
   if(d.id){
     const days=[...Array(14)].map((_,i)=>add(TODAY,i));
     const evs=S.events.filter(ev=>P(ev).items[d.id]&&rng(ev).back>=TODAY).sort((a,b)=>rng(a).s<rng(b).s?-1:1);
-    extra=`<div class="pad">${avChart(d,days)}
-    <details class="adv" style="margin-top:14px"><summary>${ic('back')} Historique</summary>${histHTML(byId(d.id)||d)}</details>
+    extra=`<div class="pad">
     <h4>Réservé sur</h4>${evs.map(ev=>{const r=rng(ev),j=diff(TODAY,r.back);return `<div class="ri"><span><b>${esc(ev.title)}</b><br><span class="h">${range(r.s,r.e)} · revient ${jours(j)}</span></span><b>×${P(ev).items[d.id]}</b></div>`}).join('')||'<div class="h">Aucun chantier à venir n\'utilise ce produit.</div>'}</div>`;
   }
   $('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt">
@@ -2590,7 +2621,7 @@ const TSTEPS=[
   {v:'dash',s:'.qc',t:'Vérif rapide pour un devis',x:'Choisis les dates, puis écris le matériel, par exemple « 120 chaises, 2 barnums ». À droite, l\'appli dit tout de suite s\'il y en a assez. Un produit choisi dans les propositions devient un bloc : tu peux changer sa quantité ou le retirer avec la croix. « Créer un chantier avec ce matériel » reprend tout.'},
   {v:'dash',s:'.dsec:has(.wks)',t:'À venir',x:'Les 5 prochains jours. Le bouton « Chantiers » montre les départs, « Retours » ce qui doit revenir. « Ouvrir le planning » mène au planning complet.'},
   {v:'dash',s:'.dbar',t:'La barre du bas',x:'Un clic ouvre chaque liste : « Retours à vérifier », « Matériel le plus demandé », « À réparer » (clique sur une ligne quand c\'est réparé ou cassé) et « Casse et pertes » (l\'historique de ce qui a été retiré du stock, avec « Annuler » en cas d\'erreur). « Mots non reconnus » apparaît quand un chantier contient un mot que l\'appli ne comprend pas.'},
-  {v:'stock',s:'.pgrid,.stbl,.plist',t:'Le stock',x:'Tout ton matériel, avec ce qui est dispo à la date choisie en haut. Clique sur un produit pour changer sa quantité, utiliser « Déclarer à réparer » ou « Déclarer cassé », et voir sa disponibilité sur 14 jours. « Ajouter un produit » en crée un nouveau.'},
+  {v:'stock',s:'.pgrid,.stbl,.plist',t:'Le stock',x:'Tout ton matériel, avec ce qui est dispo à la date choisie en haut. Clique sur un produit pour changer sa quantité, utiliser « Déclarer à réparer » ou « Déclarer cassé », et voir sur quels chantiers il est réservé. « Ajouter un produit » en crée un nouveau.'},
   {v:'stock',s:'[data-act=impopen]',t:'Importer',x:'Remplis ton stock d\'un coup depuis un fichier Excel, CSV ou PDF. L\'appli devine les colonnes, et tu vérifies avant de valider.'},
   {v:'minv',s:'.minv',t:'Inventaire',x:'Compte le stock produit par produit, à l\'écran ou sur le téléphone, ou utilise la « Feuille papier » à imprimer puis scanner. À la fin, l\'appli met les quantités à jour et garde un rapport PDF de chaque inventaire.'},
   {v:'packs',s:'main > .tools,main',t:'Les kits',x:'Un kit regroupe des produits qui partent toujours ensemble. Crée-le avec « Nouveau kit », puis écris son nom dans un chantier (par exemple « 1 chapiteau réception ») : tout son contenu est réservé.'},
