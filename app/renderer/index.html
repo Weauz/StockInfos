@@ -1059,6 +1059,7 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .mob .dsh h2 small,.mob .dsh .lnk{display:none}.mob .dsh{flex-wrap:wrap}
 
 .mob nav{display:none!important}
+body:has(#modal .ov) #fab,body:has(#modal .ov) #fabm{display:none!important}
 #fab{position:fixed;z-index:70;width:56px;height:56px;border-radius:50%;border:0;background:var(--acc);color:var(--accink);opacity:.55;box-shadow:0 6px 18px rgba(0,0,0,.25);display:grid;place-items:center;touch-action:none;transition:left .2s,top .2s,opacity .2s,transform .15s;-webkit-tap-highlight-color:transparent}
 #fab svg{width:28px;height:28px;stroke-width:1.8}#fab.on,#fab.open{opacity:1}#fab.on{transform:scale(1.08)}#fab.open{transform:rotate(-12deg)}
 #fabm{position:fixed;inset:0;z-index:69;background:rgba(0,0,0,0);transition:background .16s}#fabm.show{background:rgba(0,0,0,.35)}
@@ -1085,6 +1086,16 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .minvh .card{padding:18px}.minvh h3{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:16px}.minvh h3 svg{color:var(--acc)}
 .invsync{margin:0 0 10px;font-size:12.5px;line-height:1.45;color:var(--ok)}.invsync svg{width:15px;height:15px;vertical-align:-3px;margin-right:5px}.invsync .lnk{margin-left:4px}.invsync.off{color:var(--amb)}
 .ihl{display:flex;flex-direction:column}.ihr{display:flex;align-items:center;gap:14px;padding:11px 4px;border-bottom:1px solid var(--line)}.ihr:last-child{border-bottom:0}
+.ihb{flex:1;display:flex;align-items:center;gap:14px;border:0;background:none;padding:0;text-align:left;font:inherit;color:inherit;cursor:pointer;min-width:0}.ihb:hover .ihi>b{color:var(--acc)}
+.ihm{font-style:normal;font-size:11px;font-weight:600;color:var(--amb);background:var(--ambbg);padding:1px 6px;border-radius:6px;margin-left:4px}
+.ivs{display:flex;gap:8px;margin-bottom:12px}.ivs span{flex:1;padding:8px;border-radius:10px;background:var(--bg);text-align:center;font-size:12px;color:var(--mute)}.ivs b{display:block;font-size:20px;color:var(--ink)}.ivs .bad b{color:var(--red)}
+.ivt{border:1px solid var(--line);border-radius:12px;overflow:hidden}.ivh,.ivr{display:grid;grid-template-columns:minmax(0,1fr) 64px 84px 84px 72px 64px;gap:8px;align-items:center;padding:8px 12px}
+.ivh{background:var(--bg);font-size:11.5px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.03em}.ivh span:not(:first-child),.ivr>span:not(.ivp){text-align:center}
+.ivr{border-top:1px solid var(--line);font-size:14px}.ivr.bad{background:var(--redbg)}.ivp{display:flex;flex-direction:column}.ivp small{color:var(--mute);font-size:12px}
+.ivr em{font-style:normal;font-weight:700}.ivr .neg{color:var(--red)}.ivr .pos{color:var(--ok)}.ivn{width:100%;text-align:center;padding:6px 4px}
+.ivd .dpb{max-height:min(62vh,640px);overflow:auto}
+.mob .ivh{display:none}.mob .ivr{grid-template-columns:repeat(4,1fr);padding:10px 12px}.mob .ivp{grid-column:1/-1}.mob .ivr>span:not(.ivp){display:flex;flex-direction:column;gap:2px;font-weight:700}.mob .ivr>span:not(.ivp)::before{content:attr(data-l);font-size:10.5px;font-weight:600;color:var(--mute)}.mob .ivr>span[data-l="Prévu"]{display:none}.mob .ivn{font-size:16px}
+.mob .ivd .df{flex-wrap:wrap}
 .ihd{display:flex;flex-direction:column;min-width:92px}.ihd small,.ihi small{color:var(--mute);font-size:12px}.ihi{flex:1;display:flex;flex-direction:column}
 .ihe{font-size:12px;font-weight:700;padding:3px 9px;border-radius:10px;background:var(--okbg);color:var(--ok);white-space:nowrap}.ihe.bad{background:var(--redbg);color:var(--red)}
 .iha{display:flex;align-items:center;gap:6px}
@@ -1103,6 +1114,17 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .msteps{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mstep{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:12px;background:var(--card);border:1px solid var(--line)}.mstep span{flex:1;font-size:13px;font-weight:600;white-space:nowrap}.mstep b{min-width:24px;text-align:center;font-size:18px}.mstep button{width:34px;height:38px;flex:none;border-radius:10px;border:1px solid var(--line);background:var(--bg);font:inherit;font-size:20px;color:var(--ink)}.mstep.rep span{color:var(--amb)}.mstep.cas span{color:var(--red)}
 .mpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.mpad button{height:58px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:inherit;font-size:24px;font-weight:600}.mpad button:active{background:var(--accbg)}
 .mbtns{display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:8px}.mbtns .btn{height:52px;justify-content:center;font-size:15px;white-space:normal;line-height:1.15}.mbtns.col{grid-template-columns:1fr}
+.mret{display:flex;flex-direction:column;gap:12px}
+.mrc{display:flex;align-items:center;gap:12px;width:100%;padding:14px;border-radius:16px;border:1px solid var(--line);background:var(--card);text-align:left;font:inherit;color:var(--ink)}.mrc.late{border-color:var(--amb);box-shadow:inset 4px 0 0 var(--amb)}
+.mrc .rbadge{flex:none}.mrt{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}.mrt b{font-size:16px}.mrt small{color:var(--mute);font-size:12.5px}.mgo svg{width:20px;height:20px;color:var(--mute)}
+.mrl{padding:4px 12px}.mrr{display:flex;align-items:center;gap:12px;width:100%;padding:11px 0;border:0;border-bottom:1px solid var(--line);background:none;text-align:left;font:inherit;color:var(--ink)}.mrr:last-child{border-bottom:0}.mrr span:last-child{display:flex;flex-direction:column;min-width:0}.mrr small{color:var(--mute);font-size:12.5px}
+.mrr .mjx{flex:none;min-width:54px;text-align:center;padding:5px 6px;border-radius:9px;background:var(--accbg);color:var(--accink);font-weight:700;font-size:12px}.mrr .mjx.ok{background:var(--okbg);color:var(--ok)}
+.mrhead{display:flex;align-items:center;justify-content:space-between;gap:10px}.mrhead b{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mconf{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:12px;background:var(--redbg);color:var(--red);font-weight:600;font-size:13.5px}.mconf span{display:flex;gap:8px;justify-content:flex-end}
+.mallok{width:100%;justify-content:center;border-color:var(--ok);color:var(--ok)}
+.mstep.lost{justify-content:space-between;padding:6px 14px}.mstep.lost span{flex:0}.mstep.lost.on b{color:var(--red)}
+.mnote{text-align:center}.mnote .in{width:100%;padding:10px 12px;font-size:15px}.mdr2 .mdt{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}.mdr2 .mdt b{flex:none}.mpad span{visibility:hidden}
+.mdl button.mdr{width:100%;border:0;background:none;font:inherit;color:inherit;text-align:left}.mdr em svg{width:16px;height:16px}
 .msum{display:flex;gap:8px}.msum span{flex:1;padding:10px;border-radius:12px;background:var(--card);border:1px solid var(--line);text-align:center;font-size:13px}.msum b{display:block;font-size:24px}.msum .bad b{color:var(--red)}
 .mdl{border:1px solid var(--line);border-radius:12px;background:var(--card)}.mdr{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)}.mdr:last-child{border-bottom:0}.mdr b{flex:1}.mdr span{color:var(--mute);font-size:13px}.mdr em{font-style:normal;font-weight:700;min-width:40px;text-align:right}.mdr .neg{color:var(--red)}.mdr .pos{color:var(--ok)}
 @media print{#print .irnote{font-size:9pt;color:#444;margin-top:8px}}
@@ -2216,7 +2238,7 @@ function retDone(){return S.events.filter(ev=>ev.checked&&ev.checked.date>=add(T
 const retChips=ev=>Object.entries(P(ev).items).map(([id,q])=>{const p=byId(id);return p?`<span class="chip">${esc(p.name)} ×${q}</span>`:''}).join('');
 function retLossTxt(ev){const c=ev.checked;if(!c)return'';const L=c.losses||[];
   return L.length?L.map(l=>`<b class="${l.fate==='perdu'?'lost':'brk'}">${l.q} ${esc(l.name)} ${l.fate==='perdu'?(l.q>1?'perdus':'perdu'):(l.q>1?'cassés':'cassé')}</b>`).join(', '):'<span class="okt">Tout est revenu en bon état</span>'}
-VIEWS.ret=()=>{const tc=retToCheck(),soon=retSoon(14),done=retDone();
+VIEWS.ret=()=>{if(MOB)return mretView();const tc=retToCheck(),soon=retSoon(14),done=retDone();
   const ago=ev=>{const j=diff(rng(ev).e,TODAY);return j<=0?'Terminé aujourd\'hui':j===1?'Terminé hier':`Terminé il y a ${j} jours`};
   const byDay={};soon.forEach(ev=>{const d=rng(ev).e;(byDay[d]=byDay[d]||[]).push(ev)});
   return `<div class="retpage">
@@ -2229,6 +2251,55 @@ VIEWS.ret=()=>{const tc=retToCheck(),soon=retSoon(14),done=retDone();
   <div class="card">${Object.keys(byDay).length?Object.entries(byDay).map(([d,evs])=>{const j=diff(TODAY,d);return `<div class="rday"><span class="jx">${j===1?'Dem.':'J-'+j}<small>${fmt(d,{day:'numeric',month:'short'})}</small></span><div>${evs.sort((a,b)=>(a.t1||'99')<(b.t1||'99')?-1:1).map(ev=>`<button class="rrow" data-act="openev" data-id="${ev.id}">${ev.t1?`<i class="tm">${hh(ev.t1)}</i>`:''}<b>${esc(short(ev.title))}</b><span>${itemsTxt(ev)}</span></button>`).join('')}</div></div>`}).join(''):'<div class="empty">Aucun retour prévu dans les 14 prochains jours.</div>'}</div>
   ${done.length?`<h2 class="dh2">Déjà vérifiés <small>30 derniers jours</small></h2><div class="card">${done.map(ev=>`<button class="rrow done" data-act="openev" data-id="${ev.id}"><span class="rdate">${fmt(ev.checked.date,{day:'numeric',month:'short'})}</span><b>${esc(short(ev.title))}</b><span>${retLossTxt(ev)}${ev.checked.comment?` · <i>« ${esc(ev.checked.comment)} »</i>`:''}</span></button>`).join('')}</div>`:''}
   </div>`};
+function retCommit(id,rows,com){const ev=S.events.find(e=>e.id===id);if(!ev)return;const losses=[],notes={},t=short(ev.title);
+  for(const r of rows){const pr=byId(r.pid);if(!pr)continue;const lost=retLost(r),note=(r.note||'').trim();if(note)notes[r.pid]=note;
+    if(r.cs>0){losses.push({pid:r.pid,name:pr.name,q:r.cs,fate:'casse'});casseAdd(pr,r.cs,note,'retour',t)}
+    if(lost>0){losses.push({pid:r.pid,name:pr.name,q:lost,fate:'perdu'});pr.qty=Math.max(0,pr.qty-lost);logP(pr,'perte',`${lost} perdu${lost>1?'s':''} au retour de « ${t} »${note?' : '+note:''}`)}
+    if(note&&!r.cs&&!lost)logP(pr,'note',`Retour de « ${t} » : ${note}`)}
+  ev.checked={date:TODAY,losses,comment:com,notes};save();toast(losses.length?'Retour enregistré, stock mis à jour':'Retour enregistré : tout est revenu')}
+// ---- retours sur téléphone : un produit par écran, comme l'inventaire ----
+function mretStart(id){const ev=S.events.find(e=>e.id===id);if(!ev)return;const D=S.cfg.mretDraft;
+  if(!D||D.id!==id)S.cfg.mretDraft={id,i:0,cur:null,done:false,comment:'',rows:Object.entries(P(ev).items).filter(([pid])=>byId(pid)).map(([pid,q])=>({pid,q,ok:null,cs:0,note:''}))};
+  save();if(U.view!=='ret')setView('ret');else render();$('#main')&&($('#main').scrollTop=0)}
+function mretView(){const D=S.cfg.mretDraft,ev=D&&S.events.find(e=>e.id===D.id);
+  if(D&&!ev){delete S.cfg.mretDraft}
+  if(D&&ev)return D.done?mretSum(D,ev):mretStep(D,ev);
+  const tc=retToCheck(),soon=retSoon(7),done=retDone().slice(0,8);
+  const ago=ev=>{const j=diff(rng(ev).e,TODAY);return j<=0?'Terminé aujourd\'hui':j===1?'Terminé hier':`Terminé il y a ${j} j`};
+  const nb=ev=>Object.values(P(ev).items).reduce((n,q)=>n+q,0);
+  return `<div class="mret">
+    <div class="retalert${tc.length?'':' ok'}">${ic(tc.length?'alert':'check')}<div><b>${tc.length?`${tc.length} retour${tc.length>1?'s':''} à vérifier`:'Aucun retour à vérifier'}</b><span>${tc.length?'Touche un chantier pour compter ce qui est revenu.':'Tous les chantiers terminés ont été contrôlés.'}</span></div></div>
+    ${tc.map(ev=>{const r=rng(ev),late=diff(r.e,TODAY)>=2;return `<button class="mrc${late?' late':''}" data-act="mretgo" data-id="${ev.id}"><span class="rbadge">${ic('back')}</span><span class="mrt"><b>${esc(short(ev.title))}</b><small>${ago(ev)}${ev.lieu?' · '+esc(ev.lieu):''}</small><small>${Object.keys(P(ev).items).filter(byId).length} produit${Object.keys(P(ev).items).length>1?'s':''} · ${nb(ev)} pièces</small></span><span class="mgo">${ic('r')}</span></button>`}).join('')}
+    <h2 class="dh2">Bientôt de retour <small>7 jours</small></h2>
+    ${soon.length?`<div class="card mrl">${soon.map(ev=>{const j=diff(TODAY,rng(ev).e);return `<button class="mrr" data-act="openev" data-id="${ev.id}"><span class="mjx">${j===1?'Dem.':'J-'+j}</span><span><b>${esc(short(ev.title))}</b><small>${itemsTxt(ev)}</small></span></button>`}).join('')}</div>`:'<div class="empty">Rien ne revient dans les 7 prochains jours.</div>'}
+    ${done.length?`<h2 class="dh2">Déjà vérifiés</h2><div class="card mrl">${done.map(ev=>`<button class="mrr" data-act="openev" data-id="${ev.id}"><span class="mjx ok">${fmt(ev.checked.date,{day:'numeric',month:'short'})}</span><span><b>${esc(short(ev.title))}</b><small>${retLossTxt(ev)}</small></span></button>`).join('')}</div>`:''}
+  </div>`}
+function mretStep(D,ev){const r=D.rows[D.i],p=byId(r.pid);if(!p){D.rows.splice(D.i,1);if(!D.rows.length){delete S.cfg.mretDraft;return mretView()}D.i=Math.min(D.i,D.rows.length-1);return mretStep(D,ev)}
+  const cur=D.cur!=null?D.cur:(r.ok!=null?String(r.ok):''),okn=cur===''?null:+cur,lost=okn==null?null:Math.max(0,r.q-okn-r.cs);
+  return `<div class="minv mret">
+    <div class="mrhead"><b>${esc(short(ev.title))}</b><button class="lnk" data-act="mretcancel">Abandonner</button></div>
+    ${U.mretx?`<div class="mconf">Abandonner ce retour ? Rien ne sera enregistré.<span><button class="btn sm" data-act="mretcancelno">Continuer</button><button class="btn sm dan" data-act="mretcancelyes">Abandonner</button></span></div>`:''}
+    <div class="mprog"><span>${D.i+1} / ${D.rows.length}</span><i style="--w:${Math.round(D.i/D.rows.length*100)}%"></i><button class="lnk" data-act="mretfin">Terminer</button></div>
+    ${D.i===0&&D.rows.every(x=>x.ok==null)?`<button class="btn big mallok" data-act="mretallok">${ic('check')}Tout est revenu en bon état</button>`:''}
+    <div class="mcard">${p.photo?`<img src="${p.photo}" alt="">`:`<span class="mini">${esc(ini(p.name))}</span>`}<div><b>${esc(p.name)}</b><small>${[p.ref,p.cat].filter(Boolean).map(esc).join(' · ')}</small></div></div>
+    <div class="mexp"><span>Parti sur le chantier</span><b>${r.q}</b></div>
+    <div class="mlab">Revenus en bon état</div><div class="mval${cur===''?' empty':''}">${cur===''?'Combien en bon état ?':cur}</div>
+    <div class="msteps"><div class="mstep cas"><span>Cassés</span><button data-act="mretst" data-v="-1" aria-label="Cassés moins un">−</button><b>${r.cs}</b><button data-act="mretst" data-v="1" aria-label="Cassés plus un">+</button></div>
+      <div class="mstep lost${lost?' on':''}"><span>Perdus</span><b>${lost==null?'—':lost}</b></div></div>
+    <div class="mnote">${D.noteOpen||r.note?`<input class="in" id="mretn" data-mret-note="${D.i}" value="${esc(r.note)}" placeholder="Note : ex. 2 pieds tordus">`:`<button class="lnk" data-act="mretnote">+ Ajouter une note sur ce produit</button>`}</div>
+    <div class="mpad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-act="mretk" data-v="${n}">${n}</button>`).join('')}<span></span><button data-act="mretk" data-v="0">0</button><button data-act="mretk" data-v="del" aria-label="Effacer">⌫</button></div>
+    <div class="mbtns"><button class="btn" data-act="mretprev"${D.i?'':' disabled'}>Précédent</button><button class="btn" data-act="mretall1">Tout revenu (${r.q-r.cs})</button><button class="btn pri" data-act="mretnext"${cur===''?' disabled':''}>Suivant</button></div>
+  </div>`}
+function mretSum(D,ev){const rows=D.rows.map(r=>({...r,ok:r.ok??r.q-r.cs})),cs=rows.reduce((n,r)=>n+r.cs,0),ls=rows.reduce((n,r)=>n+retLost(r),0),okc=rows.filter(r=>!r.cs&&!retLost(r)).length;
+  return `<div class="minv mret"><div class="mrhead"><b>${esc(short(ev.title))}</b></div><h3 style="margin:0">Récapitulatif du retour</h3>
+    <div class="msum"><span><b>${okc}</b> complet${okc>1?'s':''}</span><span class="bad"><b>${cs}</b> cassé${cs>1?'s':''}</span><span class="bad"><b>${ls}</b> perdu${ls>1?'s':''}</span></div>
+    ${cs||ls?`<p class="h" style="margin:0">${cs?'Les cassés passent dans « Casse et pertes ». ':''}${ls?'Les perdus sont retirés du stock.':''}</p>`:''}
+    <div class="mdl">${rows.map((r,i)=>{const p=byId(r.pid),l=retLost(r);return `<button class="mdr mdr2" data-act="mretedit" data-i="${i}"><span class="mdt"><b>${esc(p?p.name:'?')}</b><span>${r.ok} / ${r.q} en bon état${r.cs?` · ${r.cs} cassé${r.cs>1?'s':''}`:''}${l?` · ${l} perdu${l>1?'s':''}`:''}${r.note?` · « ${esc(r.note)} »`:''}</span></span><em class="${r.cs||l?'neg':'pos'}">${r.cs||l?'−'+(r.cs+l):ic('check')}</em></button>`}).join('')}</div>
+    <p class="h" style="margin:0">Touche une ligne pour la corriger.</p>
+    <textarea class="in" id="mretc" rows="2" placeholder="Commentaire sur le retour (facultatif) : ex. rendu mouillé">${esc(D.comment||'')}</textarea>
+    <div class="mbtns col"><button class="btn pri big" data-act="mretok">${ic('check')}Valider le retour</button><button class="btn" data-act="mretedit" data-i="0">Revenir au comptage</button><button class="btn" data-act="mretcancel">Abandonner</button></div>
+    ${U.mretx?`<div class="mconf">Abandonner ce retour ? Rien ne sera enregistré.<span><button class="btn sm" data-act="mretcancelno">Continuer</button><button class="btn sm dan" data-act="mretcancelyes">Abandonner</button></span></div>`:''}
+  </div>`}
 function openRet(id){const ev=S.events.find(e=>e.id===id);const p=P(ev);MD={k:'ret',id,comment:'',rows:Object.entries(p.items).filter(([pid])=>byId(pid)).map(([pid,q])=>({pid,q,ok:q,cs:0,note:''}))};drawRet()}
 const retLost=r=>Math.max(0,r.q-r.ok-r.cs);
 function retRowState(i){const r=MD.rows[i],l=retLost(r),e=document.querySelector(`.rlost[data-i="${i}"]`);if(e){e.innerHTML=l?`${l} perdu${l>1?'s':''}`:'—';e.classList.toggle('on',l>0)}
@@ -2660,10 +2731,42 @@ function invSync(){const st=DB.st;if(!(st&&st.connected))return `<p class="invsy
 function invHist(){const L=[...(S.invRep||[])].sort((a,b)=>((b.date+(b.time||''))>(a.date+(a.time||''))?1:-1));
   if(!L.length)return '<div class="empty">Aucun inventaire pour l\'instant.</div>';
   return `<div class="ihl">${L.map(r=>{const ec=r.lines.filter(l=>l.d).length,cs=r.lines.reduce((n,l)=>n+(l.cas||0),0),rp=r.lines.reduce((n,l)=>n+(l.rep||0),0),del=U.invdel===r.id;
-    return `<div class="ihr"><div class="ihd"><b>${fmt(r.date,{day:'numeric',month:'short',year:'numeric'})}</b><small>${r.time||''}</small></div>
-      <div class="ihi"><b>${r.cat?esc(r.cat):'Tout le stock'}</b><small>${r.device?esc(r.device)+' · ':''}${r.lines.length} produit${r.lines.length>1?'s':''}${rp?` · ${rp} à réparer`:''}${cs?` · ${cs} cassé${cs>1?'s':''}`:''}</small></div>
+    return `<div class="ihr"><button class="ihb" data-act="invview" data-id="${r.id}" title="Voir le détail"><span class="ihd"><b>${fmt(r.date,{day:'numeric',month:'short',year:'numeric'})}</b><small>${r.time||''}</small></span>
+      <span class="ihi"><b>${r.cat?esc(r.cat):'Tout le stock'}${r.edited?' <i class="ihm">modifié</i>':''}</b><small>${r.device?esc(r.device)+' · ':''}${r.lines.length} produit${r.lines.length>1?'s':''}${rp?` · ${rp} à réparer`:''}${cs?` · ${cs} cassé${cs>1?'s':''}`:''}</small></span></button>
       <span class="ihe${ec?' bad':''}">${ec?`${ec} écart${ec>1?'s':''}`:'Tout juste'}</span>
-      <div class="iha">${del?`<button class="btn sm" data-act="invdelno">Annuler</button><button class="btn sm dan" data-act="invdelyes" data-id="${r.id}">Supprimer</button>`:`${MOB?'':`<button class="btn sm" data-act="minvprint" data-id="${r.id}" title="Imprimer">${ic('print')}Imprimer</button>`}<button class="btn sm" data-act="minvpdf" data-id="${r.id}">${ic('dl')}PDF</button><button class="ib" data-act="invdel" data-id="${r.id}" title="Supprimer" aria-label="Supprimer cet inventaire">${ic('trash')}</button>`}</div></div>`}).join('')}</div>`}
+      <div class="iha">${del?`<button class="btn sm" data-act="invdelno">Annuler</button><button class="btn sm dan" data-act="invdelyes" data-id="${r.id}">Supprimer</button>`:`<button class="btn sm" data-act="invview" data-id="${r.id}">${ic('eye')}Voir</button><button class="btn sm" data-act="minvpdf" data-id="${r.id}">${ic('dl')}PDF</button><button class="ib" data-act="invdel" data-id="${r.id}" title="Supprimer" aria-label="Supprimer cet inventaire">${ic('trash')}</button>`}</div></div>`}).join('')}</div>`}
+// aperçu d'un inventaire, avec correction possible
+function invView(id){const r=(S.invRep||[]).find(x=>x.id===id);if(!r)return;MD={k:'invr',id,edit:false,del:false,rows:null};drawInvView()}
+function drawInvView(){const r=(S.invRep||[]).find(x=>x.id===MD.id);if(!r){closeM();return}const E=MD.edit;
+  const L=E?MD.rows:r.lines,ec=L.filter(l=>l.c!==null&&(E?(l.bon+l.rep+l.cas-l.e):l.d)).length,cs=L.reduce((n,l)=>n+(l.cas||0),0),rp=L.reduce((n,l)=>n+(l.rep||0),0);
+  const num=(l,i,k)=>E&&l.c!==null?`<input class="in ivn" inputmode="numeric" data-i="${i}" data-k="${k}" value="${l[k]||0}" aria-label="${k==='bon'?'En bon état':k==='rep'?'À réparer':'Cassés'} : ${esc(l.name)}">`:(l.c===null?'—':(l[k]??(k==='bon'?l.c:0))||0);
+  const dd=l=>{if(l.c===null)return'<span class="h">non compté</span>';const d=E?l.bon+l.rep+l.cas-l.e:l.d;return d?`<em class="${d<0?'neg':'pos'}">${d>0?'+':''}${d}</em>`:'<em class="pos">0</em>'};
+  $('#modal').innerHTML=`<div class="ov"><div class="dlg ivd" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(820px,100%)">
+    <div class="dh"><div><h3 id="mt">${E?'Corriger l\'inventaire':'Inventaire du '+fmt(r.date,{day:'numeric',month:'long',year:'numeric'})}</h3><small class="h">${r.time||''}${r.device?' · '+esc(r.device):''} · ${r.cat?esc(r.cat):'Tout le stock'}${r.edited?` · modifié le ${fmt(r.edited.date,{day:'numeric',month:'short'})} à ${r.edited.time}${r.edited.device?' ('+esc(r.edited.device)+')':''}`:''}</small></div><span class="sp" style="flex:1"></span><button class="ib" data-act="close" aria-label="Fermer">${ic('x')}</button></div>
+    <div class="dpb">
+      ${E?`<p class="note" style="margin:0 0 10px">Change les chiffres faux puis enregistre : le stock, « À réparer » et « Casse et pertes » sont corrigés de la différence.</p>`:`<div class="ivs"><span><b>${L.length}</b>produits</span><span class="${ec?'bad':''}"><b>${ec}</b>écart${ec>1?'s':''}</span><span><b>${rp}</b>à réparer</span><span><b>${cs}</b>cassé${cs>1?'s':''}</span></div>`}
+      <div class="ivt"><div class="ivh"><span>Produit</span><span>Prévu</span><span>Bon état</span><span>À réparer</span><span>Cassés</span><span>Écart</span></div>
+      ${L.map((l,i)=>`<div class="ivr${l.c!==null&&(E?l.bon+l.rep+l.cas-l.e:l.d)?' bad':''}"><span class="ivp"><b>${esc(l.name)}</b>${l.ref?`<small>${esc(l.ref)}</small>`:''}</span><span data-l="Prévu">${l.e}</span><span data-l="Bon état">${num(l,i,'bon')}</span><span data-l="À réparer">${num(l,i,'rep')}</span><span data-l="Cassés">${num(l,i,'cas')}</span><span data-l="Écart" class="ivd${i}">${dd(l)}</span></div>`).join('')}</div>
+    </div>
+    <div class="df">${E?`<button class="btn" data-act="invedno">Annuler</button><button class="btn pri" data-act="invedok">${ic('check')}Enregistrer la correction</button>`:
+      MD.del?`<span class="l h" style="color:var(--red)">Supprimer cet inventaire ? (le stock ne change pas)</span><button class="btn" data-act="invvdelno">Non</button><button class="btn dan" data-act="invvdelyes">Supprimer</button>`:
+      `<button class="ib l" data-act="invvdel" title="Supprimer" aria-label="Supprimer cet inventaire">${ic('trash')}</button><button class="btn" data-act="minvpdf" data-id="${r.id}">${ic('dl')}PDF</button>${MOB?'':`<button class="btn" data-act="minvprint" data-id="${r.id}">${ic('print')}Imprimer</button>`}<button class="btn pri" data-act="inved">${ic('tool')}Modifier</button>`}</div>
+  </div></div>`}
+function invEditSave(){const r=(S.invRep||[]).find(x=>x.id===MD.id);if(!r)return;let n=0;
+  r.lines.forEach((l,i)=>{const m=MD.rows[i];if(l.c===null||!m)return;const p=byId(l.pid);
+    const ob=l.bon??l.c,orp=l.rep||0,oc=l.cas||0,nb=Math.max(0,m.bon|0),nr=Math.max(0,m.rep|0),nc=Math.max(0,m.cas|0);
+    if(ob===nb&&orp===nr&&oc===nc)return;n++;
+    const dq=(nb+nr)-(ob+orp);
+    if(p){if(dq){p.qty=Math.max(0,p.qty+dq)}
+      if(nr!==orp){p.hs=p.hs||[];let h=p.hs.find(h=>h.t==='rep'&&h.note==='Inventaire'&&(!h.until||h.until>=TODAY));
+        if(!h&&nr>orp){h={q:0,from:r.date,until:'',note:'Inventaire',t:'rep'};p.hs.push(h)}
+        if(h){h.q=Math.max(0,(+h.q||0)+nr-orp);if(!h.q)p.hs.splice(p.hs.indexOf(h),1)}}
+      if(nc!==oc){S.casse=S.casse||[];if(nc>oc)S.casse.unshift({id:'c'+uid(),pid:p.id,name:p.name,q:nc-oc,date:r.date,note:'Inventaire (correction)',src:'stock',ev:''});
+        else{let left=oc-nc;for(const c of S.casse.filter(c=>c.pid===p.id&&c.src==='stock'&&/^Inventaire/.test(c.note||'')&&c.date===r.date)){if(!left)break;const k=Math.min(left,c.q);c.q-=k;left-=k}S.casse=S.casse.filter(c=>c.q>0)}}
+      logP(p,'qty',`Inventaire du ${fmt(r.date,{day:'numeric',month:'short'})} corrigé : ${ob} bon / ${orp} à réparer / ${oc} cassés → ${nb} / ${nr} / ${nc}`)}
+    l.bon=nb;l.rep=nr;l.cas=nc;l.c=nb+nr+nc;l.d=l.c-l.e;l.nt=Math.max(0,(l.nt||0)+dq)});
+  if(n){const now=new Date();r.edited={date:TODAY,time:now.toTimeString().slice(0,5),device:(DB.st&&DB.st.device)||(MOB?'Téléphone':'PC')};save();toast(`Inventaire corrigé (${n} produit${n>1?'s':''}), stock mis à jour`)}else toast('Aucun changement');
+  MD.edit=false;MD.rows=null;drawInvView();render()}
 function invHome(){const cats=[...new Set(S.products.map(p=>p.cat).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
   const nw=`<section class="card invnew"><h3>${ic('check')}Nouvel inventaire</h3>
     <p class="h">Compte ce qui est à l'entrepôt, produit par produit${MOB?'':' (au clavier : le chiffre puis Entrée)'}. Le matériel parti sur un chantier est déduit tout seul.</p>
@@ -2797,6 +2900,11 @@ const A={
     S.invRep=[rep,...(S.invRep||[])].slice(0,50);delete S.cfg.minvDraft;save();render();toast(`Inventaire validé : ${n} quantité${n>1?'s':''} mise${n>1?'s':''} à jour`);setTimeout(()=>invReportPrint(rep),300)},
   minvpdf:e=>{const r=(S.invRep||[]).find(x=>x.id===e.dataset.id);if(r)invReportPrint(r)},
   minvprint:e=>{const r=(S.invRep||[]).find(x=>x.id===e.dataset.id);if(r)invReportPrint(r,'print')},
+  invview:e=>invView(e.dataset.id),
+  inved:()=>{const r=(S.invRep||[]).find(x=>x.id===MD.id);if(!r)return;MD.edit=true;MD.rows=r.lines.map(l=>({...l,bon:l.bon??l.c,rep:l.rep||0,cas:l.cas||0}));drawInvView();setTimeout(()=>$('.ivn')?.focus(),30)},
+  invedno:()=>{MD.edit=false;MD.rows=null;drawInvView()},invedok:()=>invEditSave(),
+  invvdel:()=>{MD.del=true;drawInvView()},invvdelno:()=>{MD.del=false;drawInvView()},
+  invvdelyes:()=>{const i=(S.invRep||[]).findIndex(x=>x.id===MD.id);if(i>=0){S.invRep.splice(i,1);save();toast('Inventaire supprimé (les quantités du stock ne changent pas)')}closeM();render()},
   invdel:e=>{U.invdel=e.dataset.id;render()},invdelno:()=>{U.invdel=null;render()},
   invdelyes:e=>{const i=(S.invRep||[]).findIndex(x=>x.id===e.dataset.id);U.invdel=null;if(i>=0){S.invRep.splice(i,1);save();toast('Inventaire supprimé (les quantités du stock ne changent pas)')}render()},
   qcnew:()=>{const Q=U.qc;openE(null,Q.a<=Q.b?Q.a:Q.b,Q.a<=Q.b?Q.b:Q.a);if(MD&&MD.d){MD.d.desc=Q.txt;MD.d.man.items={...qcMan()};drawE()}},
@@ -2911,20 +3019,37 @@ const A={
   redit:b=>openE(b.dataset.id),
   setunit:b=>{const x=byId(b.dataset.p);if(!x)return;x.unit=b.dataset.u;x.usize=x.usize||1;save();if(MD&&MD.k==='r')drawR();else redrawRead();render();toast('« '+x.name+' » est maintenant compté en '+b.dataset.u)},
   upick:b=>{const k=b.dataset.k,pid=b.dataset.p;if(MD&&MD.k==='r'){const ev=S.events.find(e=>e.id===MD.id);ev.upick={...(ev.upick||{}),[k]:pid};save();render();drawR();toast('C\'est noté pour ce chantier')}else if(MD&&MD.k==='e'){MD.d.upick={...(MD.d.upick||{}),[k]:pid};redrawRead()}},
-  retopen:b=>openRet(b.dataset.id),retback:b=>openR(b.dataset.id),
+  retopen:b=>{if(MOB){if(MD)closeM();mretStart(b.dataset.id)}else openRet(b.dataset.id)},retback:b=>openR(b.dataset.id),
   retall:()=>{for(const r of MD.rows){r.ok=r.q;r.cs=0}MD.comment=$('#rcom')?.value||MD.comment;drawRet()},
-  retok:()=>{const ev=S.events.find(e=>e.id===MD.id),losses=[],notes={},t=short(ev.title),com=($('#rcom')?.value||'').trim();
+  retok:()=>{retCommit(MD.id,MD.rows,($('#rcom')?.value||'').trim());closeM();render()},
+  mretgo:b=>mretStart(b.dataset.id),
+  mretk:e=>{const D=S.cfg.mretDraft;if(!D)return;const r=D.rows[D.i];let cur=D.cur!=null?String(D.cur):(r.ok!=null?String(r.ok):'');const k=e.dataset.v;
+    if(k==='del')cur=cur.slice(0,-1);else cur=(cur==='0'?'':cur)+k;if(cur.length>5)cur=cur.slice(0,5);if(cur!==''&&+cur+r.cs>r.q){toast(`Il n'en est parti que ${r.q}`);cur=String(Math.max(0,r.q-r.cs))}D.cur=cur;render()},
+  mretst:e=>{const D=S.cfg.mretDraft;if(!D)return;const r=D.rows[D.i],ok=D.cur!=null&&D.cur!==''?+D.cur:(r.ok??0);r.cs=Math.max(0,Math.min(r.q-(D.cur!=null&&D.cur!==''||r.ok!=null?ok:0),r.cs+(+e.dataset.v)));save();render()},
+  mretnext:()=>{const D=S.cfg.mretDraft;if(!D)return;const r=D.rows[D.i],cur=D.cur!=null?D.cur:(r.ok!=null?String(r.ok):'');if(cur==='')return;r.ok=Math.min(r.q-r.cs,parseInt(cur)||0);D.cur=null;D.noteOpen=false;D.i++;if(D.i>=D.rows.length){D.i=D.rows.length-1;D.done=true}save();render();$('#main').scrollTop=0},
+  mretall1:()=>{const D=S.cfg.mretDraft;if(!D)return;const r=D.rows[D.i];D.cur=String(r.q-r.cs);A.mretnext()},
+  mretprev:()=>{const D=S.cfg.mretDraft;if(!D||!D.i)return;D.cur=null;D.noteOpen=false;D.i--;save();render()},
+  mretallok:()=>{const D=S.cfg.mretDraft;if(!D)return;D.rows.forEach(r=>{r.ok=r.q;r.cs=0});D.cur=null;D.done=true;save();render()},
+  mretfin:()=>{const D=S.cfg.mretDraft;if(!D)return;D.cur=null;D.rows.forEach(r=>{if(r.ok==null)r.ok=r.q-r.cs});D.done=true;save();render()},
+  mretedit:e=>{const D=S.cfg.mretDraft;if(!D)return;D.done=false;D.i=+e.dataset.i||0;D.cur=null;D.noteOpen=false;save();render()},
+  mretnote:e=>{const D=S.cfg.mretDraft;if(!D)return;D.noteOpen=!D.noteOpen;render();if(D.noteOpen)setTimeout(()=>$('#mretn')?.focus(),30)},
+  mretcancel:()=>{U.mretx=true;render()},mretcancelno:()=>{U.mretx=false;render()},
+  mretcancelyes:()=>{U.mretx=false;delete S.cfg.mretDraft;save();render()},
+  mretok:()=>{const D=S.cfg.mretDraft;if(!D)return;const com=($('#mretc')?.value||D.comment||'').trim();const ev=S.events.find(e=>e.id===D.id);delete S.cfg.mretDraft;if(ev)retCommit(D.id,D.rows.map(r=>({...r,ok:r.ok??r.q-r.cs})),com);else save();render()},
+  _retoldok:()=>{const ev=S.events.find(e=>e.id===MD.id),losses=[],notes={},t=short(ev.title),com=($('#rcom')?.value||'').trim();
     for(const r of MD.rows){const pr=byId(r.pid);if(!pr)continue;const lost=retLost(r),note=r.note.trim();if(note)notes[r.pid]=note;
       if(r.cs>0){losses.push({pid:r.pid,name:pr.name,q:r.cs,fate:'casse'});casseAdd(pr,r.cs,note,'retour',t)}
       if(lost>0){losses.push({pid:r.pid,name:pr.name,q:lost,fate:'perdu'});pr.qty=Math.max(0,pr.qty-lost);logP(pr,'perte',`${lost} perdu${lost>1?'s':''} au retour de « ${t} »${note?' : '+note:''}`)}
       if(note&&!r.cs&&!lost)logP(pr,'note',`Retour de « ${t} » : ${note}`)}
-    ev.checked={date:TODAY,losses,comment:com,notes};save();closeM();render();toast(losses.length?'Retour enregistré, stock mis à jour':'Retour enregistré : tout est revenu')},
+    },
   printload:b=>printLoad(b.dataset.id,'print'),pdfload:b=>printLoad(b.dataset.id,'pdf'),
   nk:b=>{MD.mk=+b.dataset.k;redrawRead();$('#nk-qty')?.focus()},
   'nk-no':()=>{MD.mk=-1;redrawRead()},
   'nk-ok':()=>{const n=$('#nk-name').value.trim();if(!n)return;const u=parse(MD.d.desc).unknown[MD.mk];const kw=u&&norm(u.name)!==norm(n)?[u.name]:[];S.products.push({id:'p'+uid(),name:n,cat:'',qty:Math.max(0,parseInt($('#nk-qty').value)||0),kw,photo:''});MD.mk=-1;save();redrawRead();render();toast('« '+n+' » ajouté au stock')},
   ign:b=>{const u=parse(MD.d.desc).unknown[+b.dataset.k];if(u){S.ignored=S.ignored||[];S.ignored.push(norm(u.name));save();redrawRead();render();toast('Ce mot sera ignoré')}}
 };
+document.addEventListener('input',e=>{if(e.target.classList.contains('ivn')&&MD&&MD.k==='invr'&&MD.rows){const l=MD.rows[+e.target.dataset.i];l[e.target.dataset.k]=Math.max(0,parseInt(e.target.value)||0);const d=l.bon+l.rep+l.cas-l.e,c=document.querySelector('.ivd'+e.target.dataset.i);if(c)c.innerHTML=`<em class="${d<0?'neg':'pos'}">${d>0?'+':''}${d}</em>`;e.target.closest('.ivr').classList.toggle('bad',!!d);return}
+  const D=S.cfg&&S.cfg.mretDraft;if(!D)return;if(e.target.id==='mretn'){const r=D.rows[+e.target.dataset.mretNote];if(r){r.note=e.target.value;save()}}else if(e.target.id==='mretc'){D.comment=e.target.value;save()}});
 document.addEventListener('click',e=>{
   if(DRAG.skip){DRAG.skip=false;return}
   if(e.target.classList.contains('pov')){closePal();return}
