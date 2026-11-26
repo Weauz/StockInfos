@@ -948,6 +948,13 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .wipe label{display:block;margin:14px 0 6px;font-size:14px}.wipe #wpt{text-align:center;font-weight:700;letter-spacing:2px;font-size:16px;height:42px}
 .wpb{display:flex;gap:10px;justify-content:center;margin-top:18px}.wpgo{background:var(--red);color:#fff;border-color:var(--red)}.wpgo:disabled{opacity:.4;cursor:not-allowed}
 .hsr.cas{background:color-mix(in srgb,var(--red) 6%,transparent);border-radius:6px;padding-left:4px}
+.lsh{margin:12px 0 4px;font-size:13px}.lsh:first-child{margin-top:0}
+.dlg.hsf{width:min(460px,100%)}.hsfb{padding:16px 20px 20px}.hsfb p{margin:0 0 10px}.hsfq{font-size:15px}
+.hsfn{display:flex;align-items:center;gap:8px;margin:0 0 12px;font-size:14px}.hsfn .in{width:70px;text-align:center;font-weight:700}
+.hsfa{display:flex;flex-direction:column;gap:8px}
+.hsfo{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;cursor:pointer;text-align:left}
+.hsfo span{display:flex;flex-direction:column}.hsfo b{font-size:14.5px}.hsfo small{color:var(--mute);font-size:12.5px}.hsfo svg{width:22px;height:22px;flex:none}
+.hsfo.ok svg{color:var(--ok)}.hsfo.ok:hover{border-color:var(--ok);background:var(--okbg)}.hsfo.bad svg{color:var(--red)}.hsfo.bad:hover{border-color:var(--red);background:var(--redbg)}
 .qcbox{display:flex;flex-wrap:wrap;align-items:flex-start;gap:6px;padding:8px;min-height:84px;cursor:text;height:auto}
 .qcbox:focus-within{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 18%,transparent)}
 .qcks{display:contents}
@@ -1304,15 +1311,18 @@ function weekHTML(){const days=[...Array(5)].map((_,i)=>add(TODAY,i)),M=U.wkm||'
       ${L.map(({ev,k,t})=>`<button class="wki ${k==='out'?'wko':'wkr'}" data-act="${k==='in'&&rng(ev).e<=TODAY?'retopen':'openev'}" data-id="${ev.id}"><span>${ic(k==='out'?'ul':'back')}${k==='out'?'Départ':'Retour'}${t?`<em class="wkt">${hh(t)}</em>`:''}</span><b>${esc(short(ev.title))}</b><small>${itemsTxt(ev)}</small></button>`).join('')}
       ${L.length?'':'<span class="h">Rien</span>'}</div>`};
   return `<div class="wk">${days.map(col).join('')}</div>`}
-function hsHTML(){const rows=S.products.map(p=>({p,l:(p.hs||[]).filter(h=>h.t!=='cas'&&(!h.from||h.from<=TODAY)&&(!h.until||h.until>=TODAY)&&+h.q>0)})).filter(x=>x.l.length);
-  if(!rows.length)return '<div class="empty">Rien à réparer.</div>';
-  return rows.map(({p,l})=>`<button class="hsr2" data-act="openp" data-id="${p.id}"><b>${esc(p.name)}</b><span class="hq">${l.reduce((n,h)=>n+(+h.q),0)} à réparer</span><small>${l.map(h=>`${h.until?`jusqu'au ${fmt(h.until,{day:'numeric',month:'short'})}`:'sans date de retour'}${h.note?' · '+esc(h.note):''}`).join(' · ')}</small></button>`).join('')}
-function lossHTML(){const since=add(TODAY,-30),L=[];S.events.filter(ev=>ev.checked&&ev.checked.date>=since).forEach(ev=>(ev.checked.losses||[]).forEach(l=>L.push({...l,ev})));
+function hsHTML(){const L=[];S.products.forEach(p=>(p.hs||[]).forEach((h,i)=>{if(h.t!=='cas'&&(!h.from||h.from<=TODAY)&&(!h.until||h.until>=TODAY)&&+h.q>0)L.push({p,h,i})}));
+  if(!L.length)return '<div class="empty">Rien à réparer.</div>';
+  return `<p class="h" style="margin:0 0 4px">Clique sur une ligne quand c'est réparé, cassé ou jeté.</p>`+L.map(({p,h,i})=>`<button class="hsr2" data-act="hsfix" data-p="${p.id}" data-i="${i}"><b>${esc(p.name)}</b><span class="hq">${h.q} à réparer</span><small>${h.note?esc(h.note)+' · ':''}${h.from?'depuis le '+fmt(h.from,{day:'numeric',month:'short'}):''}${h.until?` · retour prévu le ${fmt(h.until,{day:'numeric',month:'short'})}`:''}</small></button>`).join('')}
+function lossHTML(){const since='0000-00-00',L=[];S.events.filter(ev=>ev.checked&&ev.checked.date>=since).forEach(ev=>(ev.checked.losses||[]).forEach(l=>L.push({...l,ev})));
   S.products.forEach(p=>(p.hs||[]).forEach(h=>{if(h.t==='cas'&&!h.ret&&+h.q>0&&(h.from||TODAY)>=since)L.push({pid:p.id,name:p.name,q:+h.q,fate:'casse',ev:{title:h.note?'Stock : '+h.note:'Déclaré dans le stock'}})}));
-  if(!L.length)return '<div class="empty">Rien de cassé ni de perdu ce mois-ci.</div>';
-  const by={};L.forEach(l=>{const k=l.pid;by[k]=by[k]||{name:l.name,c:0,p:0,evs:new Set()};by[k][l.fate==='perdu'?'p':'c']+=l.q;by[k].evs.add(short(l.ev.title))});
-  const tc=L.filter(l=>l.fate!=='perdu').reduce((n,l)=>n+l.q,0),tp=L.filter(l=>l.fate==='perdu').reduce((n,l)=>n+l.q,0);
-  return `<div class="lsum"><span><b class="brk">${tc}</b> cassé${tc>1?'s':''}</span><span><b class="lost">${tp}</b> perdu${tp>1?'s':''}</span></div>`+Object.entries(by).sort((x,y)=>(y[1].c+y[1].p)-(x[1].c+x[1].p)).map(([id,x])=>`<button class="hsr2" data-act="openp" data-id="${id}"><b>${esc(x.name)}</b><span class="hq">${x.c?`<i class="brk">${x.c} cassé${x.c>1?'s':''}</i>`:''}${x.c&&x.p?' · ':''}${x.p?`<i class="lost">${x.p} perdu${x.p>1?'s':''}</i>`:''}</span><small>${[...x.evs].map(esc).join(' · ')}</small></button>`).join('')}
+  (S.jetes||[]).forEach(j=>L.push({pid:j.pid,name:j.name,q:j.q,fate:'jete',ev:{title:'Jeté le '+fmt(j.date,{day:'numeric',month:'short',year:'numeric'})+(j.note?' ('+j.note+')':'')}}));
+  const inS=[];S.products.forEach(p=>(p.hs||[]).forEach((h,i)=>{if(h.t==='cas'&&+h.q>0)inS.push({p,h,i})}));
+  const kept=inS.length?`<h4 class="lsh">Matériel cassé</h4><p class="h" style="margin:0 0 4px">Clique sur une ligne si tu t'es trompé (pas cassé finalement), s'il a été réparé, ou s'il a été jeté.</p>`+inS.map(({p,h,i})=>`<button class="hsr2" data-act="hsfix" data-p="${p.id}" data-i="${i}"><b>${esc(p.name)}</b><span class="hq">${h.q} cassé${h.q>1?'s':''}</span><small>${h.note?esc(h.note)+' · ':''}${h.from?'depuis le '+fmt(h.from,{day:'numeric',month:'short'}):''}</small></button>`).join('')+'<h4 class="lsh">Historique complet</h4>':'';
+  if(!L.length)return kept+'<div class="empty">Rien de cassé ni de perdu pour l\'instant.</div>';
+  const by={};L.forEach(l=>{const k=l.pid;by[k]=by[k]||{name:l.name,c:0,p:0,evs:new Set()};by[k].j=by[k].j||0;by[k][l.fate==='perdu'?'p':l.fate==='jete'?'j':'c']+=l.q;by[k].evs.add(short(l.ev.title))});
+  const tj=L.filter(l=>l.fate==='jete').reduce((n,l)=>n+l.q,0),tc=L.filter(l=>l.fate==='casse').reduce((n,l)=>n+l.q,0),tp=L.filter(l=>l.fate==='perdu').reduce((n,l)=>n+l.q,0);
+  return kept+`<div class="lsum"><span><b class="brk">${tc}</b> cassé${tc>1?'s':''}</span><span><b class="lost">${tp}</b> perdu${tp>1?'s':''}</span>${tj?`<span><b class="lost">${tj}</b> jeté${tj>1?'s':''}</span>`:''}</div>`+Object.entries(by).sort((x,y)=>(y[1].c+y[1].p)-(x[1].c+x[1].p)).map(([id,x])=>`<button class="hsr2" data-act="openp" data-id="${id}"><b>${esc(x.name)}</b><span class="hq">${x.c?`<i class="brk">${x.c} cassé${x.c>1?'s':''}</i>`:''}${x.c&&x.p?' · ':''}${x.p?`<i class="lost">${x.p} perdu${x.p>1?'s':''}</i>`:''}${x.j?`${x.c||x.p?' · ':''}<i class="lost">${x.j} jeté${x.j>1?'s':''}</i>`:''}</span><small>${[...x.evs].map(esc).join(' · ')}</small></button>`).join('')}
 function topHTML30(){
   const end=add(TODAY,29),evs=S.events.filter(ev=>{const r=rng(ev);return counts(ev)&&r.re>=TODAY&&r.s<=end});
   const rows=S.products.map(p=>{let total=0,nb=0;for(const ev of evs){const q=P(ev).items[p.id];if(q){total+=q;nb++}}
@@ -1337,7 +1347,7 @@ VIEWS.dash=()=>{
   ${sec('search','Vérif rapide pour un devis','Écris le matériel, l\'appli vérifie le stock sur les dates choisies',qcHTML(),{cls:'qc qcbig'})}
   ${sec('truck','À venir','5 prochains jours',weekHTML(),{link:`<button class="lnk" data-act="view" data-v="plan" style="margin-left:auto">Ouvrir le planning</button><div class="seg wks" role="tablist"><button class="${(U.wkm||'out')==='out'?'on':''}" data-act="wkm" data-v="out" role="tab">Chantiers <span class="wkn">${wkCount('out')}</span></button><button class="${U.wkm==='in'?'on':''}" data-act="wkm" data-v="in" role="tab">Retours <span class="wkn">${wkCount('in')}</span></button></div>`})}
   ${(()=>{const allEv=S.events.filter(ev=>rng(ev).e>=TODAY).sort((a,b)=>evKey(a)<evKey(b)?-1:1),hsN=S.products.reduce((n,p)=>n+(p.hs||[]).filter(h=>h.t!=='cas'&&(!h.from||h.from<=TODAY)&&(!h.until||h.until>=TODAY)).reduce((m,h)=>m+(+h.q||0),0),0);
-    const lossN=S.events.filter(ev=>ev.checked&&ev.checked.date>=add(TODAY,-30)).reduce((n,ev)=>n+(ev.checked.losses||[]).reduce((m,l)=>m+l.q,0),0)+S.products.reduce((n,p)=>n+(p.hs||[]).filter(h=>h.t==='cas'&&!h.ret&&(h.from||TODAY)>=add(TODAY,-30)).reduce((m,h)=>m+(+h.q||0),0),0);
+    const lossN=S.products.reduce((n,p)=>n+(p.hs||[]).filter(h=>h.t==='cas').reduce((m,h)=>m+(+h.q||0),0),0);
     DPANELS={
       evs:{t:'Chantiers en cours et à venir',i:'cal',h:`<div class="dlist">${allEv.map(dcard).join('')||'<div class="empty">Aucun chantier prévu.</div>'}</div>`},
       al:{t:'À surveiller',i:'alert',h:nAl?`<div class="al-card">
@@ -1347,7 +1357,7 @@ VIEWS.dash=()=>{
       ret:{t:'Retours à vérifier',i:'back',h:tc.length?`${tc.map(ev=>`<button class="ret" data-act="retopen" data-id="${ev.id}"><span class="jx" style="background:var(--ambbg);color:var(--amb)">${ic('back')}</span><span><strong>${esc(short(ev.title))}</strong><span>terminé le ${fmt(rng(ev).e)} · clique pour vérifier</span></span></button>`).join('')}`:'<div class="empty">Aucun retour à vérifier.</div>'},
       top:{t:'Matériel le plus demandé · 30 jours',i:'star',h:topHTML30()},
       hs:{t:'Hors service · à réparer',i:'tool',h:hsHTML()},
-      loss:{t:'Casse et pertes · 30 jours',i:'alert',h:lossHTML()}};
+      loss:{t:'Casse et pertes',i:'alert',h:lossHTML()}};
     const B=(k,l,n,tone)=>`<button class="dbar-b${tone?' '+tone:''}" data-act="dpanel" data-k="${k}">${ic(DPANELS[k].i)}<span>${l}</span>${n!==''?`<b>${n}</b>`:''}</button>`;
     return `<div class="dbar" role="navigation" aria-label="Autres informations">${nAl?B('al','À surveiller',nAl,'bad'):''}${tc.length?B('ret','Retours à vérifier',tc.length,'warn'):''}${B('top','Matériel le plus demandé','')}${B('hs','À réparer',hsN,hsN?'warn':'')}${B('loss','Casse et pertes',lossN,lossN?'bad':'')}</div>`})()}
   </div>`;
@@ -2018,7 +2028,7 @@ function drawP(){
     </div></div>${d.id?`<div class="pad"><h4 style="margin-top:4px">${ic('tool')} Hors service : à réparer ou cassé</h4>
       <div id="hsl">${(d.hs||[]).map((h,i)=>hsRow(h,i)).join('')}</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" data-act="hsadd" data-t="rep">${ic('tool')}Déclarer à réparer</button><button class="btn sm dan" data-act="hsadd" data-t="cas">${ic('alert')}Déclarer cassé</button></div>
-      <p class="h" style="margin:6px 0 0"><b>À réparer</b> : visible dans « Hors service », à retirer une fois réparé. <b>Cassé</b> : visible dans « Casse et pertes ». Dans les deux cas, il n'est plus compté comme dispo.</p></div>`:''}${extra}
+      <p class="h" style="margin:6px 0 0"><b>À réparer</b> : visible dans « À réparer » sur le tableau de bord. <b>Cassé</b> : visible dans « Casse et pertes ». Dans les deux cas, il n'est plus compté comme dispo.</p></div>`:''}${extra}
     <div class="df">${MD.confirm?`<span class="l"><b>Supprimer « ${esc(d.name)} » ?</b> Il ne sera plus compté.</span><button class="btn" data-act="delno">Annuler</button><button class="btn pri" data-act="delyes">Supprimer</button>`:`${d.id?`<button class="btn dan l" data-act="delp">Supprimer</button><button class="btn" data-act="addto" data-id="${d.id}">${ic('plus')}Ajouter à un chantier</button>`:''}<button class="btn" data-act="close">Annuler</button><button class="btn pri" data-act="savep">Enregistrer</button>`}</div>
   </div></div>`;
   const box=$('#phbox');
@@ -2429,6 +2439,22 @@ const A={
     try{API&&API.backupNow&&API.backupNow()}catch(e){}
     if(w==='stock'){const n=S.products.length;S.products=[];S.packs=[];save();closeM();render();toast(`${n} produit${n>1?'s':''} supprimé${n>1?'s':''}`)}
     else{const n=S.events.length,ids=S.events.filter(gSyncable).map(e=>e.id);S.cfg.gdel=[...(S.cfg.gdel||[]),...ids].slice(-2000);S.events=[];save();closeM();render();gSoon(100);toast(`${n} chantier${n>1?'s':''} supprimé${n>1?'s':''}${GS.st&&GS.st.connected?', aussi dans Google Agenda':''}`)}},
+  hsfix:e=>{const pr=byId(e.dataset.p),i=+e.dataset.i,h=pr&&(pr.hs||[])[i];if(!h)return;const back=MD&&MD.k==='dp'?MD.back:null,cas=h.t==='cas';
+    MD={k:'hsfix',pid:pr.id,i,back:document.querySelector('.dpb')?(cas?'loss':'hs'):null};
+    $('#modal').innerHTML=`<div class="ov"><div class="dlg hsf" role="dialog" aria-modal="true" aria-labelledby="mt"><div class="dh"><h3 id="mt">${esc(pr.name)}</h3><button class="ib" data-act="hsback" aria-label="Fermer">${ic('x')}</button></div>
+      <div class="hsfb"><p class="hsfq">${cas?`<b>${h.q} cassé${h.q>1?'s':''}</b>`:`<b>${h.q} à réparer</b>`}${h.note?` · ${esc(h.note)}`:''}</p>
+      <p><b>${cas?'Qu\'est-il devenu ?':'A-t-il été réparé ?'}</b></p>
+      ${h.q>1?`<label class="hsfn">Combien ? <input class="in" type="number" id="hfq" min="1" max="${h.q}" value="${h.q}"> sur ${h.q}</label>`:'<input type="hidden" id="hfq" value="1">'}
+      <div class="hsfa"><button class="hsfo ok" data-act="hsdo" data-v="rep">${ic('check')}<span><b>${cas?'Pas cassé finalement / réparé':'Oui, réparé'}</b><small>Il revient dans le stock dispo</small></span></button>
+      ${cas?'':`<button class="hsfo bad" data-act="hsdo" data-v="cas">${ic('alert')}<span><b>Non, il est cassé</b><small>Il passe dans « Casse et pertes »</small></span></button>`}
+      <button class="hsfo bad" data-act="hsdo" data-v="jet">${ic('trash')}<span><b>Jeté</b><small>Retiré du stock : la quantité totale baisse</small></span></button></div></div></div></div>`},
+  hsback:()=>{const b=MD&&MD.back;closeM();if(b)A.dpanel({dataset:{k:b}})},
+  hsdo:e=>{if(!MD||MD.k!=='hsfix')return;const pr=byId(MD.pid),h=pr&&(pr.hs||[])[MD.i];if(!h)return closeM();const v=e.dataset.v,n=Math.min(+h.q,Math.max(1,parseInt(($('#hfq')||{}).value)||+h.q)),back=MD.back;
+    const take=()=>{h.q=+h.q-n;if(h.q<=0)pr.hs.splice(MD.i,1)};
+    if(v==='rep'){take();logP(pr,'repare',`${n} réparé${n>1?'s':''}${h.note?' ('+h.note+')':''}`);toast(`${n} ${pr.name} réparé${n>1?'s':''} : de nouveau dispo`)}
+    else if(v==='cas'){take();pr.hs.push({q:n,from:TODAY,until:'',note:h.note||'',t:'cas'});logP(pr,'casse',`${n} déclaré${n>1?'s':''} cassé${n>1?'s':''}${h.note?' ('+h.note+')':''}`);toast(`${n} ${pr.name} passé${n>1?'s':''} en casse`)}
+    else{take();pr.qty=Math.max(0,pr.qty-n);S.jetes=S.jetes||[];S.jetes.push({pid:pr.id,name:pr.name,q:n,date:TODAY,note:h.note||''});logP(pr,'perte',`${n} jeté${n>1?'s':''}${h.note?' ('+h.note+')':''}`);toast(`${n} ${pr.name} jeté${n>1?'s':''} : retiré${n>1?'s':''} du stock`)}
+    save();closeM();render();if(back)A.dpanel({dataset:{k:back}})},
   qcnew:()=>{const Q=U.qc;openE(null,Q.a<=Q.b?Q.a:Q.b,Q.a<=Q.b?Q.b:Q.a);if(MD&&MD.d){MD.d.desc=Q.txt;MD.d.man.items={...qcMan()};drawE()}},
   essaiadd:()=>{const pr=S.products.filter(p=>p.qty>0).sort((a,b)=>b.qty-a.qty);if(!pr.length)return;
     const P=k=>pr[k%pr.length],q=(p,f)=>Math.max(1,Math.ceil(p.qty*f)),D=n=>add(TODAY,n);
