@@ -947,6 +947,7 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .wipe h3{color:var(--red);font-size:19px;margin:0 0 10px;line-height:1.3}.wipe p{margin:0 0 10px;color:var(--ink);font-size:14px;line-height:1.45}
 .wipe label{display:block;margin:14px 0 6px;font-size:14px}.wipe #wpt{text-align:center;font-weight:700;letter-spacing:2px;font-size:16px;height:42px}
 .wpb{display:flex;gap:10px;justify-content:center;margin-top:18px}.wpgo{background:var(--red);color:#fff;border-color:var(--red)}.wpgo:disabled{opacity:.4;cursor:not-allowed}
+.hsr.cas{background:color-mix(in srgb,var(--red) 6%,transparent);border-radius:6px;padding-left:4px}
 .qcbox{display:flex;flex-wrap:wrap;align-items:flex-start;gap:6px;padding:8px;min-height:84px;cursor:text;height:auto}
 .qcbox:focus-within{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 18%,transparent)}
 .qcks{display:contents}
@@ -1303,10 +1304,11 @@ function weekHTML(){const days=[...Array(5)].map((_,i)=>add(TODAY,i)),M=U.wkm||'
       ${L.map(({ev,k,t})=>`<button class="wki ${k==='out'?'wko':'wkr'}" data-act="${k==='in'&&rng(ev).e<=TODAY?'retopen':'openev'}" data-id="${ev.id}"><span>${ic(k==='out'?'ul':'back')}${k==='out'?'Départ':'Retour'}${t?`<em class="wkt">${hh(t)}</em>`:''}</span><b>${esc(short(ev.title))}</b><small>${itemsTxt(ev)}</small></button>`).join('')}
       ${L.length?'':'<span class="h">Rien</span>'}</div>`};
   return `<div class="wk">${days.map(col).join('')}</div>`}
-function hsHTML(){const rows=S.products.map(p=>({p,l:(p.hs||[]).filter(h=>(!h.from||h.from<=TODAY)&&(!h.until||h.until>=TODAY)&&+h.q>0)})).filter(x=>x.l.length);
-  if(!rows.length)return '<div class="empty">Aucun matériel hors service.</div>';
-  return rows.map(({p,l})=>`<button class="hsr2" data-act="openp" data-id="${p.id}"><b>${esc(p.name)}</b><span class="hq">${l.reduce((n,h)=>n+(+h.q),0)} HS</span><small>${l.map(h=>`${h.until?`jusqu'au ${fmt(h.until,{day:'numeric',month:'short'})}`:'sans date de retour'}${h.note?' · '+esc(h.note):''}`).join(' · ')}</small></button>`).join('')}
+function hsHTML(){const rows=S.products.map(p=>({p,l:(p.hs||[]).filter(h=>h.t!=='cas'&&(!h.from||h.from<=TODAY)&&(!h.until||h.until>=TODAY)&&+h.q>0)})).filter(x=>x.l.length);
+  if(!rows.length)return '<div class="empty">Rien à réparer.</div>';
+  return rows.map(({p,l})=>`<button class="hsr2" data-act="openp" data-id="${p.id}"><b>${esc(p.name)}</b><span class="hq">${l.reduce((n,h)=>n+(+h.q),0)} à réparer</span><small>${l.map(h=>`${h.until?`jusqu'au ${fmt(h.until,{day:'numeric',month:'short'})}`:'sans date de retour'}${h.note?' · '+esc(h.note):''}`).join(' · ')}</small></button>`).join('')}
 function lossHTML(){const since=add(TODAY,-30),L=[];S.events.filter(ev=>ev.checked&&ev.checked.date>=since).forEach(ev=>(ev.checked.losses||[]).forEach(l=>L.push({...l,ev})));
+  S.products.forEach(p=>(p.hs||[]).forEach(h=>{if(h.t==='cas'&&!h.ret&&+h.q>0&&(h.from||TODAY)>=since)L.push({pid:p.id,name:p.name,q:+h.q,fate:'casse',ev:{title:h.note?'Stock : '+h.note:'Déclaré dans le stock'}})}));
   if(!L.length)return '<div class="empty">Rien de cassé ni de perdu ce mois-ci.</div>';
   const by={};L.forEach(l=>{const k=l.pid;by[k]=by[k]||{name:l.name,c:0,p:0,evs:new Set()};by[k][l.fate==='perdu'?'p':'c']+=l.q;by[k].evs.add(short(l.ev.title))});
   const tc=L.filter(l=>l.fate!=='perdu').reduce((n,l)=>n+l.q,0),tp=L.filter(l=>l.fate==='perdu').reduce((n,l)=>n+l.q,0);
@@ -1334,8 +1336,8 @@ VIEWS.dash=()=>{
   </div>
   ${sec('search','Vérif rapide pour un devis','Écris le matériel, l\'appli vérifie le stock sur les dates choisies',qcHTML(),{cls:'qc qcbig'})}
   ${sec('truck','À venir','5 prochains jours',weekHTML(),{link:`<button class="lnk" data-act="view" data-v="plan" style="margin-left:auto">Ouvrir le planning</button><div class="seg wks" role="tablist"><button class="${(U.wkm||'out')==='out'?'on':''}" data-act="wkm" data-v="out" role="tab">Chantiers <span class="wkn">${wkCount('out')}</span></button><button class="${U.wkm==='in'?'on':''}" data-act="wkm" data-v="in" role="tab">Retours <span class="wkn">${wkCount('in')}</span></button></div>`})}
-  ${(()=>{const allEv=S.events.filter(ev=>rng(ev).e>=TODAY).sort((a,b)=>evKey(a)<evKey(b)?-1:1),hsN=S.products.reduce((n,p)=>n+(p.hs||[]).filter(h=>(!h.from||h.from<=TODAY)&&(!h.until||h.until>=TODAY)).reduce((m,h)=>m+(+h.q||0),0),0);
-    const lossN=S.events.filter(ev=>ev.checked&&ev.checked.date>=add(TODAY,-30)).reduce((n,ev)=>n+(ev.checked.losses||[]).reduce((m,l)=>m+l.q,0),0);
+  ${(()=>{const allEv=S.events.filter(ev=>rng(ev).e>=TODAY).sort((a,b)=>evKey(a)<evKey(b)?-1:1),hsN=S.products.reduce((n,p)=>n+(p.hs||[]).filter(h=>h.t!=='cas'&&(!h.from||h.from<=TODAY)&&(!h.until||h.until>=TODAY)).reduce((m,h)=>m+(+h.q||0),0),0);
+    const lossN=S.events.filter(ev=>ev.checked&&ev.checked.date>=add(TODAY,-30)).reduce((n,ev)=>n+(ev.checked.losses||[]).reduce((m,l)=>m+l.q,0),0)+S.products.reduce((n,p)=>n+(p.hs||[]).filter(h=>h.t==='cas'&&!h.ret&&(h.from||TODAY)>=add(TODAY,-30)).reduce((m,h)=>m+(+h.q||0),0),0);
     DPANELS={
       evs:{t:'Chantiers en cours et à venir',i:'cal',h:`<div class="dlist">${allEv.map(dcard).join('')||'<div class="empty">Aucun chantier prévu.</div>'}</div>`},
       al:{t:'À surveiller',i:'alert',h:nAl?`<div class="al-card">
@@ -1344,10 +1346,10 @@ VIEWS.dash=()=>{
       </div>`:'<div class="empty">Tout est en ordre.</div>'},
       ret:{t:'Retours à vérifier',i:'back',h:tc.length?`${tc.map(ev=>`<button class="ret" data-act="retopen" data-id="${ev.id}"><span class="jx" style="background:var(--ambbg);color:var(--amb)">${ic('back')}</span><span><strong>${esc(short(ev.title))}</strong><span>terminé le ${fmt(rng(ev).e)} · clique pour vérifier</span></span></button>`).join('')}`:'<div class="empty">Aucun retour à vérifier.</div>'},
       top:{t:'Matériel le plus demandé · 30 jours',i:'star',h:topHTML30()},
-      hs:{t:'Matériel hors service',i:'tool',h:hsHTML()},
+      hs:{t:'Hors service · à réparer',i:'tool',h:hsHTML()},
       loss:{t:'Casse et pertes · 30 jours',i:'alert',h:lossHTML()}};
     const B=(k,l,n,tone)=>`<button class="dbar-b${tone?' '+tone:''}" data-act="dpanel" data-k="${k}">${ic(DPANELS[k].i)}<span>${l}</span>${n!==''?`<b>${n}</b>`:''}</button>`;
-    return `<div class="dbar" role="navigation" aria-label="Autres informations">${nAl?B('al','À surveiller',nAl,'bad'):''}${tc.length?B('ret','Retours à vérifier',tc.length,'warn'):''}${B('top','Matériel le plus demandé','')}${B('hs','Hors service',hsN,hsN?'warn':'')}${B('loss','Casse et pertes',lossN,lossN?'bad':'')}</div>`})()}
+    return `<div class="dbar" role="navigation" aria-label="Autres informations">${nAl?B('al','À surveiller',nAl,'bad'):''}${tc.length?B('ret','Retours à vérifier',tc.length,'warn'):''}${B('top','Matériel le plus demandé','')}${B('hs','À réparer',hsN,hsN?'warn':'')}${B('loss','Casse et pertes',lossN,lossN?'bad':'')}</div>`})()}
   </div>`;
 };
 function stockInfo(p){
@@ -2013,10 +2015,10 @@ function drawP(){
         ${unitKey(d.unit)?`<div class="f"><label for="p-usize">Taille d'une pièce</label><div class="step"><input class="in" id="p-usize" value="${esc(String(d.usize??1).replace('.',','))}" inputmode="decimal" style="text-align:center;width:80px;flex:none"><span class="h" style="align-self:center;white-space:nowrap;padding:0 4px">${esc(UL[unitKey(d.unit)]||d.unit)} par pièce</span></div><span class="h">« 10 ${esc(UL[unitKey(d.unit)]||d.unit)} » dans l'agenda = ${toPieces({usize:d.usize},10)} pièce(s)</span></div>`:'<div></div>'}</div>
         <div class="f"><label for="p-kw">Autres noms possibles</label><input class="in" id="p-kw" value="${esc(d.kw.join(', '))}" placeholder="Ex : tente, structure"><span class="h">Séparés par des virgules, pour les descriptions</span></div>
       </details>
-    </div></div>${d.id?`<div class="pad"><h4 style="margin-top:4px">${ic('tool')} Hors service / en réparation</h4>
+    </div></div>${d.id?`<div class="pad"><h4 style="margin-top:4px">${ic('tool')} Hors service : à réparer ou cassé</h4>
       <div id="hsl">${(d.hs||[]).map((h,i)=>hsRow(h,i)).join('')}</div>
-      <button class="btn sm" data-act="hsadd">${ic('plus')}Déclarer du matériel hors service</button>
-      <p class="h" style="margin:6px 0 0">Ce matériel n'est pas compté comme dispo. Sans date de fin, il reste hors service jusqu'à ce que tu le retires.</p></div>`:''}${extra}
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" data-act="hsadd" data-t="rep">${ic('tool')}Déclarer à réparer</button><button class="btn sm dan" data-act="hsadd" data-t="cas">${ic('alert')}Déclarer cassé</button></div>
+      <p class="h" style="margin:6px 0 0"><b>À réparer</b> : visible dans « Hors service », à retirer une fois réparé. <b>Cassé</b> : visible dans « Casse et pertes ». Dans les deux cas, il n'est plus compté comme dispo.</p></div>`:''}${extra}
     <div class="df">${MD.confirm?`<span class="l"><b>Supprimer « ${esc(d.name)} » ?</b> Il ne sera plus compté.</span><button class="btn" data-act="delno">Annuler</button><button class="btn pri" data-act="delyes">Supprimer</button>`:`${d.id?`<button class="btn dan l" data-act="delp">Supprimer</button><button class="btn" data-act="addto" data-id="${d.id}">${ic('plus')}Ajouter à un chantier</button>`:''}<button class="btn" data-act="close">Annuler</button><button class="btn pri" data-act="savep">Enregistrer</button>`}</div>
   </div></div>`;
   const box=$('#phbox');
@@ -2037,8 +2039,8 @@ function avChart(d,days){
 function logP(p,type,txt){p.log=p.log||[];p.log.unshift({t:Date.now(),type,txt});if(p.log.length>100)p.log.length=100}
 function histHTML(p){const L=p.log||[];if(!L.length)return '<div class="h">Aucun changement enregistré pour l\'instant.</div>';const I={qty:'box',hs:'tool',ok:'check',casse:'alert',perte:'x',new:'plus'};
   return `<div class="hist">${L.slice(0,12).map(x=>`<div class="hrow t-${x.type}">${ic(I[x.type]||'box')}<span>${esc(x.txt)}</span><small>${new Date(x.t).toLocaleString('fr-FR',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</small></div>`).join('')}</div>${L.length>12?`<div class="h">+ ${L.length-12} plus anciens</div>`:''}`}
-function hsRow(h,i){return `<div class="mrow hsr" data-from="${esc(h.from||'')}"><input class="in hq" type="number" min="1" value="${h.q||1}" aria-label="Quantité" style="width:64px"><input class="in hn" value="${esc(h.note||'')}" placeholder="Raison (ex : toile déchirée)" style="flex:1"><label class="h" style="white-space:nowrap">jusqu'au</label><input class="in hu" type="date" value="${esc(h.until||'')}" style="width:150px" aria-label="Jusqu'au"><button class="ib" data-act="hsrm" data-i="${i}" aria-label="Retirer">${ic('x')}</button></div>`}
-function readP(){if(!MD||MD.k!=='p')return;const d=MD.d;d.name=$('#p-name').value.trim();d.ref=($('#p-ref')?.value||'').trim();d.cat=$('#p-cat').value.trim();d.qty=Math.max(0,parseInt($('#p-qty').value)||0);d.kw=$('#p-kw').value.split(',').map(s=>s.trim()).filter(Boolean);d.unit=($('#p-unit')?.value||'').trim();if($('#p-usize')){const v=parseFloat(String($('#p-usize').value||'1').replace(',','.'));d.usize=v>0?v:1}d.hs=[...document.querySelectorAll('.hsr')].map(r=>({q:Math.max(0,parseInt(r.querySelector('.hq').value)||0),from:r.dataset.from||'',until:r.querySelector('.hu').value||'',note:r.querySelector('.hn').value.trim()})).filter(h=>h.q>0)}
+function hsRow(h,i){const cas=h.t==='cas';return `<div class="mrow hsr${cas?' cas':''}" data-from="${esc(h.from||'')}" data-ret="${esc(h.ret||'')}"><input class="in hq" type="number" min="1" value="${h.q||1}" aria-label="Quantité" style="width:64px"><select class="in ht" data-act="hstype" data-i="${i}" aria-label="État" style="width:118px"><option value="rep"${!cas?' selected':''}>À réparer</option><option value="cas"${cas?' selected':''}>Cassé</option></select><input class="in hn" value="${esc(h.note||'')}" placeholder="${cas?'Ce qui est cassé (ex : pied tordu)':'À réparer (ex : toile déchirée)'}" style="flex:1">${cas?`<span class="h" style="white-space:nowrap">${h.from?'depuis le '+fmt(h.from,{day:'numeric',month:'short'}):''}</span><input type="hidden" class="hu" value="">`:`<label class="h" style="white-space:nowrap">jusqu'au</label><input class="in hu" type="date" value="${esc(h.until||'')}" style="width:150px" aria-label="Jusqu'au">`}<button class="ib" data-act="hsrm" data-i="${i}" aria-label="Retirer">${ic('x')}</button></div>`}
+function readP(){if(!MD||MD.k!=='p')return;const d=MD.d;d.name=$('#p-name').value.trim();d.ref=($('#p-ref')?.value||'').trim();d.cat=$('#p-cat').value.trim();d.qty=Math.max(0,parseInt($('#p-qty').value)||0);d.kw=$('#p-kw').value.split(',').map(s=>s.trim()).filter(Boolean);d.unit=($('#p-unit')?.value||'').trim();if($('#p-usize')){const v=parseFloat(String($('#p-usize').value||'1').replace(',','.'));d.usize=v>0?v:1}d.hs=[...document.querySelectorAll('.hsr')].map(r=>({q:Math.max(0,parseInt(r.querySelector('.hq').value)||0),from:r.dataset.from||'',until:r.querySelector('.hu').value||'',note:r.querySelector('.hn').value.trim(),t:r.querySelector('.ht').value,...(r.dataset.ret?{ret:r.dataset.ret}:{})})).filter(h=>h.q>0)}
 function loadPhoto(f){if(!/^image\//.test(f.type)){toast('Ce fichier n\'est pas une image');return}readP();const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,320/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);MD.d.photo=c.toDataURL('image/jpeg',.82);drawP()};im.src=fr.result};fr.readAsDataURL(f)}
 
 /* ---------- fiche kit ---------- */
@@ -2515,7 +2517,8 @@ const A={
     toast(`${byId(pid).name} ×${q} ajouté à « ${short(ev.title)} »`,()=>{ev.man.items[pid]-=q;if(ev.man.items[pid]<=0)delete ev.man.items[pid];ev.used=prevUsed;save();render();toast('Ajout annulé')})},
   anew:()=>{const pid=MD.pid,q=Math.max(1,parseInt($('#a-q').value)||1);openE(null);MD.d.man.items[pid]=q;drawE()},
   undo:()=>{const f=TU;TU=null;$('#toast').classList.remove('on','act');if(f)f()},
-  hsadd:()=>{readP();MD.d.hs=MD.d.hs||[];MD.d.hs.push({q:1,from:TODAY,until:'',note:''});drawP()},
+  hsadd:e=>{readP();MD.d.hs=MD.d.hs||[];MD.d.hs.push({q:1,from:TODAY,until:'',note:'',t:e.dataset.t==='cas'?'cas':'rep'});drawP()},
+  hstype:()=>{},
   hsrm:b=>{readP();MD.d.hs.splice(+b.dataset.i,1);drawP()},
   pick:()=>$('#file').click(),rmphoto:()=>{readP();MD.d.photo='';drawP()},
   qm:()=>{const i=$('#p-qty');i.value=Math.max(0,(parseInt(i.value)||0)-1)},qp:()=>{const i=$('#p-qty');i.value=(parseInt(i.value)||0)+1},
@@ -2540,7 +2543,7 @@ const A={
   retall:()=>{for(const r of MD.rows){r.ok=r.q;r.cs=0}MD.comment=$('#rcom')?.value||MD.comment;drawRet()},
   retok:()=>{const ev=S.events.find(e=>e.id===MD.id),losses=[],notes={},t=short(ev.title),com=($('#rcom')?.value||'').trim();
     for(const r of MD.rows){const pr=byId(r.pid);if(!pr)continue;const lost=retLost(r),note=r.note.trim();if(note)notes[r.pid]=note;
-      if(r.cs>0){losses.push({pid:r.pid,name:pr.name,q:r.cs,fate:'casse'});pr.hs=pr.hs||[];pr.hs.push({q:r.cs,from:TODAY,until:'',note:(note?note+' · ':'')+'Casse · '+t});logP(pr,'casse',`${r.cs} cassé${r.cs>1?'s':''} au retour de « ${t} »${note?' : '+note:''}`)}
+      if(r.cs>0){losses.push({pid:r.pid,name:pr.name,q:r.cs,fate:'casse'});pr.hs=pr.hs||[];pr.hs.push({q:r.cs,from:TODAY,until:'',note:(note?note+' · ':'')+'Casse · '+t,t:'cas',ret:ev.id});logP(pr,'casse',`${r.cs} cassé${r.cs>1?'s':''} au retour de « ${t} »${note?' : '+note:''}`)}
       if(lost>0){losses.push({pid:r.pid,name:pr.name,q:lost,fate:'perdu'});pr.qty=Math.max(0,pr.qty-lost);logP(pr,'perte',`${lost} perdu${lost>1?'s':''} au retour de « ${t} »${note?' : '+note:''}`)}
       if(note&&!r.cs&&!lost)logP(pr,'note',`Retour de « ${t} » : ${note}`)}
     ev.checked={date:TODAY,losses,comment:com,notes};save();closeM();render();toast(losses.length?'Retour enregistré, stock mis à jour':'Retour enregistré : tout est revenu')},
@@ -2577,6 +2580,7 @@ document.addEventListener('keydown',e=>{
 document.addEventListener('input',e=>{
   const t=e.target;
   // « 50chaises » : on sépare tout de suite le nombre du mot pour que l'appli le comprenne
+  if(t.classList&&t.classList.contains('ht')&&MD&&MD.k==='p'){readP();drawP();return}
   if(t.id==='wpt'){const g=document.querySelector('.wpgo');if(g)g.disabled=t.value.trim().toUpperCase()!=='SUPPRIMER';return}
   if(t.dataset.qk!==undefined&&U.qc&&U.qc.items){const x=U.qc.items[+t.dataset.qk];if(x){x.q=Math.max(0,parseInt(t.value)||0);const r=$('#qcr');if(r)r.innerHTML=qcRes()}return}
   if(t.dataset.qc==='txt'||t.dataset.ev==='desc'){const re=/(\d)(?=[a-zà-ÿœA-ZÀ-Ÿ]{3,})/g;if(re.test(t.value)){const c=t.selectionStart,before=t.value.slice(0,c),nb=(before.match(re)||[]).length;t.value=t.value.replace(re,'$1 ');t.setSelectionRange(c+nb,c+nb)}}
