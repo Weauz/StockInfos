@@ -2905,9 +2905,14 @@ function fabPlace(){const f=$('#fab');if(!f)return;const s=f.offsetWidth||56,W=i
 function fabOpen(){const f=$('#fab'),m=$('#fabm');if(!f||!m)return;FAB.open=true;f.classList.add('open');
   const s=f.offsetWidth,cx=f.offsetLeft+s/2,right=cx>innerWidth/2,it=fabItems(),n=it.length,H=innerHeight,W=innerWidth;
   // demi-cercle tourné vers le milieu de l'écran, recentré si le logo est trop près du haut ou du bas
-  const R=Math.min(175,W-60,(H-100)/2),cy=Math.min(H-R-44,Math.max(R+44,f.offsetTop+s/2));
-  m.innerHTML=it.map(([v,i,l],k)=>{const deg=right?105+150*k/(n-1):75-150*k/(n-1),a=deg*Math.PI/180,x=cx+Math.cos(a)*R,y=cy-Math.sin(a)*R;
-    return `<button class="fabi${U.view===v?' cur':''}" data-fv="${v}" style="left:${Math.round(x)}px;top:${Math.round(y)}px;transition-delay:${k*18}ms">${ic(i)}<span>${l}</span></button>`}).join('');
+  // plus il y a de boutons, plus l'arc s'ouvre et s'élargit pour qu'ils ne se touchent jamais (au moins 8 px entre deux)
+  const span=n>7?180:150,step=span/(n-1)*Math.PI/180,need=(72+8)/(2*Math.sin(step/2));
+  const R=Math.min(Math.max(150,need),W-60,(H-100)/2),cy=Math.min(H-R-44,Math.max(R+44,f.offsetTop+s/2));
+  const bs=Math.max(56,Math.min(72,Math.floor(2*R*Math.sin(step/2))-8)),a0=(180-span)/2;
+  // en demi-cercle complet, le centre de l'arc se décale vers le milieu pour que le premier et le dernier bouton ne tombent pas sur le logo
+  const ax=span>=180?cx+(right?-1:1)*(s/2+bs/2+10):cx;
+  m.innerHTML=it.map(([v,i,l],k)=>{const deg=right?90+a0+span*k/(n-1):90-a0-span*k/(n-1),a=deg*Math.PI/180,x=ax+Math.cos(a)*R,y=cy-Math.sin(a)*R;
+    return `<button class="fabi${U.view===v?' cur':''}" data-fv="${v}" style="left:${Math.round(x)}px;top:${Math.round(y)}px;width:${bs}px;height:${bs}px;margin:${-bs/2}px 0 0 ${-bs/2}px;transition-delay:${k*18}ms">${ic(i)}<span>${l}</span></button>`}).join('');
   m.hidden=false;requestAnimationFrame(()=>m.classList.add('show'))}
 window.siBack=()=>{if(FAB.open){fabClose();return 1}const ov=document.querySelector('#modal .ov');if(ov){const c=document.querySelector('#modal [data-act=close],#modal [data-act=hsback]');if(c){c.click();return 1}closeM();return 1}if(TOUR.on){tourEnd();return 1}if(U.view!=='home'){setView('home');return 1}return 0};
 function fabClose(){const f=$('#fab'),m=$('#fabm');FAB.open=false;if(f)f.classList.remove('open');if(m){m.classList.remove('show');setTimeout(()=>{if(!FAB.open)m.hidden=true},160)}}
