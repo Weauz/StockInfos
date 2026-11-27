@@ -1547,15 +1547,16 @@ function qcRes(){const Q=U.qc;if(!Q||(!Q.txt.trim()&&!(Q.items||[]).length))retu
     return `<div class="qcl ${good?'ok':'ko'}">${ic(good?'check':'alert')}<b>${esc(x.pr.name)} ×${x.q}</b><span>${good?`OK · ${mn} dispo au plus juste`:`Il en manque ${x.q-Math.max(0,mn)} le ${fmt(wd,{weekday:'short',day:'numeric',month:'short'})} (${Math.max(0,mn)} dispo)`}</span></div>`}).join('');
   return `<div class="qcv ${ok?'ok':'ko'}">${ok?'Tout est disponible':'Pas assez de matériel'} <small>${days.length>1?`du ${fmt(a,{day:'numeric',month:'short'})} au ${fmt(b,{day:'numeric',month:'short'})}`:`le ${fmt(a,{day:'numeric',month:'short'})}`}</small></div>${rows}${unk}
     <button class="btn sm" data-act="qcnew" style="margin-top:8px">${ic('plus')}Créer un chantier avec ce matériel</button>`}
-function wkList(d){const L=[];S.events.filter(ev=>counts(ev)&&retItems(ev)).forEach(ev=>{const r=rng(ev);if(r.s===d)L.push({ev,k:'out',t:ev.t0||''});if(r.e===d&&!ev.checked)L.push({ev,k:'in',t:ev.t1||''})});return L}
+function wkList(d){const L=[];S.events.filter(ev=>counts(ev)&&retItems(ev)).forEach(ev=>{const r=rng(ev);if(r.s===d)L.push({ev,k:'out',t:ev.t0||''});if(ev.dm?r.ds===d:(r.e===d&&!ev.checked))L.push({ev,k:'in',t:ev.dm?(ev.dm.t0||''):(ev.t1||'')})});return L}
 function wkCount(k){let n=0;for(let i=0;i<5;i++)n+=wkList(add(TODAY,i)).filter(x=>x.k===k).length;return n}
 function weekHTML(){const days=[...Array(5)].map((_,i)=>add(TODAY,i)),M=U.wkm||'out';
   const col=d=>{const L=wkList(d).filter(x=>x.k===M);
     L.sort((a,b)=>(a.t||'')<(b.t||'')?-1:(a.t||'')>(b.t||'')?1:a.k==='in'?-1:1);const j=diff(TODAY,d);
     return `<div class="wkd${j===0?' td':''}${L.length?'':' empty'}"><div class="wkh"><b>${j===0?'Aujourd\'hui':j===1?'Demain':fmt(d,{weekday:'long'})}</b><small>${fmt(d,{day:'numeric',month:'short'})}</small></div>
-      ${L.map(({ev,k,t})=>`<button class="wki ${k==='out'?'wko':'wkr'}" data-act="${k==='in'&&rng(ev).e<=TODAY?'retopen':'openev'}" data-id="${ev.id}"><span>${ic(k==='out'?'ul':'back')}${k==='out'?'Départ':'Retour'}${t?`<em class="wkt">${hh(t)}</em>`:''}</span><b>${esc(short(ev.title))}</b><small>${itemsTxt(ev)}</small></button>`).join('')}
+      ${L.map(({ev,k,t})=>`<button class="wki ${k==='out'?'wko':'wkr'}" data-act="openev" data-id="${ev.id}"><span>${ic(k==='out'?'ul':'back')}${k==='out'?'Départ':'Démontage'}${t?`<em class="wkt">${hh(t)}</em>`:''}</span><b>${esc(short(ev.title))}</b><small>${itemsTxt(ev)}</small></button>`).join('')}
       ${L.length?'':'<span class="h">Rien</span>'}</div>`};
-  return `<div class="wk">${days.map(col).join('')}</div>`}
+  const pend=M==='in'?S.events.filter(e=>counts(e)&&dmTbd(e)).length:0;
+  return `${pend?`<button class="lnk" data-act="dmpend" style="display:block;margin:0 0 8px">${ic('alert')} ${pend} démontage${pend>1?'s':''} à planifier</button>`:''}<div class="wk">${days.map(col).join('')}</div>`}
 // casse : le matériel cassé est retiré du stock et noté ici, pour pouvoir revenir en arrière
 function casseAdd(pr,q,note,src,evTitle){q=Math.max(0,Math.min(+q||0,pr.qty));if(!q)return 0;pr.qty-=q;S.casse=S.casse||[];S.casse.unshift({id:'c'+uid(),pid:pr.id,name:pr.name,q,date:TODAY,note:note||'',src:src||'stock',ev:evTitle||''});logP(pr,'casse',`${q} cassé${q>1?'s':''}, retiré${q>1?'s':''} du stock${note?' : '+note:''}${evTitle?' (retour de « '+evTitle+' »)':''}`);return q}
 function migrateCasse(){for(const p of S.products){const keep=[];for(const h of p.hs||[]){if(h.t==='cas'&&+h.q>0){if(casseAdd(p,+h.q,(h.note||'').replace(/^Casse · /,''),h.ret?'retour':'stock','')&&h.from)S.casse[0].date=h.from}else keep.push(h)}p.hs=keep}}
@@ -1597,7 +1598,7 @@ VIEWS.dash=()=>{
       return `<button class="htile${n?' bad':' good'}" data-act="dpanel" data-k="man"><span class="hi">${ic(n?'alert':'check')}</span><span><small>Manques à venir · 30 jours</small><b>${n?`${n} chantier${n>1?'s':''}`:'Aucun'}</b><em>${first?`Il manque ${first.miss} ${esc(first.p.name)} ${first.from===first.to?'le '+fmt(first.from,{day:'numeric',month:'short'}):'dès le '+fmt(first.from,{day:'numeric',month:'short'})}${sh.length>1?` · et ${sh.length-1} autre${sh.length>2?'s':''}`:''}`:'Tout le matériel est disponible.'}</em></span></button>`})()}
   </div>
   ${sec('search','Vérif rapide pour un devis','Écris le matériel, l\'appli vérifie le stock sur les dates choisies',qcHTML(),{cls:'qc qcbig'})}
-  ${sec('truck','À venir','5 prochains jours',weekHTML(),{link:`<button class="lnk" data-act="view" data-v="plan" style="margin-left:auto">Ouvrir le planning</button><div class="seg wks" role="tablist"><button class="${(U.wkm||'out')==='out'?'on':''}" data-act="wkm" data-v="out" role="tab">Chantiers <span class="wkn">${wkCount('out')}</span></button><button class="${U.wkm==='in'?'on':''}" data-act="wkm" data-v="in" role="tab">Retours <span class="wkn">${wkCount('in')}</span></button></div>`})}
+  ${sec('truck','À venir','5 prochains jours',weekHTML(),{link:`<button class="lnk" data-act="view" data-v="plan" style="margin-left:auto">Ouvrir le planning</button><div class="seg wks" role="tablist"><button class="${(U.wkm||'out')==='out'?'on':''}" data-act="wkm" data-v="out" role="tab">Chantiers <span class="wkn">${wkCount('out')}</span></button><button class="${U.wkm==='in'?'on':''}" data-act="wkm" data-v="in" role="tab">Démontages <span class="wkn">${wkCount('in')}</span></button></div>`})}
   ${(()=>{const allEv=S.events.filter(ev=>rng(ev).e>=TODAY).sort((a,b)=>evKey(a)<evKey(b)?-1:1),hsN=S.products.reduce((n,p)=>n+(p.hs||[]).filter(h=>h.t!=='cas'&&(!h.from||h.from<=TODAY)&&(!h.until||h.until>=TODAY)).reduce((m,h)=>m+(+h.q||0),0),0);
     const lossN=(S.casse||[]).filter(c=>c.date>=add(TODAY,-30)&&byId(c.pid)).reduce((n,c)=>n+c.q,0)+S.events.filter(ev=>ev.checked&&ev.checked.date>=add(TODAY,-30)).reduce((n,ev)=>n+(ev.checked.losses||[]).filter(l=>l.fate==='perdu'&&!l.undone&&(!l.pid||byId(l.pid))).reduce((m,l)=>m+l.q,0),0);
     DPANELS={
@@ -2950,7 +2951,7 @@ VIEWS.home=()=>{const dr=S.cfg.minvDraft,rc=retToCheck().length;
   <div class="mqs" hidden>${Q('view','stock','box','Stock')}${Q('view','minv','check',dr?'Inventaire…':'Inventaire','acc')}${Q('addp','','plus','Ajouter')}${Q('view','plan','cal','Planning')}${Q('view','ret','back',rc?`Retours (${rc})`:'Retours',rc?'warn':'')}${Q('view','set','gear','Réglages')}</div>
   ${VIEWS.dash()}`};
 VIEWS.qc=()=>`<section class="card dsec qc qcbig"><div class="dsb" style="padding:12px">${qcHTML()}</div></section>`;
-VIEWS.avenir=()=>`<div class="seg wks" role="tablist" style="margin:0 0 10px"><button class="${(U.wkm||'out')==='out'?'on':''}" data-act="wkm" data-v="out" role="tab">Départs <span class="wkn">${wkCount('out')}</span></button><button class="${U.wkm==='in'?'on':''}" data-act="wkm" data-v="in" role="tab">Retours <span class="wkn">${wkCount('in')}</span></button></div>${weekHTML()}`;
+VIEWS.avenir=()=>`<div class="seg wks" role="tablist" style="margin:0 0 10px"><button class="${(U.wkm||'out')==='out'?'on':''}" data-act="wkm" data-v="out" role="tab">Départs <span class="wkn">${wkCount('out')}</span></button><button class="${U.wkm==='in'?'on':''}" data-act="wkm" data-v="in" role="tab">Démontages <span class="wkn">${wkCount('in')}</span></button></div>${weekHTML()}`;
 
 /* ---------- téléphone : inventaire produit par produit ---------- */
 const outToday=pid=>usage(pid,TODAY)-((byId(pid)||{}).hs||[]).filter(h=>(!h.from||h.from<=TODAY)&&(!h.until||h.until>=TODAY)).reduce((n,h)=>n+(+h.q||0),0);
@@ -3107,6 +3108,7 @@ const A={
   qcsug:e=>qcAccept(e.dataset.id,!!e.dataset.k),
   edsug:e=>edAccept(e.dataset.id,!!e.dataset.k),
   dpanel:e=>{const P0=(DPANELS&&DPANELS[e.dataset.k])||(e.dataset.k==='invs'?{t:'Rapports d\'inventaire',i:'print',h:invRepHTML()}:null);if(!P0)return;MD={k:'dp'};$('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(760px,100%)"><div class="dh"><h3 id="mt" style="display:flex;align-items:center;gap:8px">${ic(P0.i)}${P0.t}</h3><span class="sp" style="flex:1"></span><button class="ib" data-act="close" aria-label="Fermer">${ic('x')}</button></div><div class="dpb">${P0.h}</div></div></div>`},
+  dmpend:()=>{openE(null);U.etype='dm';drawE()},
   etype:e=>{U.etype=e.dataset.v;drawE()},
   dmmode:e=>{const v=e.dataset.v,d=MD.d,me=rng(d).me;if(v==='none')delete d.dm;else if(v==='tbd')d.dm={tbd:1};else{d.dm={start:me,end:me,t0:'',t1:''};U.dmp=true;U.dmm=me.slice(0,7)}U.dmpk=null;MD.mk=-1;drawE()},
   dmp:()=>{U.dmp=!U.dmp;U.dmpk=null;U.dmm=MD.d.dm.start.slice(0,7);dmRedraw()},
