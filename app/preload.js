@@ -26,5 +26,7 @@ contextBridge.exposeInMainWorld('api', {
   gStatus: () => ipcRenderer.invoke('g-status'),
   gLogin: () => ipcRenderer.invoke('g-login'),
   gLogout: () => ipcRenderer.invoke('g-logout'),
+  gServerOn: (o) => ipcRenderer.invoke('g-server-on', o),
+  gServerOff: () => ipcRenderer.invoke('g-server-off'),
   gApi: o => ipcRenderer.invoke('g-api', o)
 });

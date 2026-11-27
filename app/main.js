@@ -464,6 +464,23 @@ ipcMain.handle('db-connect', async (e, code) => {
 });
 ipcMain.handle('db-code', () => { const c = dbRead(); return c ? 'SI1.' + Buffer.from(JSON.stringify({ u: c.u, a: c.a, k: c.k })).toString('base64').replace(/\+/g, '-').replace(/\//g, '_') : null; });
 ipcMain.handle('db-disconnect', () => { try { fs.unlinkSync(dbFile()); } catch (e) {} return true; });
+// Synchro Google faite par le serveur : on lui confie l'accès Google de ce PC (chiffré côté base, jamais affiché)
+ipcMain.handle('g-server-on', async (e, o) => {
+  const cfg = dbRead(); if (!cfg) throw new Error('relie d\'abord la base de données');
+  const st = gRead(); if (!st || !st.refresh) throw new Error('connecte d\'abord Google sur ce PC');
+  if (!GOOGLE.id || !GOOGLE.secret) throw new Error('connexion Google pas configurée dans cette version');
+  const r = await dbFetch(cfg, 'POST', 'rpc/si_gauth_set', { p_client_id: GOOGLE.id, p_client_secret: GOOGLE.secret, p_refresh: st.refresh, p_cal: String(o && o.cal || ''), p_email: st.email || '' });
+  if (r.status >= 300) throw new Error((r.json && r.json.message) || ('la base a refusé (' + r.status + ')'));
+  journal('synchro Google confiée au serveur');
+  return true;
+});
+ipcMain.handle('g-server-off', async () => {
+  const cfg = dbRead(); if (!cfg) throw new Error('base non connectée');
+  const r = await dbFetch(cfg, 'POST', 'rpc/si_gauth_off', {});
+  if (r.status >= 300) throw new Error((r.json && r.json.message) || ('la base a refusé (' + r.status + ')'));
+  journal('synchro Google reprise par ce PC');
+  return true;
+});
 ipcMain.handle('db-req', async (e, o) => {
   const cfg = dbRead(); if (!cfg) throw new Error('base non connectée');
   const method = String(o && o.method || 'GET').toUpperCase(), p = String(o && o.path || '');

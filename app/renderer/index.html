@@ -1389,7 +1389,7 @@ function whenTxt(ev,short){const r=rng(ev),f=d=>short?fmt(d,{weekday:'short',day
 
 /* ---------- vues ---------- */
 const NAV=[['dash','Tableau de bord','home'],['stock','Stock','box'],['minv','Inventaire','check'],['packs','Kits','pack'],['plan','Planning','cal'],['ret','Retours','back'],['set','Paramètres','gear']];
-function navHTML(){const rc=retToCheck().length,showRet=rc||retSoon(7).length||U.view==='ret';return NAV.filter(([v])=>(v!=='packs'||S.cfg.kits)&&(v!=='ret'||showRet)).map(([v,l,i])=>`<button class="nb${U.view===v?' on':''}${v==='ret'&&rc?' alert':''}" data-act="view" data-v="${v}" title="${l}">${ic(i)}<span>${l}</span>${v==='dash'&&SH.length?`<b class="badge">${SH.length}</b>`:''}${v==='ret'&&rc?`<b class="badge pulse" title="${rc} retour${rc>1?'s':''} à vérifier">${rc}</b>`:''}</button>`).join('')+`<div class="grow"></div>${dbNavHTML()}<div class="gs" title="Google Agenda"><i class="dot${!(GS.st&&GS.st.connected)?' off':GS.err?' err':''}"></i><span>${!(GS.st&&GS.st.connected)?'Google non connecté':GS.err?'Synchro en échec':GS.busy?'Synchro en cours…':'Google Agenda · synchro '+(GS.last?new Date(GS.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'—')}</span></div>`}
+function navHTML(){const rc=retToCheck().length,showRet=rc||retSoon(7).length||U.view==='ret';return NAV.filter(([v])=>(v!=='packs'||S.cfg.kits)&&(v!=='ret'||showRet)).map(([v,l,i])=>`<button class="nb${U.view===v?' on':''}${v==='ret'&&rc?' alert':''}" data-act="view" data-v="${v}" title="${l}">${ic(i)}<span>${l}</span>${v==='dash'&&SH.length?`<b class="badge">${SH.length}</b>`:''}${v==='ret'&&rc?`<b class="badge pulse" title="${rc} retour${rc>1?'s':''} à vérifier">${rc}</b>`:''}</button>`).join('')+`<div class="grow"></div>${dbNavHTML()}<div class="gs" title="Google Agenda">${gSrvOn()?`<i class="dot${S.cfg.gsrv&&S.cfg.gsrv.err?' err':''}"></i><span>${S.cfg.gsrv&&S.cfg.gsrv.err?'Google : synchro en erreur':'Google Agenda · par le serveur'}</span></div>`:`<i class="dot${!(GS.st&&GS.st.connected)?' off':GS.err?' err':''}"></i><span>${!(GS.st&&GS.st.connected)?'Google non connecté':GS.err?'Synchro en échec':GS.busy?'Synchro en cours…':'Google Agenda · synchro '+(GS.last?new Date(GS.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'—')}</span></div>`}`}
 function isDark(){if(S.theme!=='auto')return S.theme==='dark';const r=document.documentElement.dataset.theme;if(r==='dark'||r==='light')return r==='dark';return matchMedia('(prefers-color-scheme: dark)').matches}
 function dateHTML(){
   const per=U.mode==='periode';let pop='';
@@ -2559,6 +2559,8 @@ const GS={st:null,busy:false,again:false,timer:null,err:null,last:0};
 const TZ=(()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'Europe/Paris'}catch(e){return 'Europe/Paris'}})();
 async function gStatus(){if(!API||!API.gStatus)return null;try{GS.st=await API.gStatus()}catch(e){GS.st=null}return GS.st}
 const gSyncable=ev=>ev.src==='manuel'&&!ev.essai;
+// synchro Google confiée au serveur : le PC et le téléphone ne parlent plus à Google eux-mêmes
+const gSrvOn=()=>!!((S.cfg.gsrv&&S.cfg.gsrv.on)||GS.srvPending);
 function gBody(ev){const r=rng(ev),p=P(ev),its=Object.entries(p.items).map(([id,q])=>byId(id)?`- ${byId(id).name} ×${q}`:'').filter(Boolean);
   const pm=x=>{const [h,m]=x.split(':').map(Number);return h*60+m},fm=n=>String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
   let start,end;
@@ -2584,7 +2586,7 @@ function gToLocal(it){const S0=it.start||{},E0=it.end||{};let start,end,t0='',t1
   else return null;if(end<start)end=start;
   return{title:it.summary||'(Sans titre)',start,end,t0,t1,lieu:it.location||'',desc:htmlToText(it.description||'')}}
 async function gPoll(){
-  if(!API||!API.gApi||GS.busy||!S.cfg.gcal||!(GS.st&&GS.st.connected)||document.hidden)return;
+  if(!API||!API.gApi||gSrvOn()||GS.busy||!S.cfg.gcal||!(GS.st&&GS.st.connected)||document.hidden)return;
   if(!GS.mark){gSync(false);return}
   try{const r=await API.gApi({method:'GET',path:'/calendars/'+encodeURIComponent(S.cfg.gcal)+'/events?updatedMin='+encodeURIComponent(GS.mark)+'&showDeleted=true&maxResults=5&fields=items(id)'});
     if(r.status===200&&r.json&&r.json.items&&r.json.items.length)gSync(false);else if(r.status===404||r.status===410)gSync(false)}catch(e){}}
@@ -2594,6 +2596,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)gPoll()});
 function gSoon(ms){clearTimeout(GS.timer);GS.timer=setTimeout(()=>gSync(false),ms??400)}
 async function gSync(manual){
   if(!API||!API.gApi)return;
+  if(gSrvOn()){if(manual)dbSync(true);return}
   if(GS.busy){GS.again=true;return}GS.busy=true;
   const st=GS.st||await gStatus();if(!st||!st.connected){GS.busy=false;if(manual&&st&&st.configured)toast('Connecte d\'abord ton compte Google dans Paramètres');return}
   GS.err=null;let nA=0,nU=0,nD=0,nI=0;const t0=new Date(Date.now()-5000).toISOString();
@@ -2643,14 +2646,18 @@ async function gSync(manual){
   }catch(e){GS.err=String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,'');if(/non connecté|expirée/.test(GS.err))await gStatus();if(manual)toast('Google Agenda : '+GS.err)}
   GS.busy=false;{const a=document.activeElement;if(!MD&&!(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)))render();else{const n=document.querySelector('.gs');if(n)n.outerHTML=navHTML().match(/<div class="gs"[\s\S]*$/)[0]}}planSync();if(GS.again){GS.again=false;gSoon(300)}
 }
+function gSrvHTML(){const g=S.cfg.gsrv;if(!(g&&g.on)&&!GS.srvPending)return '';
+  return setRow('cal','Google Agenda',`<b style="color:${g&&g.err?'var(--red)':'var(--ok)'}">${g&&g.err?'Synchro en erreur':'Synchronisé par le serveur'}</b>${g&&g.email?' · '+esc(g.email):''}<br><span class="h">${g&&g.err?esc(g.err):GS.srvPending?'Mise en route…':'Les chantiers vont et viennent de Google Agenda toutes les 30 secondes, même si le PC et le téléphone sont éteints.'}</span>`,MOB||!(API&&API.gServerOff)?'':`<button class="btn sm" data-act="gsrvoff" title="Le PC refait la synchro lui-même">Arrêter</button>`)}
 function gSetHTML(){const st=GS.st;
-  if(MOB)return setRow('cal','Google Agenda','La synchro avec Google Agenda se fait depuis le PC. Les chantiers arrivent ici par la base de données.','');
+  const srv=gSrvHTML();if(srv)return srv;
+  if(MOB)return setRow('cal','Google Agenda','Pas encore relié. Sur le PC : Paramètres › Google Agenda › « Synchro sur le serveur ».','');
   if(!API||!API.gStatus)return setRow('cal','Google Agenda','Disponible dans l\'app installée.','');
   if(!st)return setRow('cal','Google Agenda','Vérification…','');
   if(!st.configured)return setRow('cal','Google Agenda','Bientôt : cette version ne contient pas encore la connexion Google.','');
   if(!st.connected)return `<div class="gcon"><span class="seti">${ic('cal')}</span><div><b>Relie StockInfos à ton Google Agenda</b><small>Tes chantiers apparaissent dans un agenda « Chantiers StockInfos », et ce que tu ajoutes dans cet agenda depuis Google revient ici. Tes autres agendas ne sont jamais touchés.</small></div><button class="btn pri" data-act="glogin">Se connecter à Google</button></div>`;
   const n=S.events.filter(gSyncable).length;
-  return setRow('cal','Google Agenda',`Connecté${st.email?' avec '+esc(st.email):''} · ${n} chantier${n>1?'s':''} envoyé${n>1?'s':''} vers « Chantiers StockInfos »${GS.busy?' · envoi en cours…':GS.err?` · <span style="color:var(--red)">${esc(GS.err)}</span>`:GS.last?' · à jour à '+new Date(GS.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}`,`<button class="btn sm" data-act="gsync">Synchroniser</button><button class="btn sm" data-act="glogout">Se déconnecter</button>`)}
+  return setRow('cal','Google Agenda',`Connecté${st.email?' avec '+esc(st.email):''} · ${n} chantier${n>1?'s':''} envoyé${n>1?'s':''} vers « Chantiers StockInfos »${GS.busy?' · envoi en cours…':GS.err?` · <span style="color:var(--red)">${esc(GS.err)}</span>`:GS.last?' · à jour à '+new Date(GS.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):''}`,`<button class="btn sm" data-act="gsync">Synchroniser</button><button class="btn sm" data-act="glogout">Se déconnecter</button>`)
+    +(API&&API.gServerOn?`<div class="gcon" style="margin-top:10px"><span class="seti">${ic('sync')}</span><div><b>Synchro sur le serveur</b><small>${DB.st&&DB.st.connected?'Le serveur s\'occupe de Google Agenda à la place du PC : les chantiers du téléphone partent sur Google même quand le PC est éteint.':'Relie d\'abord la base de données (plus haut) pour pouvoir l\'activer.'}</small></div><button class="btn pri" data-act="gsrvon"${DB.st&&DB.st.connected?'':' disabled'}>Activer</button></div>`:'')}
 function planSync(){clearTimeout(SYNC.timer);const m=+S.cfg.auto;if((S.cfg.cals.length||(GS.st&&GS.st.connected))&&m>0)SYNC.timer=setTimeout(()=>{syncNow(false);gSync(false)},m*6e4)}
 
 /* ---------- recherche Ctrl+K ---------- */
@@ -2710,18 +2717,19 @@ const dbKey=(k,id)=>k+':'+id;
 function dbEntities(){const M=new Map();
   for(const p of S.products)M.set(dbKey('product',p.id),{kind:'product',id:p.id,data:p});
   for(const k of S.packs||[])M.set(dbKey('pack',k.id),{kind:'pack',id:k.id,data:k});
-  for(const e of S.events)M.set(dbKey('event',e.id),{kind:'event',id:e.id,data:e});
+  for(const e of S.events){let data=e;if(gSyncable(e)){try{data={...e,gb:gBody(e)}}catch(x){}}M.set(dbKey('event',e.id),{kind:'event',id:e.id,data})}
   for(const c of S.casse||[])M.set(dbKey('casse',c.id),{kind:'casse',id:c.id,data:c});
   for(const r of S.invRep||[])M.set(dbKey('inventaire',r.id),{kind:'inventaire',id:r.id,data:{...r,name:'Inventaire du '+r.date}});
+  if(S.cfg.gsrv)M.set(dbKey('setting','gserver'),{kind:'setting',id:'gserver',data:S.cfg.gsrv});
   M.set(dbKey('setting','company'),{kind:'setting',id:'company',data:{name:'Entreprise',company:S.cfg.company||''}});
   return M}
 const dbHash=d=>hashId(JSON.stringify(d));
 function dbApply(row){const {kind,id,data}=row,arr=kind==='product'?S.products:kind==='pack'?(S.packs=S.packs||[]):kind==='event'?S.events:kind==='casse'?(S.casse=S.casse||[]):kind==='inventaire'?(S.invRep=S.invRep||[]):null;
-  if(kind==='setting'){if(id==='company'&&!row.deleted)S.cfg.company=data.company||'';return}
+  if(kind==='setting'){if(id==='company'&&!row.deleted)S.cfg.company=data.company||'';if(id==='gserver'){if(row.deleted)delete S.cfg.gsrv;else{S.cfg.gsrv=data;if(data.on)GS.srvPending=false}}return}
   if(!arr)return;const i=arr.findIndex(x=>x.id===id);
   if(kind==='event')DB.evc=true;
   if(row.deleted){if(i>=0)arr.splice(i,1);if(kind==='event'){S.cfg.gdel=[...(S.cfg.gdel||[]),id].slice(-2000)}return}
-  const v={...data,id};if(i>=0)arr[i]=v;else arr.push(v)}
+  const v={...data,id};if(kind==='event')delete v.gb;if(i>=0)arr[i]=v;else arr.push(v)}
 async function dbStatus(){if(!API||!API.dbStatus)return null;try{DB.st=await API.dbStatus()}catch(e){DB.st=null}return DB.st}
 function dbSoon(ms){if(DB.applying||!(DB.st&&DB.st.connected))return;clearTimeout(DB.timer);DB.timer=setTimeout(()=>dbSync(false),ms??600)}
 async function dbSync(manual,first){
@@ -2754,7 +2762,7 @@ async function dbSync(manual,first){
     DB.last=Date.now();
     if(pulled||pushed){DB.applying=true;save();DB.applying=false}
     // un chantier arrivé du téléphone part aussi sur Google Agenda (si ce PC est relié à Google)
-    if(DB.evc){DB.evc=false;if(typeof gSoon==='function'&&API&&API.gApi&&GS.st&&GS.st.connected)gSoon(800)}
+    if(DB.evc){DB.evc=false;if(!gSrvOn()&&typeof gSoon==='function'&&API&&API.gApi&&GS.st&&GS.st.connected)gSoon(800)}
     if(pulled){const a=document.activeElement;if(!MD&&!(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)))render()}
     if(manual)toast(pulled||pushed?`Base de données : ${pushed} envoyé${pushed>1?'s':''}, ${pulled} reçu${pulled>1?'s':''}`:'Base de données : déjà à jour');
   }catch(e){DB.applying=false;DB.err=String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,'');if(manual)toast('Base de données : '+DB.err)}
@@ -3085,6 +3093,8 @@ const A={
   hsadd:e=>{readP();MD.d.hs=MD.d.hs||[];MD.d.hs.push({q:1,from:TODAY,until:'',note:'',t:e.dataset.t==='cas'?'cas':'rep'});drawP()},
   hstype:()=>{},
   hsrm:b=>{readP();MD.d.hs.splice(+b.dataset.i,1);drawP()},
+  gsrvon:async()=>{try{GS.srvPending=true;render();await dbSync(false);await API.gServerOn({cal:S.cfg.gcal||''});toast('Synchro Google confiée au serveur : le PC peut être éteint');setTimeout(()=>dbSync(false),4000);setTimeout(()=>dbSync(false),12000)}catch(e){GS.srvPending=false;toast('Impossible : '+String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,''))}render()},
+  gsrvoff:async()=>{try{await API.gServerOff();delete S.cfg.gsrv;GS.srvPending=false;save();await dbSync(false);toast('Le PC refait la synchro Google lui-même');gSoon(300)}catch(e){toast('Impossible : '+String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,''))}render()},
   pick:()=>$('#file').click(),pickcam:()=>($('#filecam')||$('#file')).click(),
   pcat:e=>{const i=$('#p-cat');if(!i)return;i.value=i.value===e.dataset.v?'':e.dataset.v;document.querySelectorAll('.pmc').forEach(b=>b.classList.toggle('on',b.dataset.v===i.value))},
   qphoto:e=>quickPhoto(e.dataset.id),rmphoto:()=>{readP();MD.d.photo='';drawP()},
