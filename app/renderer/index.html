@@ -2721,11 +2721,11 @@ function dbEntities(){const M=new Map();
   for(const c of S.casse||[])M.set(dbKey('casse',c.id),{kind:'casse',id:c.id,data:c});
   for(const r of S.invRep||[])M.set(dbKey('inventaire',r.id),{kind:'inventaire',id:r.id,data:{...r,name:'Inventaire du '+r.date}});
   if(S.cfg.gsrv)M.set(dbKey('setting','gserver'),{kind:'setting',id:'gserver',data:S.cfg.gsrv});
-  M.set(dbKey('setting','company'),{kind:'setting',id:'company',data:{name:'Entreprise',company:S.cfg.company||''}});
+  M.set(dbKey('setting','company'),{kind:'setting',id:'company',data:{name:'Entreprise',company:S.cfg.company||'',kits:!!S.cfg.kits}});
   return M}
 const dbHash=d=>hashId(JSON.stringify(d));
 function dbApply(row){const {kind,id,data}=row,arr=kind==='product'?S.products:kind==='pack'?(S.packs=S.packs||[]):kind==='event'?S.events:kind==='casse'?(S.casse=S.casse||[]):kind==='inventaire'?(S.invRep=S.invRep||[]):null;
-  if(kind==='setting'){if(id==='company'&&!row.deleted)S.cfg.company=data.company||'';if(id==='gserver'){if(row.deleted)delete S.cfg.gsrv;else{S.cfg.gsrv=data;if(data.on)GS.srvPending=false}}return}
+  if(kind==='setting'){if(id==='company'&&!row.deleted){S.cfg.company=data.company||'';if('kits' in data)S.cfg.kits=!!data.kits}if(id==='gserver'){if(row.deleted)delete S.cfg.gsrv;else{S.cfg.gsrv=data;if(data.on)GS.srvPending=false}}return}
   if(!arr)return;const i=arr.findIndex(x=>x.id===id);
   if(kind==='event')DB.evc=true;
   if(row.deleted){if(i>=0)arr.splice(i,1);if(kind==='event'){S.cfg.gdel=[...(S.cfg.gdel||[]),id].slice(-2000)}return}
