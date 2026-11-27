@@ -941,6 +941,7 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .rrow i.tm{color:var(--amb)}
 .qca{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px}.qca>span{font-size:12.5px;color:var(--amb);font-weight:600;margin-right:2px}
 .qcp{cursor:pointer;border:1px solid var(--line);display:inline-flex;align-items:baseline;gap:6px}.qcp:hover{border-color:var(--acc);color:var(--acc)}.qcp small{font-size:10.5px;color:var(--mute)}
+.note.warn{display:flex;gap:8px;align-items:flex-start;background:var(--ambbg);color:var(--ink);border:1px solid color-mix(in srgb,var(--amb) 40%,transparent);padding:10px 12px;border-radius:10px;font-size:13px}.note.warn svg{color:var(--amb);flex:none;width:16px;height:16px;margin-top:2px}
 .qcc.kit b{color:var(--acc)}.qcc.kit b svg{width:14px;height:14px;vertical-align:-2px}.edsug:empty{display:none}.edsug{margin-top:6px}
 .qcs{display:flex;flex-direction:column;gap:10px;margin-top:10px;padding:12px;border-radius:10px;background:var(--card2)}
 .qcg{display:flex;flex-direction:column;gap:7px}.qcgt{font-size:13.5px;font-weight:600;color:var(--amb)}
@@ -1734,6 +1735,10 @@ VIEWS.plan=()=>{
   ${calFilter()}
   ${body}
   <p class="note" style="margin-top:10px">${U.pv!=='planning'?'Astuce : clique sur une heure pour créer un chantier à cette heure, ou dans la ligne « Journée » (glisse sur plusieurs jours) pour un chantier sans heure. ':''}${!(GS.st&&GS.st.connected)?'Google Agenda pas connecté (voir Paramètres)':GS.last?'Google Agenda synchronisé à '+new Date(GS.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'Google Agenda connecté'}</p>`};
+// avant d'enregistrer un kit : ce nom est-il déjà écrit dans des descriptions de chantiers ? (elles compteraient alors ce kit)
+function kitClashHTML(name,selfId){const pat=name&&name.trim().length>=2&&aliasPat(name);if(!pat)return '';const re=new RegExp('(?<![a-z0-9œ])'+pat+'(?![a-z0-9œ])');
+  const L=S.events.filter(e=>e.desc&&re.test(norm(e.desc))&&!(selfId&&(P(e).packs||{})[selfId]&&false));if(!L.length)return '';
+  return `<div class="note warn" style="margin-top:8px">${ic('alert')} <span>Ce nom est déjà écrit dans ${L.length} chantier${L.length>1?'s':''} : ${L.slice(0,4).map(e=>`<b>${esc(short(e.title))}</b> (« ${esc(e.desc.slice(0,50))}${e.desc.length>50?'…':''} »)`).join(', ')}${L.length>4?'…':''}. ${L.length>1?'Ils compteront':'Il comptera'} ce kit à la place des produits seuls. Pour l'éviter, donne un nom plus précis (ex : « Kit barnum équipé »).</span></div>`}
 // chantiers qui utilisent ce kit (écrit dans la description ou ajouté à la main)
 function kitUsedHTML(k){if(!k)return '';const L=S.events.filter(e=>{const p=P(e);return (p.packs&&p.packs[k.id])||(p.mpacks&&p.mpacks[k.id])}).sort((a,b)=>rng(a).s<rng(b).s?-1:1);
   if(!L.length)return `<p class="h" style="margin:8px 0 0">Aucun chantier n'utilise ce kit pour l'instant.</p>`;
@@ -2331,8 +2336,8 @@ function drawK(){
     <div class="dh"><h3 id="mt">${d.id?'Modifier le kit':'Nouveau kit'}</h3><button class="ib" data-act="close" aria-label="Fermer">${ic('x')}</button></div>
     <div style="padding:14px 16px">
       ${d.id&&byPack(d.id)?(()=>{const c=kitCap(byPack(d.id),spanDays());const when=U.mode==='periode'?`du ${fmt(U.a)} au ${fmt(U.b)}`:`le ${fmt(U.date)}`,lim=c.lim&&c.lim[0];
-        return `<div class="info">${ic('pack')}<span>Tu peux préparer <b>${c.n} kit${c.n>1?'s':''} complet${c.n>1?'s':''}</b> ${when}${/\.$/.test(when)?'':'.'}${lim?` ${c.per.length>1?'Ce qui limite : il':'Il'} faut ${lim.n} « ${esc(lim.pr.name)} » par kit et il y en a ${lim.a} de disponible${lim.a>1?'s':''}.`:''}${c.per.length>1?`<br><small>${c.per.map(x=>`${esc(x.pr.name)} : ${x.n} par kit, ${x.a} dispo`).join(' · ')}</small>`:''}</span></div>`+kitUsedHTML(byPack(d.id))})():''}
-      <div class="f"><label for="k-name">Nom du kit</label><input class="in" id="k-name" value="${esc(d.name)}" placeholder="Ex : Chapiteau"><span class="h">C'est ce mot que l'app cherche dans tes descriptions Google (le pluriel est reconnu).</span></div>
+        return `<div class="info">${ic('pack')}<span>Tu peux préparer <b>${c.n} kit${c.n>1?'s':''} complet${c.n>1?'s':''}</b> ${when}${/\.$/.test(when)?'':'.'}${lim?` ${c.per.length>1?'Ce qui limite : il':'Il'} faut ${lim.n} du produit « ${esc(lim.pr.name)} » par kit et il y en a ${lim.a} de disponible${lim.a>1?'s':''}.`:''}${c.per.length>1?`<br><small>${c.per.map(x=>`${esc(x.pr.name)} : ${x.n} par kit, ${x.a} dispo`).join(' · ')}</small>`:''}</span></div>`+kitUsedHTML(byPack(d.id))})():''}
+      <div class="f"><label for="k-name">Nom du kit</label><input class="in" id="k-name" value="${esc(d.name)}" placeholder="Ex : Kit barnum équipé"><span class="h">C'est ce nom que l'app cherche dans les descriptions des chantiers (le pluriel est reconnu).</span><div id="kclash">${kitClashHTML(d.name,d.id)}</div></div>
       <div class="f"><label for="k-kw">Autres noms possibles</label><input class="in" id="k-kw" value="${esc(d.kw.join(', '))}" placeholder="Ex : barnum, tente"></div>
       <div class="f"><label>Contenu d'un kit</label>${d.rows.map(([pid,n],i)=>`<div class="mrow kr"><select class="in" aria-label="Produit">${opts(pid)}</select><input class="in q" type="number" min="1" value="${n}" aria-label="Quantité"><button class="ib" data-act="krm" data-i="${i}" aria-label="Retirer">${ic('x')}</button></div>`).join('')}
       <button class="btn sm" data-act="kadd" style="margin-top:6px;align-self:flex-start">${ic('plus')}Ajouter un produit</button></div>
@@ -3245,7 +3250,7 @@ const A={
   'nk-ok':()=>{const n=$('#nk-name').value.trim();if(!n)return;const u=parse(MD.d.desc).unknown[MD.mk];const kw=u&&norm(u.name)!==norm(n)?[u.name]:[];S.products.push({id:'p'+uid(),name:n,cat:'',qty:Math.max(0,parseInt($('#nk-qty').value)||0),kw,photo:''});MD.mk=-1;save();redrawRead();render();toast('« '+n+' » ajouté au stock')},
   ign:b=>{const u=parse(MD.d.desc).unknown[+b.dataset.k];if(u){S.ignored=S.ignored||[];S.ignored.push(norm(u.name));save();redrawRead();render();toast('Ce mot sera ignoré')}}
 };
-document.addEventListener('input',e=>{if(e.target.id==='p-qty'||e.target.id==='p-usize'){unitLive();return}if(e.target.classList.contains('ivn')&&MD&&MD.k==='invr'&&MD.rows){const l=MD.rows[+e.target.dataset.i];l[e.target.dataset.k]=Math.max(0,parseInt(e.target.value)||0);const d=l.bon+l.rep+l.cas-l.e,c=document.querySelector('.ivd'+e.target.dataset.i);if(c)c.innerHTML=`<em class="${d<0?'neg':'pos'}">${d>0?'+':''}${d}</em>`;e.target.closest('.ivr').classList.toggle('bad',!!d);return}
+document.addEventListener('input',e=>{if(e.target.id==='k-name'&&MD&&MD.k==='k'){const c=$('#kclash');if(c)c.innerHTML=kitClashHTML(e.target.value,MD.d.id);return}if(e.target.id==='p-qty'||e.target.id==='p-usize'){unitLive();return}if(e.target.classList.contains('ivn')&&MD&&MD.k==='invr'&&MD.rows){const l=MD.rows[+e.target.dataset.i];l[e.target.dataset.k]=Math.max(0,parseInt(e.target.value)||0);const d=l.bon+l.rep+l.cas-l.e,c=document.querySelector('.ivd'+e.target.dataset.i);if(c)c.innerHTML=`<em class="${d<0?'neg':'pos'}">${d>0?'+':''}${d}</em>`;e.target.closest('.ivr').classList.toggle('bad',!!d);return}
   const D=S.cfg&&S.cfg.mretDraft;if(!D)return;if(e.target.id==='mretn'){const r=D.rows[+e.target.dataset.mretNote];if(r){r.note=e.target.value;save()}}else if(e.target.id==='mretc'){D.comment=e.target.value;save()}});
 document.addEventListener('click',e=>{
   if(DRAG.skip){DRAG.skip=false;return}
