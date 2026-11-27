@@ -43,13 +43,15 @@ function gToLocal(it: any) {
   return { title: it.summary || "(Sans titre)", start, end, t0, t1, lieu: it.location || "", desc: htmlToText(it.description || "") };
 }
 const vis = (it: any) => { const f = gToLocal(it); return f ? hashId(JSON.stringify(f)) : ""; };
-const stripDesc = (d: string) => String(d || "").replace(/^Matériel :\n(?:- .*(?:\n|$))*/, "").replace(/\n*— Envoyé par StockInfos\s*$/, "").trim();
+const stripDesc = (d: string) => String(d || "").replace(/^Matériel :\n(?:- .*(?:\n|$))*/, "").replace(/^\s*Démontage : .*(?:\n|$)/, "").replace(/\n*— Envoyé par StockInfos\s*$/, "").trim();
 function readJ(it: any) {
   const pr = (it.extendedProperties && it.extendedProperties.private) || {};
   let j = ""; for (let k = 0; pr["j" + k] !== undefined; k++) j += pr["j" + k];
   if (j) { try { return JSON.parse(j); } catch { /* */ } }
   const f: any = gToLocal(it); if (!f) return null; f.desc = stripDesc(f.desc); return f;
 }
+const gTitle = (t: string) => String(t || "").replace(/^Montage · /, "");
+const DM = "~dm"; // un chantier avec démontage séparé a un 2e événement dans Google, marqué <id>~dm
 const si = (it: any) => it.extendedProperties && it.extendedProperties.private && it.extendedProperties.private.si;
 const gbHash = (gb: any) => gb && gb.extendedProperties && gb.extendedProperties.private && gb.extendedProperties.private.h;
 const syncable = (d: any) => d && d.src === "manuel" && !d.essai;
@@ -109,34 +111,68 @@ async function run(a: any): Promise<string> {
   for (const r of rows) {
     if (r.deleted || !syncable(r.data)) continue;
     const d = r.data, it = bySi.get(r.id) || (d.gid ? byGid.get(d.gid) : null), lh = gbHash(d.gb);
+    let nd: any = { ...d }, gone = false; // les changements s'accumulent puis sont écrits en une fois
     if (it) {
       used.add(it.id);
       const vr = vis(it), remoteChanged = !!d.gv && vr !== d.gv, localChanged = !!d.gb && lh !== d.gh;
       if (localChanged) {
         const p = await g("PATCH", base + "/" + encodeURIComponent(it.id), d.gb);
-        if (p.status < 300) { await upd(r, { ...d, gid: it.id, gh: lh, gv: vis(p.json || d.gb), gcal: cal }); nU++; }
+        if (p.status < 300) { nd = { ...nd, gid: it.id, gh: lh, gv: vis(p.json || d.gb), gcal: cal }; nU++; }
       } else if (remoteChanged) {
         const f: any = gToLocal(it);
-        if (f) { await upd(r, { ...d, title: f.title, start: f.start, end: f.end, t0: f.t0, t1: f.t1, lieu: f.lieu, desc: stripDesc(f.desc), gid: it.id, gv: vr, gcal: cal }); nI++; }
-      } else if (!d.gv || d.gid !== it.id || d.gcal !== cal) { await upd(r, { ...d, gid: it.id, gv: vr, gcal: cal }); }
+        if (f) { nd = { ...nd, title: gTitle(f.title), start: f.start, end: f.end, t0: f.t0, t1: f.t1, lieu: f.lieu, desc: stripDesc(f.desc), gid: it.id, gv: vr, gcal: cal }; nI++; }
+      } else if (!d.gv || d.gid !== it.id || d.gcal !== cal) { nd = { ...nd, gid: it.id, gv: vr, gcal: cal }; }
     } else if (d.gid && d.gcal === cal) {
-      await upd(r, {}, true); nI++; // supprimé dans Google
+      gone = true; nI++; // supprimé dans Google
     } else if (d.gb) {
       const p = await g("POST", base, d.gb);
-      await upd(r, { ...d, gid: p.json.id, gh: lh, gv: vis(p.json), gcal: cal }); nA++;
+      nd = { ...nd, gid: p.json.id, gh: lh, gv: vis(p.json), gcal: cal }; nA++;
     }
+    // le démontage (2e événement)
+    if (!gone) {
+      const itd = bySi.get(r.id + DM) || (d.gidd ? byGid.get(d.gidd) : null), lhd = gbHash(d.gbd);
+      if (itd) used.add(itd.id);
+      if (d.gbd) {
+        if (itd) {
+          const vr = vis(itd);
+          if (lhd !== d.ghd) {
+            const p = await g("PATCH", base + "/" + encodeURIComponent(itd.id), d.gbd);
+            if (p.status < 300) { nd = { ...nd, gidd: itd.id, ghd: lhd, gvd: vis(p.json || d.gbd) }; nU++; }
+          } else if (d.gvd && vr !== d.gvd) {
+            const f: any = gToLocal(itd);
+            if (f) { nd = { ...nd, dm: { start: f.start, end: f.end, t0: f.t0, t1: f.t1 }, gidd: itd.id, gvd: vr }; nI++; }
+          } else if (!d.gvd || d.gidd !== itd.id) { nd = { ...nd, gidd: itd.id, gvd: vr }; }
+        } else if (d.gidd && d.gcal === cal) {
+          nd = { ...nd, dm: { tbd: 1 } }; delete nd.gidd; delete nd.ghd; delete nd.gvd; nI++; // démontage supprimé dans Google : date à redéfinir
+        } else {
+          const p = await g("POST", base, d.gbd);
+          nd = { ...nd, gidd: p.json.id, ghd: lhd, gvd: vis(p.json) }; nA++;
+        }
+      } else if (itd) {
+        await g("DELETE", base + "/" + encodeURIComponent(itd.id)); nD++;
+        delete nd.gidd; delete nd.ghd; delete nd.gvd;
+      } else if (d.gidd) { delete nd.gidd; delete nd.ghd; delete nd.gvd; }
+    }
+    if (gone) await upd(r, {}, true);
+    else if (stable(nd) !== stable(d)) await upd(r, nd);
   }
   // supprimé dans l'appli : on l'enlève aussi de Google
   for (const r of rows) {
     if (!r.deleted) continue;
     const it = bySi.get(r.id) || (r.id.startsWith("gs") ? byGid.get(r.id.slice(2)) : null);
     if (it && !used.has(it.id)) { used.add(it.id); await g("DELETE", base + "/" + encodeURIComponent(it.id)); nD++; }
+    const itd = bySi.get(r.id + DM);
+    if (itd && !used.has(itd.id)) { used.add(itd.id); await g("DELETE", base + "/" + encodeURIComponent(itd.id)); nD++; }
   }
   // nouveaux dans Google (créés directement dans l'agenda, ou anciens chantiers absents de la base)
   const ins: any[] = [];
   for (const it of items) {
     if (used.has(it.id)) continue;
     const s = si(it);
+    if (s && s.endsWith(DM)) { // démontage dont le chantier n'existe plus dans la base
+      if (!byId.has(s.slice(0, -DM.length))) { await g("DELETE", base + "/" + encodeURIComponent(it.id)); nD++; }
+      continue;
+    }
     if (s) {
       if (byId.has(s)) continue;
       const d = readJ(it); if (!d) continue;

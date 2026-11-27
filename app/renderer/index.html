@@ -942,7 +942,8 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .qca{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px}.qca>span{font-size:12.5px;color:var(--amb);font-weight:600;margin-right:2px}
 .qcp{cursor:pointer;border:1px solid var(--line);display:inline-flex;align-items:baseline;gap:6px}.qcp:hover{border-color:var(--acc);color:var(--acc)}.qcp small{font-size:10.5px;color:var(--mute)}
 .note.warn{display:flex;gap:8px;align-items:flex-start;background:var(--ambbg);color:var(--ink);border:1px solid color-mix(in srgb,var(--amb) 40%,transparent);padding:10px 12px;border-radius:10px;font-size:13px}.note.warn svg{color:var(--amb);flex:none;width:16px;height:16px;margin-top:2px}
-.qcbox.edbox,.mob .qcbox.edbox{padding:8px;height:auto;display:flex;flex-direction:column;flex-wrap:nowrap;align-items:stretch;min-width:0;max-width:100%}.edbox .qck{max-width:100%}.edbox #edchips{display:flex;flex-wrap:wrap;gap:6px}.edbox #edchips:empty{display:none}.edbox .qcta{width:100%;border:0;outline:0;background:none;color:var(--ink);font:inherit;font-size:15px;line-height:1.45;padding:4px;resize:vertical;min-height:96px}.mob .edbox .qcta{font-size:16px}.qck.kit b{color:var(--acc)}.kr .kqb{font-size:20px;font-weight:600;flex:0 0 auto;width:36px;height:36px}.mob .kr .kqb{width:46px;height:46px;font-size:24px}.kr .q{text-align:center}.qck.kit b svg{width:13px;height:13px;vertical-align:-2px}
+.qcbox.edbox,.mob .qcbox.edbox{padding:8px;height:auto;display:flex;flex-direction:column;flex-wrap:nowrap;align-items:stretch;min-width:0;max-width:100%}.edbox .qck{max-width:100%}.edbox #edchips{display:flex;flex-wrap:wrap;gap:6px}.edbox #edchips:empty{display:none}.edbox .qcta{width:100%;border:0;outline:0;background:none;color:var(--ink);font:inherit;font-size:15px;line-height:1.45;padding:4px;resize:vertical;min-height:96px}.mob .edbox .qcta{font-size:16px}.dmlist{display:flex;flex-direction:column;gap:8px}.dmpick{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:12px 14px;border:1px solid var(--line);border-left:4px solid var(--c);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;cursor:pointer}.dmpick:hover{border-color:var(--acc)}.mob .dmpick{padding:16px}.etype .chip{font-size:14px;padding:6px 16px}.mob .etype .chip{font-size:16px;padding:10px 22px}
+.qck.kit b{color:var(--acc)}.kr .kqb{font-size:20px;font-weight:600;flex:0 0 auto;width:36px;height:36px}.mob .kr .kqb{width:46px;height:46px;font-size:24px}.kr .q{text-align:center}.qck.kit b svg{width:13px;height:13px;vertical-align:-2px}
 .qcc.kit b{color:var(--acc)}.qcc.kit b svg{width:14px;height:14px;vertical-align:-2px}.edsug:empty{display:none}.edsug{margin-top:6px}
 .qcs{display:flex;flex-direction:column;gap:10px;margin-top:10px;padding:12px;border-radius:10px;background:var(--card2)}
 .qcg{display:flex;flex-direction:column;gap:7px}.qcgt{font-size:13.5px;font-weight:600;color:var(--amb)}
@@ -1383,7 +1384,16 @@ function P(ev){const man=ev.man||{},key='§'+(S.cfg.read?1:0)+(kitsOn()?1:0)+'|'
   for(const [id,q] of Object.entries(man.packs||{})){const k=byPack(id);if(!kitsOn()||!k||q<1)continue;r.mpacks[id]=q;for(const [pid,n] of Object.entries(k.items||{}))r.items[pid]=(r.items[pid]||0)+n*q}
   for(const [pid,q] of Object.entries(man.items||{})){if(q<1||!byId(pid))continue;r.mitems[pid]=q;r.items[pid]=(r.items[pid]||0)+q}
   PC.set(key,r);return r}
-function rng(ev){const p=P(ev);let s=p.dates?.start||ev.start,e=p.dates?.end||ev.end;if(!e||e<s)e=s;return {s,e,re:e,back:e,free:add(e,1)}}
+// ev.dm : démontage séparé. absent = le matériel revient à la fin du montage ; {tbd:1} = date pas encore connue ; {start,end,t0,t1} = dates du démontage
+const dmTbd=ev=>!!(ev&&ev.dm&&(ev.dm.tbd||!ev.dm.start));
+function rng(ev){const p=P(ev);let s=p.dates?.start||ev.start,e=p.dates?.end||ev.end;if(!e||e<s)e=s;const ms=s,me=e;let ds=null,de=null,tbd=false;
+  if(ev.dm){if(dmTbd(ev)){tbd=true;e=add(e>TODAY?e:TODAY,60)} // date inconnue : le matériel reste bloqué
+    else{ds=ev.dm.start<ms?ms:ev.dm.start;de=ev.dm.end&&ev.dm.end>=ds?ev.dm.end:ds;if(de>e)e=de}}
+  return {s,e,re:e,back:e,free:add(e,1),ms,me,ds,de,tbd}}
+// morceaux affichés dans le planning et envoyés à Google : le montage, puis le démontage
+function segs(ev){const r=rng(ev);if(!ev.dm)return [{ev,r:{s:r.s,e:r.e},t0:ev.t0||'',t1:ev.t1||'',tag:''}];
+  const L=[{ev,r:{s:r.ms,e:r.me},t0:ev.t0||'',t1:ev.t1||'',tag:'Montage'}];if(r.ds)L.push({ev,r:{s:r.ds,e:r.de},t0:ev.dm.t0||'',t1:ev.dm.t1||'',tag:'Démontage',dm:1});return L}
+const segT=x=>(x.tag?x.tag+' · ':'')+x.ev.title;
 function hsQty(p,d){let n=0;for(const h of (p&&p.hs)||[])if((!h.from||d>=h.from)&&(!h.until||d<=h.until))n+=+h.q||0;return n}
 const evOut=(ev,d)=>{const r=rng(ev);return d>=r.s&&d<=r.re&&!(ev.checked&&ev.checked.date&&d>=ev.checked.date)};
 function usage(pid,d,skip){let u=hsQty(byId(pid),d);for(const ev of S.events){if(skip&&ev.id===skip)continue;if(!counts(ev))continue;if(evOut(ev,d))u+=P(ev).items[pid]||0}return u}
@@ -1414,6 +1424,8 @@ const range=(a,b)=>a===b?fmt(a):`${fmt(a)} → ${fmt(b)}`;
 const hh=t=>t?(t.endsWith(':00')?String(+t.slice(0,2))+'h':String(+t.slice(0,2))+'h'+t.slice(3)):'';
 const evKey=ev=>rng(ev).s+' '+(ev.t0||'00:00');
 function whenTxt(ev,short){const r=rng(ev),f=d=>short?fmt(d,{weekday:'short',day:'numeric',month:'short'}):fmt(d);
+  if(ev.dm){const pr=(a,b,t0,t1)=>a===b?f(a)+(t0||t1?' '+[hh(t0),hh(t1)].filter(Boolean).join('→'):''):`${f(a)}${t0?' '+hh(t0):''} → ${f(b)}${t1?' '+hh(t1):''}`;
+    return 'Montage '+pr(r.ms,r.me,ev.t0,ev.t1)+' · Démontage '+(r.ds?pr(r.ds,r.de,ev.dm.t0,ev.dm.t1):'à planifier')}
   if(r.s===r.e)return f(r.s)+(ev.t0||ev.t1?' · '+[hh(ev.t0),hh(ev.t1)].filter(Boolean).join(' → '):'');
   return `${f(r.s)}${ev.t0?' '+hh(ev.t0):''} → ${f(r.e)}${ev.t1?' '+hh(ev.t1):''}`}
 
@@ -1439,11 +1451,12 @@ function topHTML(){
 function ecard(ev){
   const r=rng(ev),p=P(ev),bad=evShort(ev),unk=p.unknown.length+p.amb.length+(p.umiss||[]).length,c=evColor(ev);
   const pill=bad?'<span class="pill ko">Matériel manquant</span>':unk?`<span class="pill lo">${unk} non reconnu${unk>1?'s':''}</span>`:r.e<TODAY?'<span class="pill ok">Terminé</span>':'<span class="pill ok">Matériel OK</span>';
-  return `<button class="ecard" style="--c:${c}" data-act="openev" data-id="${ev.id}"><span class="edate"><b>${dt(r.s).getDate()}</b>${fmt(r.s,{month:'short'})}</span><span><strong>${esc(ev.title)}</strong><span class="meta"><span>${ic('cal')}${whenTxt(ev)} · ${diff(r.s,r.e)+1} j</span>${ev.lieu?`<span>${ic('pin')}${esc(ev.lieu)}</span>`:''}<span>${ic(ev.src==='google'?'link':'hand')}${esc(srcName(ev))}</span></span><span class="chips">${packChips({...p.packs,...Object.fromEntries(Object.entries(p.mpacks||{}).map(([k,q])=>[k,q+(p.packs[k]||0)]))})}${Object.entries(p.items).map(([id,q])=>byId(id)?`<span class="chip">${esc(byId(id).name)} ×${q}</span>`:'').join('')}</span></span>${pill}</button>`;
+  return `<button class="ecard" style="--c:${c}" data-act="openev" data-id="${ev.id}"><span class="edate"><b>${dt(r.s).getDate()}</b>${fmt(r.s,{month:'short'})}</span><span><strong>${esc(ev.title)}</strong><span class="meta"><span>${ic('cal')}${whenTxt(ev)}${ev.dm?'':' · '+(diff(r.s,r.e)+1)+' j'}</span>${ev.lieu?`<span>${ic('pin')}${esc(ev.lieu)}</span>`:''}<span>${ic(ev.src==='google'?'link':'hand')}${esc(srcName(ev))}</span></span><span class="chips">${packChips({...p.packs,...Object.fromEntries(Object.entries(p.mpacks||{}).map(([k,q])=>[k,q+(p.packs[k]||0)]))})}${Object.entries(p.items).map(([id,q])=>byId(id)?`<span class="chip">${esc(byId(id).name)} ×${q}</span>`:'').join('')}</span></span>${pill}</button>`;
 }
 const VIEWS={};
 function evStatus(ev){const r=rng(ev),j1=diff(TODAY,r.s),j2=diff(TODAY,r.e);
   if(j1>0)return {cls:'up',txt:j1===1?'Commence demain':`Commence dans ${j1} jours`};
+  if(ev.dm&&TODAY>r.me){if(r.tbd)return {cls:'on',txt:'Sur place · démontage à planifier'};const k=diff(TODAY,r.ds);if(k>0)return {cls:'on',txt:k===1?'Sur place · démontage demain':`Sur place · démontage dans ${k} jours`}}
   if(j2>0)return {cls:'on',txt:j2===1?'En cours · finit demain':`En cours · finit dans ${j2} jours`};
   if(j2===0)return {cls:'on',txt:"En cours · finit aujourd'hui"};return {cls:'done',txt:'Terminé'}}
 function dcard(ev){const r=rng(ev),p=P(ev),st=evStatus(ev),n=Object.values(p.items).reduce((a,b)=>a+b,0),bad=evShort(ev),unk=p.unknown.length+p.amb.length+(p.umiss||[]).length;
@@ -1651,10 +1664,10 @@ VIEWS.stock=()=>{
   <div id="plist">${plistHTML()}</div>`};
 function monthHTML(){
   const [y,m]=U.ym.split('-').map(Number),first=`${y}-${pad(m)}-01`;let d=add(first,-((dt(first).getDay()+6)%7));
-  const evr=S.events.filter(VIS).map(ev=>({ev,r:rng(ev)}));let h=['lun.','mar.','mer.','jeu.','ven.','sam.','dim.'].map(x=>`<div class="dow">${x}</div>`).join('');
+  const evr=S.events.filter(VIS).flatMap(segs);let h=['lun.','mar.','mer.','jeu.','ven.','sam.','dim.'].map(x=>`<div class="dow">${x}</div>`).join('');
   for(let w=0;w<6;w++){for(let i=0;i<7;i++){
     const es=evr.filter(x=>d>=x.r.s&&d<=x.r.e).sort((a,b)=>evKey(a.ev)<evKey(b.ev)?-1:1);
-    h+=`<div class="day${d.slice(0,7)!==U.ym?' out':''}${d===TODAY?' today':''}${d===U.date?' sel':''}" data-act="day" data-d="${d}" data-dd="${d}" role="button" tabindex="0" aria-label="${fmt(d,{weekday:'long',day:'numeric',month:'long'})}"><span class="n">${dt(d).getDate()}</span>${es.slice(0,3).map(({ev})=>`<button class="ev${evShort(ev)?' short':''}" style="--c:${evColor(ev)}" data-act="openev" data-id="${ev.id}" title="${esc(ev.title)}">${evShort(ev)?ic('alert'):''}${ev.t0&&rng(ev).s===d?`<i class="tm">${hh(ev.t0)}</i>`:''}${esc(ev.title)}</button>`).join('')}${es.length>3?`<span class="more">+${es.length-3}</span>`:''}</div>`;
+    h+=`<div class="day${d.slice(0,7)!==U.ym?' out':''}${d===TODAY?' today':''}${d===U.date?' sel':''}" data-act="day" data-d="${d}" data-dd="${d}" role="button" tabindex="0" aria-label="${fmt(d,{weekday:'long',day:'numeric',month:'long'})}"><span class="n">${dt(d).getDate()}</span>${es.slice(0,3).map(x=>{const ev=x.ev;return `<button class="ev${evShort(ev)?' short':''}${x.tag?' seg':''}" style="--c:${evColor(ev)}" data-act="openev" data-id="${ev.id}" title="${esc(segT(x))}">${evShort(ev)?ic('alert'):''}${x.t0&&x.r.s===d?`<i class="tm">${hh(x.t0)}</i>`:''}${esc(segT(x))}</button>`}).join('')}${es.length>3?`<span class="more">+${es.length-3}</span>`:''}</div>`;
     d=add(d,1)}if(d.slice(0,7)!==U.ym&&w>=3)break}
   return `<div class="month">${h}</div>`;
 }
@@ -1675,17 +1688,17 @@ const TGH=44; // hauteur d'une heure en pixels
 const tmin=t=>t?(+t.slice(0,2))*60+(+t.slice(3,5)):null;
 function timeGrid(days){
   const n=days.length;
-  const all0=S.events.filter(VIS).map(ev=>({ev,r:rng(ev)})).filter(x=>x.r.s<=days[n-1]&&x.r.e>=days[0]);
-  const all=all0.filter(x=>x.ev.t0||x.ev.t1),top=all0.filter(x=>!x.ev.t0&&!x.ev.t1).sort((x,y)=>x.r.s<y.r.s?-1:x.r.s>y.r.s?1:(y.r.e>x.r.e?1:-1));
+  const all0=S.events.filter(VIS).flatMap(segs).filter(x=>x.r.s<=days[n-1]&&x.r.e>=days[0]);
+  const all=all0.filter(x=>x.t0||x.t1),top=all0.filter(x=>!x.t0&&!x.t1).sort((x,y)=>x.r.s<y.r.s?-1:x.r.s>y.r.s?1:(y.r.e>x.r.e?1:-1));
   const lanes=[];for(const x of top){let l=0;while(lanes[l]&&lanes[l]>=x.r.s)l++;lanes[l]=x.r.e;x.l=l}
   const a0=days[0],b0=days[n-1],L=Math.max(1,lanes.length);
   const bars=top.map(x=>{const si=Math.max(0,diff(a0,x.r.s)),ei=Math.min(n-1,diff(a0,x.r.e)),p=P(x.ev),it=Object.entries(p.items).slice(0,3).map(([id,q])=>byId(id)?`${esc(byId(id).name)} ×${q}`:'').filter(Boolean).join(' · ');
-    return `<button class="tgbar${evShort(x.ev)?' short':''}${x.r.s<a0?' cl':''}${x.r.e>b0?' cr':''}" style="--c:${evColor(x.ev)};grid-column:${si+1}/${ei+2};grid-row:${x.l+1}" data-act="openev" data-id="${x.ev.id}" title="${esc(x.ev.title)}"><b>${esc(x.ev.title)}</b>${it?`<small>${it}</small>`:''}</button>`}).join('');
+    return `<button class="tgbar${evShort(x.ev)?' short':''}${x.r.s<a0?' cl':''}${x.r.e>b0?' cr':''}" style="--c:${evColor(x.ev)};grid-column:${si+1}/${ei+2};grid-row:${x.l+1}" data-act="openev" data-id="${x.ev.id}" title="${esc(segT(x))}"><b>${esc(segT(x))}</b>${it?`<small>${it}</small>`:''}</button>`}).join('');
   const bandBg=days.map((d,i)=>`<div class="tgab${d===TODAY?' today':''}" data-dd="${d}" style="grid-column:${i+1};grid-row:1/${L+1}" title="Clique ou glisse pour un chantier sur la journée entière"></div>`).join('');
   const head=days.map(d=>`<button class="ch${d===TODAY?' today':''}" data-act="pvday" data-d="${d}"><small>${fmt(d,{weekday:'short'})}</small><b>${dt(d).getDate()}</b></button>`).join('');
   const sd=d=>fmt(d,{weekday:'short',day:'numeric'});
   // chaque chantier est découpé jour par jour : 1er jour à partir de son heure, jours du milieu en entier, dernier jour jusqu'à son heure de fin
-  const cols=days.map(d=>{const es=all.filter(x=>x.r.s<=d&&x.r.e>=d).map(x=>{const {ev,r}=x,first=d===r.s,last=d===r.e;
+  const cols=days.map(d=>{const es=all.filter(x=>x.r.s<=d&&x.r.e>=d).map(x=>{const {r}=x,ev={t0:x.t0,t1:x.t1},first=d===r.s,last=d===r.e;
       let s0=first&&ev.t0?tmin(ev.t0):0,e0=last&&ev.t1?tmin(ev.t1):1440;
       if(first&&last&&ev.t0&&!ev.t1)e0=s0+60;
       if(e0<=s0)e0=Math.min(1440,s0+60);e0=Math.max(e0,s0+30);
@@ -1697,7 +1710,7 @@ function timeGrid(days){
     let grp=[],end=-1;const fin=()=>{const ln=[];grp.forEach(x=>{let k=0;while(ln[k]!==undefined&&ln[k]>x.s0)k++;ln[k]=x.e0;x.k=k});grp.forEach(x=>x.nk=ln.length);grp=[]};
     es.forEach(x=>{if(x.s0>=end&&grp.length){fin();end=-1}grp.push(x);end=Math.max(end,x.e0)});if(grp.length)fin();
     const blocks=es.map(x=>{const p=P(x.ev),it=Object.entries(p.items).slice(0,4).map(([id,q])=>byId(id)?`${esc(byId(id).name)} ×${q}`:'').filter(Boolean).join(' · '),h=(x.e0-x.s0)/60*TGH;
-      return `<button class="tge${evShort(x.ev)?' short':''}${h<40?' tiny':''}${x.s0===0&&x.r.s<d?' ct':''}${x.e0===1440&&x.r.e>d?' cb':''}" style="--c:${evColor(x.ev)};top:${x.s0/60*TGH}px;height:${Math.max(20,h-2)}px;left:calc((100% - 14px) * ${x.k/x.nk} + 2px);width:calc((100% - 14px) / ${x.nk} - 4px)" data-act="openev" data-id="${x.ev.id}" title="${esc(x.ev.title)} · ${esc(x.lab)}"><span class="tgt"><small class="tt">${esc(x.lab)}</small><b>${esc(x.ev.title)}</b>${h>=58?`<small>${x.ev.lieu?esc(x.ev.lieu)+' · ':''}${it}</small>`:''}</span></button>`}).join('');
+      return `<button class="tge${evShort(x.ev)?' short':''}${h<40?' tiny':''}${x.s0===0&&x.r.s<d?' ct':''}${x.e0===1440&&x.r.e>d?' cb':''}" style="--c:${evColor(x.ev)};top:${x.s0/60*TGH}px;height:${Math.max(20,h-2)}px;left:calc((100% - 14px) * ${x.k/x.nk} + 2px);width:calc((100% - 14px) / ${x.nk} - 4px)" data-act="openev" data-id="${x.ev.id}" title="${esc(segT(x))} · ${esc(x.lab)}"><span class="tgt"><small class="tt">${esc(x.lab)}</small><b>${esc(segT(x))}</b>${h>=58?`<small>${x.ev.lieu?esc(x.ev.lieu)+' · ':''}${it}</small>`:''}</span></button>`}).join('');
     const now=d===TODAY?(()=>{const t=new Date(),m=t.getHours()*60+t.getMinutes();return `<i class="tgnow" style="top:${m/60*TGH}px"></i>`})():'';
     return `<div class="tgc${d===TODAY?' today':''}" data-dd="${d}" title="Clique sur une heure pour créer un chantier, ou glisse sur plusieurs jours">${blocks}${now}</div>`}).join('');
   const hours=[...Array(24)].map((_,h)=>`<span style="top:${h*TGH}px">${h?h+'h':''}</span>`).join('');
@@ -2486,7 +2499,7 @@ function printLoad(id,mode){const ev=S.events.find(e=>e.id===id),r=rng(ev),p=P(e
     <div class="lsign"><div><span>Préparé par</span></div><div><span>Chargé par · date</span></div><div><span>Vérifié au retour par · date</span></div></div>
   </div>`;
   outPrint(mode,`Chargement-${short(ev.title).replace(/[^\w\-]+/g,'_')}-${r.s}.pdf`)}
-function openE(id,d0,d1,tt){U.edp=false;U.edpk=null;const ev=id&&S.events.find(e=>e.id===id);MD={k:'e',d:ev?{...ev,man:JSON.parse(JSON.stringify(ev.man||{packs:{},items:{}}))}:{man:{packs:{},items:{}},id:null,title:'',start:d0||U.date,end:d1||add(d0||U.date,2),lieu:'',desc:'',src:'manuel',ci:S.events.length%COLORS.length,...(tt?{t0:tt[0],t1:tt[1],end:d0}:{})},confirm:false,mk:-1};drawE()}
+function openE(id,d0,d1,tt){U.edp=false;U.edpk=null;U.etype='mo';U.dmp=false;U.dmpk=null;const ev=id&&S.events.find(e=>e.id===id);MD={k:'e',d:ev?{...ev,man:JSON.parse(JSON.stringify(ev.man||{packs:{},items:{}})),...(ev.dm?{dm:{...ev.dm}}:{})}:{man:{packs:{},items:{}},dm:{tbd:1},id:null,title:'',start:d0||U.date,end:d1||add(d0||U.date,2),lieu:'',desc:'',src:'manuel',ci:S.events.length%COLORS.length,...(tt?{t0:tt[0],t1:tt[1],end:d0}:{})},confirm:false,mk:-1};drawE()}
 function readHTML(){
   const d=MD.d,p=P(d),r=rng(d);
   const marks=[...p.hits.map(h=>({a:h.s,b:h.e,c:h.pk?'k':''})),...p.unknown.map(u=>({a:u.a,b:u.b,c:'u'})),...(p.amb||[]).map(u=>({a:u.s,b:u.e,c:'u'})),...(p.umiss||[]).map(u=>({a:u.s,b:u.e,c:'u'})),...(p.dates?[{a:p.dates.a,b:p.dates.b,c:'d'}]:[])].sort((x,y)=>x.a-y.a);
@@ -2504,7 +2517,7 @@ function readHTML(){
     ${items?'<h5 style="margin-top:10px">Total du matériel</h5>'+items:(d.desc.trim()?'<p class="h">Aucun produit du stock reconnu.</p>':'')}
     ${ambHTML(p)}
     ${unk}
-    ${Object.keys(p.items).length?`<p class="h" style="margin:10px 0 0">Bloqué du ${fmt(r.s)} au ${fmt(r.e)} : récupéré le ${fmt(r.back)}, de nouveau dispo le ${fmt(r.free)}</p>`:''}`;
+    ${Object.keys(p.items).length?`<p class="h" style="margin:10px 0 0">${r.tbd?`Bloqué à partir du ${fmt(r.s)}, jusqu'au démontage (date à définir).`:r.ds?`Bloqué du ${fmt(r.s)} (montage) au ${fmt(r.de)} (démontage) : récupéré le ${fmt(r.back)}, de nouveau dispo le ${fmt(r.free)}`:`Bloqué du ${fmt(r.s)} au ${fmt(r.e)} : récupéré le ${fmt(r.back)}, de nouveau dispo le ${fmt(r.free)}`}</p>`:''}`;
 }
 // choix des dates d'un chantier : un bouton, un calendrier qui se déplie, des raccourcis, et les heures en liste
 function eDates(){const d=MD.d,ro=d.src==='google',a=d.start<=d.end?d.start:d.end,b=d.start<=d.end?d.end:d.start,n=diff(a,b)+1,F=x=>fmt(x,{weekday:'short',day:'numeric',month:'short'});
@@ -2520,20 +2533,43 @@ function eDates(){const d=MD.d,ro=d.src==='google',a=d.start<=d.end?d.start:d.en
   return `<div class="edr"><button type="button" class="qcdb${U.edp?' on':''}" data-act="edp">${lab}</button>
     <label class="edt">De<select class="in" data-ev="t0" aria-label="Heure de début">${opts(d.t0||'')}</select></label><label class="edt">à<select class="in" data-ev="t1" aria-label="Heure de fin">${opts(d.t1||'')}</select></label></div>
     <div class="qcq" style="margin-top:8px">${quick.map(([l,x,z])=>`<button type="button" class="chip${x===a&&z===b?' on':''}" data-act="edq" data-a="${x}" data-b="${z}">${l}</button>`).join('')}</div>${cal}`}
-function edRedraw(){const w=$('#edw');if(w)w.innerHTML=eDates();if(typeof redrawRead==='function')redrawRead()}
+// ---- démontage ----
+function dmHTML(){const d=MD.d;if(d.src==='google')return '';const mode=!d.dm?'none':dmTbd(d)?'tbd':'date',r=rng(d);
+  const ch=(v,l)=>`<button type="button" class="chip${mode===v?' on':''}" data-act="dmmode" data-v="${v}">${l}</button>`;
+  const hint=mode==='tbd'?`Le matériel reste bloqué à partir du ${fmt(r.ms)} tant que la date n'est pas mise. Pour la mettre plus tard : ouvre ce chantier, ou fais « Nouveau chantier » › « Démontage ».`:mode==='none'?'Le démontage se fait à la fin du montage : le matériel revient ce jour-là.':`Le matériel reste sur place jusqu'au démontage et revient le ${fmt(r.de)}`;
+  return `<div class="qcq">${ch('tbd','À définir')}${ch('none','À la fin du montage')}${ch('date','Choisir la date')}</div>${mode==='date'?`<div style="margin-top:8px">${dmDates()}</div>`:''}<span class="h">${hint}</span>`}
+function dmDates(){const d=MD.d,dm=d.dm,a=dm.start,b=dm.end&&dm.end>=a?dm.end:a,n=diff(a,b)+1,F=x=>fmt(x,{weekday:'short',day:'numeric',month:'short'}),me=rng(d).me;
+  const opts=v=>{const L=[];for(let m=0;m<1440;m+=30)L.push(String(Math.floor(m/60)).padStart(2,'0')+':'+(m%60?'30':'00'));if(v&&!L.includes(v))L.push(v);L.sort();return `<option value=""${!v?' selected':''}>Pas d'heure</option>`+L.map(x=>`<option value="${x}"${x===v?' selected':''}>${hh(x)}</option>`).join('')};
+  const lab=`${ic('cal')}${n===1?`<span>Le</span>${F(a)}`:`<span>Du</span>${F(a)} <span>au</span>${F(b)}`}<em>${n} jour${n>1?'s':''}</em>`;
+  const quick=[['Dernier jour du montage',me],['Le lendemain',add(me,1)],['Une semaine après',add(me,7)]];
+  let cal='';if(U.dmp){const m=U.dmm||a.slice(0,7),[y,mo]=m.split('-').map(Number),f=`${y}-${pad(mo)}-01`;let x=add(f,-((dt(f).getDay()+6)%7)),g='';const A=U.dmpk||a,B=U.dmpk||b,ms=rng(d).ms;
+    for(let i=0;i<42;i++){const sel=x===A||x===B,inr=x>A&&x<B,off=x<ms;g+=`<button class="${x.slice(0,7)!==m?'o ':''}${x===TODAY?'t ':''}${sel?'s':inr?'r':''}" data-act="dmday" data-d="${x}"${off?' disabled':''}>${dt(x).getDate()}</button>`;x=add(x,1)}
+    cal=`<div class="edcal"><div class="dph"><button class="ib" data-act="dmmon" data-v="-1" aria-label="Mois précédent">${ic('l')}</button><span>${new Date(y,mo-1,1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}</span><button class="ib" data-act="dmmon" data-v="1" aria-label="Mois suivant">${ic('r')}</button></div><div class="dphint">${U.dmpk?`Début du démontage : <b>${fmt(U.dmpk,{day:'numeric',month:'short'})}</b>. Clique le dernier jour (ou le même pour un seul jour).`:'Clique le premier jour du démontage, puis le dernier.'}</div><div class="dpg">${['L','M','M','J','V','S','D'].map(x=>`<i>${x}</i>`).join('')}${g}</div><button type="button" class="btn pri dpx" data-act="dmp">Valider</button></div>`}
+  return `<div class="edr"><button type="button" class="qcdb${U.dmp?' on':''}" data-act="dmp">${lab}</button>
+    <label class="edt">De<select class="in" data-dm="t0" aria-label="Heure de début du démontage">${opts(dm.t0||'')}</select></label><label class="edt">à<select class="in" data-dm="t1" aria-label="Heure de fin du démontage">${opts(dm.t1||'')}</select></label></div>
+    <div class="qcq" style="margin-top:8px">${quick.map(([l,x])=>`<button type="button" class="chip${x===a&&x===b?' on':''}" data-act="dmq" data-a="${x}">${l}</button>`).join('')}</div>${cal}`}
+function dmRedraw(){const w=$('#dmw');if(w)w.innerHTML=dmHTML();if(typeof redrawRead==='function')redrawRead()}
+// « Nouveau chantier » › « Démontage » : les chantiers qui n'ont pas encore de date de démontage
+function dmPendHTML(){const L=S.events.filter(dmTbd).sort((a,b)=>rng(a).ms<rng(b).ms?-1:1);
+  if(!L.length)return `<div class="empty">Aucun chantier en attente de démontage : ils ont tous une date.</div>`;
+  return `<p class="h" style="margin:0 0 8px">Choisis le chantier dont tu planifies le démontage :</p><div class="dmlist">${L.map(e=>{const r=rng(e);return `<button class="dmpick" data-act="dmpick" data-id="${e.id}" style="--c:${evColor(e)}"><b>${esc(e.title)}</b><span class="h">Montage ${r.ms===r.me?'le '+fmt(r.ms):'du '+fmt(r.ms)+' au '+fmt(r.me)}${e.lieu?' · '+esc(e.lieu):''}</span></button>`}).join('')}</div>`}
+function edRedraw(){const w=$('#edw');if(w)w.innerHTML=eDates();const w2=$('#dmw');if(w2)w2.innerHTML=dmHTML();if(typeof redrawRead==='function')redrawRead()}
 function drawE(){
   const d=MD.d;
   $('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt">
     <div class="dh"><h3 id="mt">${d.id?esc(d.title):'Nouveau chantier'}</h3><span class="chip">${esc(srcName(d))}</span><button class="ib" data-act="close" aria-label="Fermer">${ic('x')}</button></div>
     <div class="db"><div>
       ${d.src==='google'?`<div class="info">${ic('link')}<span>Vient de l'agenda « ${esc(srcName(d))} » : le nom, les dates, le lieu et la description se modifient dans l'agenda et sont mis à jour à chaque synchro. Ici, tu peux ajouter du matériel à la main.</span></div>`:''}
-      <div class="f"><label for="e-title">Nom du chantier</label><input class="in" id="e-title" ${d.src==='google'?'readonly':''} data-ev="title" value="${esc(d.title)}" placeholder="Ex : Mariage Durand – Château"></div>
-      <div class="f"><label>Dates et heures</label><div id="edw">${eDates()}</div></div>
+      ${!d.id&&d.src!=='google'?`<div class="f"><label>Type</label><div class="qcq etype">${[['mo','Montage'],['dm','Démontage']].map(([v,l])=>`<button type="button" class="chip${(U.etype||'mo')===v?' on':''}" data-act="etype" data-v="${v}">${l}</button>`).join('')}</div></div>`:''}
+      ${!d.id&&U.etype==='dm'?'':`<div class="f"><label for="e-title">Nom du chantier</label><input class="in" id="e-title" ${d.src==='google'?'readonly':''} data-ev="title" value="${esc(d.title)}" placeholder="Ex : Mariage Durand – Château"></div>`}
+      ${!d.id&&U.etype==='dm'?dmPendHTML():`
+      <div class="f"><label>${d.dm?'Montage':'Dates et heures'}</label><div id="edw">${eDates()}</div></div>
+      ${d.src!=='google'?`<div class="f"><label>Démontage</label><div id="dmw">${dmHTML()}</div></div>`:''}
       <div class="f"><label for="e-l">Lieu</label><input class="in" id="e-l" ${d.src==='google'?'readonly':''} data-ev="lieu" value="${esc(d.lieu)}" placeholder="Ex : Segré-en-Anjou Bleu"></div>
       <div class="f"><label for="e-d">Description</label><div class="qcbox in edbox"><div id="edchips" class="qcks">${edChips()}</div><textarea class="qcta" id="e-d" ${d.src==='google'?'readonly':''} data-ev="desc" rows="5" placeholder="Ex : besoin de 2 chapiteaux, 120 chaises et 4 chauffages">${esc(d.desc)}</textarea></div><div class="qcs edsug" id="edsug"></div><span class="h">Écris comme tu veux : « 120 chaises », « deux barnums », « table x15 », « 2 chapiteaux » (kit)… Tu peux aussi mettre « du 02/12 au 05/12 ».</span></div>
-      <div class="f"><label>Ajouter à la main</label><div class="pks">${(S.packs||[]).map(k=>{const c=kitCap(k,evDays(d),d.id).n;return `<button class="btn sm" data-act="addpk" data-id="${k.id}" title="${c} kit(s) complet(s) possible(s) sur ces dates">${ic('pack')}${esc(k.name)} <span class="h" style="color:${c?'var(--mute)':'var(--red)'}">· ${c} possible${c>1?'s':''}</span></button>`}).join('')}</div><select class="in" data-additem aria-label="Ajouter un produit"><option value="">+ Ajouter un produit seul…</option>${[...S.products].sort((a,b)=>a.name.localeCompare(b.name,'fr')).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select><div id="manl">${manHTML()}</div></div>
-    </div><div class="read" id="readp">${readHTML()}</div></div>
-    <div class="df">${MD.confirm?`<span class="l"><b>Supprimer ce chantier ?</b></span><button class="btn" data-act="delno">Annuler</button><button class="btn pri" data-act="delyes">Supprimer</button>`:`${d.id&&d.src!=='google'?`<button class="btn dan l" data-act="dele">Supprimer</button>`:''}<button class="btn" data-act="ecancel">Annuler</button><button class="btn pri" data-act="savee">Enregistrer</button>`}</div>
+      <div class="f"><label>Ajouter à la main</label><div class="pks">${(S.packs||[]).map(k=>{const c=kitCap(k,evDays(d),d.id).n;return `<button class="btn sm" data-act="addpk" data-id="${k.id}" title="${c} kit(s) complet(s) possible(s) sur ces dates">${ic('pack')}${esc(k.name)} <span class="h" style="color:${c?'var(--mute)':'var(--red)'}">· ${c} possible${c>1?'s':''}</span></button>`}).join('')}</div><select class="in" data-additem aria-label="Ajouter un produit"><option value="">+ Ajouter un produit seul…</option>${[...S.products].sort((a,b)=>a.name.localeCompare(b.name,'fr')).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select><div id="manl">${manHTML()}</div></div>`}
+    </div>${!d.id&&U.etype==='dm'?'':`<div class="read" id="readp">${readHTML()}</div>`}</div>
+    <div class="df">${MD.confirm?`<span class="l"><b>Supprimer ce chantier ?</b></span><button class="btn" data-act="delno">Annuler</button><button class="btn pri" data-act="delyes">Supprimer</button>`:`${d.id&&d.src!=='google'?`<button class="btn dan l" data-act="dele">Supprimer</button>`:''}<button class="btn" data-act="ecancel">Annuler</button>${!d.id&&U.etype==='dm'?'':'<button class="btn pri" data-act="savee">Enregistrer</button>'}`}</div>
   </div></div>`;
 }
 const evDays=d=>{const r=rng(d),o=[];for(let x=r.s;x<=r.re;x=add(x,1))o.push(x);return o};
@@ -2647,22 +2683,33 @@ function gItems(p){const kits={},loose={...p.items};
   const c=kitPack(Object.fromEntries(Object.entries(loose).filter(([,q])=>q>0)));for(const [id,q] of Object.entries(c.kits))kits[id]=(kits[id]||0)+q;Object.keys(loose).forEach(k=>{loose[k]=c.loose[k]||0});
   return [...Object.entries(kits).map(([id,q])=>`- ${byPack(id).name} ×${q} (kit)`),...Object.entries(loose).filter(([id,q])=>q>0&&byId(id)).map(([id,q])=>`- ${byId(id).name} ×${q}`)]}
 const gSrvOn=()=>!!((S.cfg.gsrv&&S.cfg.gsrv.on)||GS.srvPending);
-function gBody(ev){const r=rng(ev),p=P(ev),its=gItems(p);
-  const pm=x=>{const [h,m]=x.split(':').map(Number);return h*60+m},fm=n=>String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
+function gWhen(s0,e0,t0,t1){const pm=x=>{const [h,m]=x.split(':').map(Number);return h*60+m},fm=n=>String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
   let start,end;
-  if(!ev.t0){start={date:r.s};end={date:add(r.e,1)}}
-  else{start={dateTime:`${r.s}T${ev.t0}:00`,timeZone:TZ};
-    if(ev.t1){let e=r.e;if(r.e===r.s&&pm(ev.t1)<=pm(ev.t0))e=add(e,1);end={dateTime:`${e}T${ev.t1}:00`,timeZone:TZ}}
-    else if(r.e===r.s){const n=Math.min(pm(ev.t0)+60,1439);end={dateTime:`${r.s}T${fm(n)}:00`,timeZone:TZ}}
-    else end={dateTime:`${r.e}T23:59:00`,timeZone:TZ}}
-  const description=[its.length?'Matériel :\n'+its.join('\n'):'',(ev.desc||'').trim(),'— Envoyé par StockInfos'].filter(Boolean).join('\n\n');
-  const b={summary:ev.title||'(Sans titre)',location:ev.lieu||'',description,start,end};
+  if(!t0){start={date:s0};end={date:add(e0,1)}}
+  else{start={dateTime:`${s0}T${t0}:00`,timeZone:TZ};
+    if(t1){let e=e0;if(e0===s0&&pm(t1)<=pm(t0))e=add(e,1);end={dateTime:`${e}T${t1}:00`,timeZone:TZ}}
+    else if(e0===s0){const n=Math.min(pm(t0)+60,1439);end={dateTime:`${s0}T${fm(n)}:00`,timeZone:TZ}}
+    else end={dateTime:`${e0}T23:59:00`,timeZone:TZ}}
+  return {start,end}}
+const gDay=(a,b)=>a===b?fmt(a):'du '+fmt(a)+' au '+fmt(b);
+// avec un démontage séparé, Google reçoit 2 événements : « Montage · … » (celui-ci) et « Démontage · … » (gBodyDm)
+function gBody(ev){const r=rng(ev),p=P(ev),its=gItems(p);
+  const {start,end}=gWhen(r.ms,r.me,ev.t0,ev.t1);
+  const dml=ev.dm?'Démontage : '+(r.ds?gDay(r.ds,r.de):'à planifier'):'';
+  const description=[its.length?'Matériel :\n'+its.join('\n'):'',dml,(ev.desc||'').trim(),'— Envoyé par StockInfos'].filter(Boolean).join('\n\n');
+  const b={summary:(ev.dm?'Montage · ':'')+(ev.title||'(Sans titre)'),location:ev.lieu||'',description,start,end};
   const vis=gToLocal(b),v=hashId(JSON.stringify(vis));
-  const j=JSON.stringify({title:ev.title||'',start:ev.start,end:ev.end,t0:ev.t0||'',t1:ev.t1||'',lieu:ev.lieu||'',desc:ev.desc||'',man:ev.man||{packs:{},items:{}},ci:ev.ci||0}),pr={si:ev.id,h:hashId(JSON.stringify(b)+j),v};
+  const j=JSON.stringify({title:ev.title||'',start:ev.start,end:ev.end,t0:ev.t0||'',t1:ev.t1||'',lieu:ev.lieu||'',desc:ev.desc||'',man:ev.man||{packs:{},items:{}},ci:ev.ci||0,...(ev.dm?{dm:ev.dm}:{})}),pr={si:ev.id,h:hashId(JSON.stringify(b)+j),v};
   for(let i=0,k=0;i<j.length&&k<28;i+=900,k++)pr['j'+k]=j.slice(i,i+900);
   b.extendedProperties={private:pr};return b}
+function gBodyDm(ev){const r=rng(ev);if(!ev.dm||!r.ds)return null;const p=P(ev),its=gItems(p);
+  const {start,end}=gWhen(r.ds,r.de,ev.dm.t0,ev.dm.t1);
+  const description=[its.length?'Matériel à récupérer :\n'+its.join('\n'):'','Montage : '+gDay(r.ms,r.me),'— Envoyé par StockInfos'].filter(Boolean).join('\n\n');
+  const b={summary:'Démontage · '+(ev.title||'(Sans titre)'),location:ev.lieu||'',description,start,end};
+  const v=hashId(JSON.stringify(gToLocal(b)));b.extendedProperties={private:{si:ev.id+'~dm',h:hashId(JSON.stringify(b)),v}};return b}
+const gTitle=t=>String(t||'').replace(/^Montage · /,'');
 const gVis=it=>{const f=gToLocal(it);return f?hashId(JSON.stringify(f)):''};
-const gStripDesc=d=>String(d||'').replace(/^Matériel :\n(?:- .*(?:\n|$))*/,'').replace(/\n*— Envoyé par StockInfos\s*$/,'').trim();
+const gStripDesc=d=>String(d||'').replace(/^Matériel :\n(?:- .*(?:\n|$))*/,'').replace(/^\s*Démontage : .*(?:\n|$)/,'').replace(/\n*— Envoyé par StockInfos\s*$/,'').trim();
 function gReadJ(it){const pr=(it.extendedProperties&&it.extendedProperties.private)||{};let j='';for(let k=0;pr['j'+k]!==undefined;k++)j+=pr['j'+k];
   if(j){try{return JSON.parse(j)}catch(e){}}
   const f=gToLocal(it);if(!f)return null;f.desc=gStripDesc(f.desc);return f}
@@ -2709,23 +2756,36 @@ async function gSync(manual){
       if(del.has('gs'+it.id)){await call('DELETE',base+'/'+encodeURIComponent(it.id));del.delete('gs'+it.id);nD++;continue}
       extraById.set(it.id,it);
       if(!S.events.some(e=>e.gid===it.id)){const f=gToLocal(it);if(!f)continue;f.desc=gStripDesc(f.desc);S.events.push({...f,id:'gs'+it.id,src:'manuel',gid:it.id,gcal:cal,ci:3,created:Date.now(),man:{packs:{},items:{}}});nI++}}
-    for(const ev of S.events.filter(gSyncable)){const b=gBody(ev),lh=b.extendedProperties.private.h,ex=remote.get(ev.id);remote.delete(ev.id);
+    for(const ev of S.events.filter(gSyncable)){
+      // le démontage : son propre événement
+      {const bd=gBodyDm(ev),exd=remote.get(ev.id+'~dm');remote.delete(ev.id+'~dm');
+        if(bd){const lhd=bd.extendedProperties.private.h;
+          if(exd){ev.gidd=exd.id;const pv=exd.extendedProperties.private.v;
+            if(pv&&gVis(exd)!==pv){const f=gToLocal(exd);if(f){ev.dm={start:f.start,end:f.end,t0:f.t0,t1:f.t1};const b2=gBodyDm(ev);await call('PATCH',base+'/'+encodeURIComponent(exd.id),b2);ev.ghd=b2.extendedProperties.private.h;nI++}}
+            else if(exd.extendedProperties.private.h!==lhd){await call('PATCH',base+'/'+encodeURIComponent(exd.id),bd);ev.ghd=lhd;nU++}}
+          else if(ev.ghd&&ev.gcal===cal){ev.dm={tbd:1};delete ev.gidd;delete ev.ghd;nI++} // démontage supprimé dans Google : date à redéfinir
+          else{const r=await call('POST',base,bd);ev.gidd=r.json.id;ev.ghd=lhd;nA++}}
+        else if(exd){await call('DELETE',base+'/'+encodeURIComponent(exd.id));delete ev.gidd;delete ev.ghd;nD++}}
+      const b=gBody(ev),lh=b.extendedProperties.private.h,ex=remote.get(ev.id);remote.delete(ev.id);
       if(!ex&&ev.gid&&extraById.has(ev.gid)){const it=extraById.get(ev.gid);extraById.delete(ev.gid);
         if(!ev.gh){const f=gToLocal(it);if(f){Object.assign(ev,f,{desc:gStripDesc(f.desc)})}}
         const b2=gBody(ev);await call('PATCH',base+'/'+encodeURIComponent(it.id),b2);ev.gh=b2.extendedProperties.private.h;ev.gcal=cal;continue}
       if(ex){ev.gid=ex.id;const rh=ex.extendedProperties.private.h,pv=ex.extendedProperties.private.v;
         // modifié directement dans Google (titre, dates, heures, lieu, description) : on reprend ces changements
-        if(pv&&gVis(ex)!==pv){const f=gToLocal(ex);if(f){Object.assign(ev,{title:f.title,start:f.start,end:f.end,t0:f.t0,t1:f.t1,lieu:f.lieu,desc:gStripDesc(f.desc)});const b2=gBody(ev);await call('PATCH',base+'/'+encodeURIComponent(ex.id),b2);ev.gh=b2.extendedProperties.private.h;ev.gcal=cal;nI++;continue}}
+        if(pv&&gVis(ex)!==pv){const f=gToLocal(ex);if(f){Object.assign(ev,{title:gTitle(f.title),start:f.start,end:f.end,t0:f.t0,t1:f.t1,lieu:f.lieu,desc:gStripDesc(f.desc)});const b2=gBody(ev);await call('PATCH',base+'/'+encodeURIComponent(ex.id),b2);ev.gh=b2.extendedProperties.private.h;ev.gcal=cal;nI++;continue}}
         if(rh===lh){ev.gh=lh;ev.gcal=cal;continue}
         if(ev.gh&&ev.gh===lh&&ev.gcal===cal){const d=gReadJ(ex);if(d){Object.assign(ev,d);if(!ev.man)ev.man={packs:{},items:{}};ev.gh=rh;nI++;continue}}
         const r=await call('PATCH',base+'/'+encodeURIComponent(ex.id),b);if(r.status<300){ev.gh=lh;ev.gcal=cal;nU++}else{const r2=await call('POST',base,b);ev.gid=r2.json.id;ev.gh=lh;ev.gcal=cal;nA++}}
       else if(ev.gh&&ev.gcal===cal){ev.__gone=true;nI++} // supprimé dans Google ou sur un autre PC
       else{const r=await call('POST',base,b);ev.gid=r.json.id;ev.gh=lh;ev.gcal=cal;nA++}}
     S.events=S.events.filter(e=>!e.__gone);
-    for(const it of remote.values()){const si=it.extendedProperties.private.si;
+    const orph=[...remote.values()].filter(it=>/~dm$/.test(it.extendedProperties.private.si));
+    for(const it of remote.values()){const si=it.extendedProperties.private.si;if(/~dm$/.test(si))continue;
       if(del.has(si)){await call('DELETE',base+'/'+encodeURIComponent(it.id));del.delete(si);nD++;continue}
       // chantier créé sur un autre PC : on le récupère ici
       const d=gReadJ(it);if(!d)continue;S.events.push({...d,man:d.man||{packs:{},items:{}},id:si,src:'manuel',gid:it.id,gh:it.extendedProperties.private.h,gcal:cal,created:Date.now()});nI++}
+    // démontage dont le chantier n'existe plus : on l'enlève de Google
+    for(const it of orph){const b0=it.extendedProperties.private.si.slice(0,-3);if(!S.events.some(e=>e.id===b0)){await call('DELETE',base+'/'+encodeURIComponent(it.id));nD++}}
     S.cfg.gdel=[...del].slice(-500);
     GS.last=Date.now();GS.mark=t0;save();if(nI&&U.view!=='set')render();
     if(manual)toast(nA||nU||nD||nI?`Google Agenda : ${nA} envoyé${nA>1?'s':''}, ${nU} mis à jour, ${nD} retiré${nD>1?'s':''}${nI?`, ${nI} changement${nI>1?'s':''} reçu${nI>1?'s':''}`:''}`:'Google Agenda : déjà à jour');
@@ -2803,7 +2863,7 @@ const dbKey=(k,id)=>k+':'+id;
 function dbEntities(){const M=new Map();
   for(const p of S.products)M.set(dbKey('product',p.id),{kind:'product',id:p.id,data:p});
   for(const k of S.packs||[])M.set(dbKey('pack',k.id),{kind:'pack',id:k.id,data:k});
-  for(const e of S.events){let data=e;if(gSyncable(e)){try{data={...e,gb:gBody(e)}}catch(x){}}M.set(dbKey('event',e.id),{kind:'event',id:e.id,data})}
+  for(const e of S.events){let data=e;if(gSyncable(e)){try{data={...e,gb:gBody(e)};const bd=gBodyDm(e);if(bd)data.gbd=bd}catch(x){}}M.set(dbKey('event',e.id),{kind:'event',id:e.id,data})}
   for(const c of S.casse||[])M.set(dbKey('casse',c.id),{kind:'casse',id:c.id,data:c});
   for(const r of S.invRep||[])M.set(dbKey('inventaire',r.id),{kind:'inventaire',id:r.id,data:{...r,name:'Inventaire du '+r.date}});
   if(S.cfg.gsrv)M.set(dbKey('setting','gserver'),{kind:'setting',id:'gserver',data:S.cfg.gsrv});
@@ -2817,7 +2877,7 @@ function dbApply(row){const {kind,id,data}=row,arr=kind==='product'?S.products:k
   if(!arr)return;const i=arr.findIndex(x=>x.id===id);
   if(kind==='event')DB.evc=true;
   if(row.deleted){if(i>=0)arr.splice(i,1);if(kind==='event'){S.cfg.gdel=[...(S.cfg.gdel||[]),id].slice(-2000)}return}
-  const v={...data,id};if(kind==='event')delete v.gb;if(i>=0)arr[i]=v;else arr.push(v)}
+  const v={...data,id};if(kind==='event'){delete v.gb;delete v.gbd}if(i>=0)arr[i]=v;else arr.push(v)}
 async function dbStatus(){if(!API||!API.dbStatus)return null;try{DB.st=await API.dbStatus()}catch(e){DB.st=null}return DB.st}
 function dbSoon(ms){if(DB.applying||!(DB.st&&DB.st.connected))return;clearTimeout(DB.timer);DB.timer=setTimeout(()=>dbSync(false),ms??600)}
 async function dbSync(manual,first){
@@ -3047,6 +3107,13 @@ const A={
   qcsug:e=>qcAccept(e.dataset.id,!!e.dataset.k),
   edsug:e=>edAccept(e.dataset.id,!!e.dataset.k),
   dpanel:e=>{const P0=(DPANELS&&DPANELS[e.dataset.k])||(e.dataset.k==='invs'?{t:'Rapports d\'inventaire',i:'print',h:invRepHTML()}:null);if(!P0)return;MD={k:'dp'};$('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(760px,100%)"><div class="dh"><h3 id="mt" style="display:flex;align-items:center;gap:8px">${ic(P0.i)}${P0.t}</h3><span class="sp" style="flex:1"></span><button class="ib" data-act="close" aria-label="Fermer">${ic('x')}</button></div><div class="dpb">${P0.h}</div></div></div>`},
+  etype:e=>{U.etype=e.dataset.v;drawE()},
+  dmmode:e=>{const v=e.dataset.v,d=MD.d,me=rng(d).me;if(v==='none')delete d.dm;else if(v==='tbd')d.dm={tbd:1};else{d.dm={start:me,end:me,t0:'',t1:''};U.dmp=true;U.dmm=me.slice(0,7)}U.dmpk=null;MD.mk=-1;drawE()},
+  dmp:()=>{U.dmp=!U.dmp;U.dmpk=null;U.dmm=MD.d.dm.start.slice(0,7);dmRedraw()},
+  dmmon:e=>{const [y,m]=(U.dmm||TODAY.slice(0,7)).split('-').map(Number),x=new Date(y,m-1+(+e.dataset.v),1);U.dmm=`${x.getFullYear()}-${pad(x.getMonth()+1)}`;dmRedraw()},
+  dmday:e=>{const x=e.dataset.d,dm=MD.d.dm;if(!U.dmpk){U.dmpk=x}else{dm.start=U.dmpk<x?U.dmpk:x;dm.end=U.dmpk<x?x:U.dmpk;U.dmpk=null;U.dmp=false}dmRedraw()},
+  dmq:e=>{const dm=MD.d.dm;dm.start=dm.end=e.dataset.a;U.dmp=false;U.dmpk=null;dmRedraw()},
+  dmpick:e=>{const d0=MD&&MD.d?MD.d.start:TODAY;openE(e.dataset.id);const d=MD.d,me=rng(d).me,x=d0>=me?d0:me;d.dm={start:x,end:x,t0:'',t1:''};U.dmp=true;U.dmm=x.slice(0,7);drawE();setTimeout(()=>{const w=$('#dmw');if(w)w.scrollIntoView({block:'center'})},50);toast('Choisis les jours du démontage puis Enregistrer')},
   edp:()=>{U.edp=!U.edp;U.edpk=null;U.edm=(MD.d.start<=MD.d.end?MD.d.start:MD.d.end).slice(0,7);edRedraw()},
   edmon:e=>{const [y,m]=(U.edm||TODAY.slice(0,7)).split('-').map(Number),x=new Date(y,m-1+(+e.dataset.v),1);U.edm=`${x.getFullYear()}-${pad(x.getMonth()+1)}`;edRedraw()},
   edday:e=>{const x=e.dataset.d;if(!U.edpk){U.edpk=x}else{MD.d.start=U.edpk<x?U.edpk:x;MD.d.end=U.edpk<x?x:U.edpk;U.edpk=null;U.edp=false;MD.mk=-1}edRedraw()},
@@ -3218,8 +3285,8 @@ const A={
     else if(MD.k==='k'){const i=S.packs.findIndex(k=>k.id===MD.d.id),o=S.packs[i],refs=[];S.packs.splice(i,1);for(const ev of S.events)if(ev.man?.packs&&ev.man.packs[o.id]){refs.push([ev,ev.man.packs[o.id]]);delete ev.man.packs[o.id]}undo=()=>{S.packs.splice(i,0,o);for(const [ev,q] of refs)ev.man.packs[o.id]=q}}
     else{const i=S.events.findIndex(e=>e.id===MD.d.id),o=S.events[i];S.events.splice(i,1);undo=()=>{S.events.splice(i,0,o)}}
     const wasEv=MD.k!=='p'&&MD.k!=='k',did=wasEv&&MD.d.id;if(did){S.cfg.gdel=[...(S.cfg.gdel||[]),did]}save();closeM();render();if(wasEv)gSoon();toast('Supprimé',()=>{undo();if(did)S.cfg.gdel=(S.cfg.gdel||[]).filter(x=>x!==did);save();render();if(wasEv)gSoon();toast('Suppression annulée')})},
-  savee:()=>{const d=MD.d;if(!d.title.trim()){toast('Donne un nom au chantier');$('#e-title').focus();return}if(d.end<d.start)d.end=d.start;
-    const {mk,...rest}=d;let nid=d.id;if(d.id)Object.assign(S.events.find(e=>e.id===d.id),rest);else{nid='e'+uid();S.events.push({...rest,id:nid,created:Date.now()})}S.events.find(e=>e.id===nid).used=Date.now();save();closeM();render();gSoon();toast('Chantier enregistré')},
+  savee:()=>{const d=MD.d;if(!d.title.trim()){toast('Donne un nom au chantier');$('#e-title').focus();return}if(d.end<d.start)d.end=d.start;if(d.dm){if(dmTbd(d))d.dm={tbd:1};else{const ms=rng(d).ms;if(d.dm.start<ms)d.dm.start=ms;if(!d.dm.end||d.dm.end<d.dm.start)d.dm.end=d.dm.start}}
+    const {mk,...rest}=d;let nid=d.id;if(d.id){const t=S.events.find(e=>e.id===d.id);Object.assign(t,rest);if(!rest.dm)delete t.dm}else{nid='e'+uid();S.events.push({...rest,id:nid,created:Date.now()})}S.events.find(e=>e.id===nid).used=Date.now();save();closeM();render();gSoon();toast('Chantier enregistré')},
   ecancel:()=>{if(MD&&MD.d&&MD.d.id)openR(MD.d.id);else closeM()},
   redit:b=>openE(b.dataset.id),
   setunit:b=>{const x=byId(b.dataset.p);if(!x)return;x.unit=b.dataset.u;x.usize=x.usize||1;save();if(MD&&MD.k==='r')drawR();else redrawRead();render();toast('« '+x.name+' » est maintenant compté en '+b.dataset.u)},
@@ -3302,6 +3369,7 @@ document.addEventListener('input',e=>{
   if(MD&&MD.k==='ret'&&t.classList.contains('rnote'))MD.rows[+t.dataset.i].note=t.value;
   if(MD&&MD.k==='ret'&&t.id==='rcom')MD.comment=t.value;
   if(t.dataset.in==='q'){U.q=t.value;$('#plist').innerHTML=plistHTML()}
+  if(t.dataset.dm&&MD&&MD.k==='e'&&MD.d.dm){MD.d.dm[t.dataset.dm]=t.value;redrawRead()}
   if(t.dataset.ev&&MD&&MD.k==='e'){MD.d[t.dataset.ev]=t.value;MD.mk=-1;redrawRead();if(t.dataset.ev==='desc')edSuggest()}
 });
 document.addEventListener('change',e=>{
