@@ -689,6 +689,7 @@ body:not(.mob) .db.p{grid-template-columns:170px minmax(0,1fr)!important}body:no
 .updbar[hidden]{display:none}
 .updbar span{display:flex;flex-direction:column;gap:2px;font-size:13px}
 .updbar small{color:var(--mute);font-size:12px}
+.mob .updbar{left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:75;padding:12px 12px 12px 16px}.mob .updbar span{flex:1;font-size:15px}.mob .updbar small{font-size:13.5px}
 .updrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px}
 .impdrop{display:flex;flex-direction:column;align-items:center;gap:6px;padding:34px 20px;border:2px dashed var(--line);border-radius:12px;cursor:pointer;text-align:center;color:var(--mute)}
 .impdrop b{color:var(--ink);font-size:15px}
@@ -2169,7 +2170,7 @@ VIEWS.set=()=>{const cals=S.cfg.cals;
   ${setRow('back','Sauvegarde','Une copie est faite automatiquement chaque jour (30 jours gardés)',`<button class="btn sm" data-act="export">Exporter</button><button class="btn sm" data-act="import">Importer</button>`)}
   ${setRow('trash','Supprimer tout le stock',`${S.products.length} produit${S.products.length>1?'s':''} et ${(S.packs||[]).length} kit${(S.packs||[]).length>1?'s':''}. Les chantiers restent.`,`<button class="btn sm dan" data-act="wipe" data-v="stock"${S.products.length||(S.packs||[]).length?'':' disabled'}>Supprimer tout le stock</button>`)}
   ${setRow('trash','Supprimer tous les chantiers',`${S.events.length} chantier${S.events.length>1?'s':''}. Aussi supprimés de Google Agenda (« Chantiers StockInfos ») et des autres PC.`,`<button class="btn sm dan" data-act="wipe" data-v="ev"${S.events.length?'':' disabled'}>Supprimer tous les chantiers</button>`)}
-  <div class="updrow"><span class="note">StockInfos ${API?'v'+esc(API.version):''} · ${/app\.asar/.test(location.href)?updTxt():'version de test (Lancer.bat)'}</span>${API&&API.updateCheck?`<button class="btn sm" data-act="updcheck"${UPDS.state==='checking'||UPDS.state==='downloading'?' disabled':''}>${ic('sync')}Rechercher une mise à jour</button>`:''}${UPDS.state==='ready'?`<button class="btn sm pri" data-act="updgo">Redémarrer et mettre à jour</button>`:''}</div>
+  <div class="updrow"><span class="note">StockInfos ${API?'v'+esc(API.version):''} · ${MOB||/app\.asar/.test(location.href)?updTxt():'version de test (Lancer.bat)'}</span>${API&&API.updateCheck?`<button class="btn sm" data-act="updcheck"${UPDS.state==='checking'||UPDS.state==='downloading'?' disabled':''}>${ic('sync')}Rechercher une mise à jour</button>`:''}${UPDS.state==='ready'?`<button class="btn sm pri" data-act="updgo">${MOB?'Installer la mise à jour':'Redémarrer et mettre à jour'}</button>`:''}</div>
   </div>`};
 
 if(S&&S.cfg&&(S.cfg.logo||S.cfg.site)){delete S.cfg.logo;delete S.cfg.site}
@@ -2187,7 +2188,7 @@ function render(){setTimeout(()=>{tgScroll();if($("#qcsug")){qcSuggest();qcGrow(
 let UPDS={state:'idle'};
 function updTxt(){const v=UPDS.version;return {checking:'recherche…',downloading:`téléchargement de la version ${v}…`,ready:`version ${v} prête`,available:`version ${v} disponible sur GitHub`,none:'à jour',error:'mise à jour impossible : '+(UPDS.error||'')}[UPDS.state]||'mises à jour automatiques'}
 function drawUpd(){const b=$('#updbar');if(!b)return;const v=esc(UPDS.version||'');
-  if(UPDS.state==='ready'){b.innerHTML=`<span><b>Nouvelle version ${v} prête</b><small>Sinon, elle s'installera quand tu fermeras l'app.</small></span><button class="btn sm pri" data-act="updgo">Redémarrer</button><button class="ib" data-act="updhide" aria-label="Plus tard">${ic('x')}</button>`;b.hidden=false}
+  if(UPDS.state==='ready'){b.innerHTML=`<span><b>Nouvelle version ${v} prête</b><small>${MOB?'Touche « Installer » puis confirme : tes données sont gardées.':'Sinon, elle s\'installera quand tu fermeras l\'app.'}</small></span><button class="btn sm pri" data-act="updgo">${MOB?'Installer':'Redémarrer'}</button><button class="ib" data-act="updhide" aria-label="Plus tard">${ic('x')}</button>`;b.hidden=false}
   else if(UPDS.state==='downloading'){b.innerHTML=`<span><b>Mise à jour ${v}</b><small>Téléchargement en cours…</small></span>`;b.hidden=false}
   else b.hidden=true}
 if(API&&API.onUpdate){try{UPDS=API.updateState()||UPDS}catch(e){}API.onUpdate(d=>{UPDS=d;drawUpd();if(U.view==='set'&&!MD)render()});setTimeout(drawUpd,0)}
@@ -3047,7 +3048,7 @@ const A={
     if(!API||!API.saveFile){toast('Disponible dans l\'app installée');return}
     try{const f=await API.saveFile({name:'Modele-stock-StockInfos.csv',content:c,ext:'csv',label:'Fichier Excel (CSV)',open:true});if(f)toast('Modèle enregistré et ouvert dans Excel')}catch(e){toast('Enregistrement impossible')}},
   updcheck:()=>{API.updateCheck();UPDS.state='checking';render()},
-  updgo:()=>{toast('Installation de la mise à jour…');API.updateInstall()},
+  updgo:()=>{toast(MOB?'Android va te demander de confirmer…':'Installation de la mise à jour…');API.updateInstall()},
   updhide:()=>{$('#updbar').hidden=true},
   view:b=>setView(b.dataset.v),
   'dp-toggle':()=>{U.dp=!U.dp;U.pk='a';U.dpm=(U.mode==='periode'?U.a:U.date).slice(0,7);render()},

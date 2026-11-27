@@ -15,13 +15,21 @@ Téléchargez **`StockInfos-Installation.exe`** dans la [dernière version](http
 - StockInfos se met ensuite à jour tout seul : quand une nouvelle version est publiée ici, il la télécharge et propose **Redémarrer** (sinon elle s'installe à la fermeture).
 - Vos données restent sur votre PC (`%APPDATA%\StockInfos`) et ne sont jamais touchées par une mise à jour.
 
+## Sur téléphone Android
+
+Sur le téléphone, ouvrez la [dernière version](https://github.com/Weauz/StockInfos/releases/latest) et téléchargez **`StockInfos.apk`**, puis ouvrez le fichier.
+
+- Android demande d'autoriser votre navigateur (ou l'appli Fichiers) à **installer des applications inconnues** : acceptez, une seule fois.
+- Dans StockInfos sur le PC : Paramètres › Base de données › **QR pour le téléphone**. Sur le téléphone : Paramètres › Base de données › **Scanner le QR code du PC**. Le stock, les chantiers et les inventaires sont alors les mêmes partout.
+- L'appli se met ensuite à jour toute seule depuis cette page : quand une nouvelle version sort, elle la télécharge et affiche **Installer** (Android demande juste de confirmer). Vos données sont gardées.
+
 ## Ce que fait l'app
 
 **Stock**
 - Vos produits en cartes, avec photo (optionnelle), quantité, dispo du jour et date de retour.
 - Choix d'un jour ou d'une période dans le calendrier : on voit ce qui reste, en comptant ce qui revient pendant la période.
 - Unités de mesure (m², mètre…) : « 5 m² » de plancher = 5 dalles de 1 m².
-- Matériel hors service ou en réparation, historique de chaque produit, disponibilité sur 14 jours.
+- Matériel à réparer ou cassé, et les chantiers sur lesquels chaque produit est réservé.
 - Import de votre stock depuis un fichier Excel, CSV ou PDF, sans format imposé : les colonnes sont reconnues automatiquement.
 - Inventaire (total, hors service, restant, compté) en PDF ou Excel.
 

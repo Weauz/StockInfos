@@ -15,3 +15,6 @@ desktop.ini
 
 # codes de connexion Google (ajoutés seulement au moment de fabriquer le .exe)
 app/google.json
+
+# fichiers fabriqués à publier (installateur PC, APK)
+.exe/

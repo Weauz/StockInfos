@@ -5,7 +5,12 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.os.Handler;
+import android.os.Looper;
+import android.provider.Settings;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -52,6 +57,14 @@ public class MainActivity extends Activity {
     private Uri camUri;
     private WebChromeClient.FileChooserParams pendingParams;
     private final ExecutorService pool = Executors.newFixedThreadPool(3);
+    // ---- mises à jour depuis GitHub (même dépôt que le .exe) ----
+    private static final String REPO = "Weauz/StockInfos", APK = "StockInfos.apk";
+    private static final String DL_OK = "https://github.com/" + REPO + "/releases/download/";
+    private final Handler ui = new Handler(Looper.getMainLooper());
+    private volatile JSONObject upd = new JSONObject();
+    private volatile boolean updBusy = false, installAfterPermission = false;
+    private long lastCheck = 0;
+    private File updFile;
 
     @Override
     protected void onCreate(Bundle b) {
@@ -97,6 +110,127 @@ public class MainActivity extends Activity {
             }
         });
         web.loadUrl("file:///android_asset/www/index.html");
+        setUpd("idle", null, null);
+        ui.postDelayed(() -> checkUpdate(false), 8000);
+        ui.postDelayed(new Runnable() { public void run() { checkUpdate(false); ui.postDelayed(this, 4 * 3600 * 1000L); } }, 4 * 3600 * 1000L);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // retour de l'écran « installer des applis inconnues » : on lance l'installation si c'est maintenant autorisé
+        if (installAfterPermission) { installAfterPermission = false; if (canInstall()) installUpdate(); }
+        else if (lastCheck > 0 && System.currentTimeMillis() - lastCheck > 4 * 3600 * 1000L) checkUpdate(false);
+    }
+
+    private void setUpd(String state, String version, String error) {
+        try {
+            JSONObject o = new JSONObject(); o.put("state", state);
+            if (version != null) o.put("version", version);
+            if (error != null) o.put("error", error);
+            upd = o;
+            String js = "window.__abUpd&&window.__abUpd(" + o.toString() + ")";
+            if (web != null) web.post(() -> web.evaluateJavascript(js, null));
+        } catch (Exception ignored) {}
+    }
+    private String curVersion() { try { return getPackageManager().getPackageInfo(getPackageName(), 0).versionName; } catch (Exception e) { return "0.0.0"; } }
+    private static int cmpVer(String a, String b) {
+        String[] x = a.replaceFirst("^v", "").split("\\."), y = b.replaceFirst("^v", "").split("\\.");
+        for (int i = 0; i < 3; i++) {
+            int p = 0, q = 0;
+            try { p = i < x.length ? Integer.parseInt(x[i].replaceAll("\\D.*", "")) : 0; } catch (Exception ignored) {}
+            try { q = i < y.length ? Integer.parseInt(y[i].replaceAll("\\D.*", "")) : 0; } catch (Exception ignored) {}
+            if (p != q) return p < q ? -1 : 1;
+        }
+        return 0;
+    }
+    private Signature[] sigs(PackageInfo pi) {
+        if (pi == null) return null;
+        if (Build.VERSION.SDK_INT >= 28) return pi.signingInfo == null ? null : (pi.signingInfo.hasMultipleSigners() ? pi.signingInfo.getApkContentsSigners() : pi.signingInfo.getSigningCertificateHistory());
+        return pi.signatures;
+    }
+    @SuppressWarnings("deprecation")
+    private int sigFlag() { return Build.VERSION.SDK_INT >= 28 ? PackageManager.GET_SIGNING_CERTIFICATES : PackageManager.GET_SIGNATURES; }
+
+    /** Regarde la dernière release GitHub ; si elle est plus récente, télécharge l'APK et vérifie qu'il vient bien de nous. */
+    private void checkUpdate(boolean manual) {
+        if (updBusy) return;
+        updBusy = true; lastCheck = System.currentTimeMillis();
+        if (manual) setUpd("checking", null, null);
+        pool.execute(() -> {
+            try {
+                HttpURLConnection c = (HttpURLConnection) new URL("https://api.github.com/repos/" + REPO + "/releases/latest").openConnection();
+                c.setConnectTimeout(15000); c.setReadTimeout(20000);
+                c.setRequestProperty("Accept", "application/vnd.github+json");
+                c.setRequestProperty("User-Agent", "StockInfos-Android");
+                if (c.getResponseCode() != 200) throw new Exception("GitHub injoignable (" + c.getResponseCode() + ")");
+                JSONObject rel = new JSONObject(readAll(c.getInputStream()));
+                String ver = rel.optString("tag_name", "").replaceFirst("^v", "");
+                if (ver.isEmpty() || cmpVer(ver, curVersion()) <= 0) { setUpd("none", null, null); return; }
+                String url = null; long size = 0;
+                JSONArray as = rel.optJSONArray("assets");
+                for (int i = 0; as != null && i < as.length(); i++) {
+                    JSONObject a = as.getJSONObject(i);
+                    if (APK.equalsIgnoreCase(a.optString("name"))) { url = a.optString("browser_download_url"); size = a.optLong("size"); }
+                }
+                if (url == null) { setUpd("none", null, null); return; } // release sans APK : rien à faire sur le téléphone
+                if (!url.startsWith(DL_OK)) throw new Exception("adresse de téléchargement refusée");
+                if (size > 300L * 1024 * 1024) throw new Exception("fichier trop gros");
+                File dir = new File(getCacheDir(), "updates"); dir.mkdirs();
+                File f = new File(dir, "StockInfos-" + ver + ".apk");
+                if (!(f.exists() && f.length() == size && verify(f))) {
+                    setUpd("downloading", ver, null);
+                    File[] old = dir.listFiles(); if (old != null) for (File o : old) o.delete();
+                    File tmp = new File(dir, "telechargement.tmp");
+                    HttpURLConnection d = (HttpURLConnection) new URL(url).openConnection();
+                    d.setInstanceFollowRedirects(true); d.setConnectTimeout(20000); d.setReadTimeout(60000);
+                    d.setRequestProperty("User-Agent", "StockInfos-Android");
+                    if (d.getResponseCode() != 200) throw new Exception("téléchargement impossible (" + d.getResponseCode() + ")");
+                    try (InputStream in = d.getInputStream(); OutputStream out = new FileOutputStream(tmp)) { byte[] b = new byte[65536]; int n; while ((n = in.read(b)) > 0) out.write(b, 0, n); }
+                    if (size > 0 && tmp.length() != size) { tmp.delete(); throw new Exception("téléchargement incomplet"); }
+                    if (!tmp.renameTo(f)) throw new Exception("enregistrement impossible");
+                    if (!verify(f)) { f.delete(); throw new Exception(updErr); }
+                }
+                updFile = f;
+                setUpd("ready", ver, null);
+            } catch (Exception e) { setUpd(manual || "downloading".equals(upd.optString("state")) ? "error" : "idle", null, e.getMessage() == null ? "erreur" : e.getMessage()); }
+            finally { updBusy = false; }
+        });
+    }
+    private String updErr = "";
+    /** Même appli, version plus récente, et signée avec la même clé que celle installée : sinon on refuse. */
+    @SuppressWarnings("deprecation")
+    private boolean verify(File f) {
+        try {
+            PackageManager pm = getPackageManager();
+            PackageInfo nw = pm.getPackageArchiveInfo(f.getAbsolutePath(), sigFlag());
+            PackageInfo me = pm.getPackageInfo(getPackageName(), sigFlag());
+            if (nw == null || !getPackageName().equals(nw.packageName)) { updErr = "fichier non reconnu"; return false; }
+            long vn = Build.VERSION.SDK_INT >= 28 ? nw.getLongVersionCode() : nw.versionCode, vm = Build.VERSION.SDK_INT >= 28 ? me.getLongVersionCode() : me.versionCode;
+            if (vn <= vm) { updErr = "version pas plus récente"; return false; }
+            Signature[] a = sigs(nw), b = sigs(me);
+            if (a == null || a.length == 0) { PackageInfo o2 = pm.getPackageArchiveInfo(f.getAbsolutePath(), PackageManager.GET_SIGNATURES); if (o2 != null) a = o2.signatures; }
+            if (b == null || b.length == 0) b = pm.getPackageInfo(getPackageName(), PackageManager.GET_SIGNATURES).signatures;
+            if (a == null || b == null || a.length == 0 || !Arrays.asList(b).contains(a[0])) { updErr = "signature différente (version de test installée depuis Android Studio ?)"; return false; }
+            return true;
+        } catch (Exception e) { updErr = "vérification impossible"; return false; }
+    }
+    private boolean canInstall() { return Build.VERSION.SDK_INT < 26 || getPackageManager().canRequestPackageInstalls(); }
+    private void installUpdate() {
+        if (updFile == null || !updFile.exists()) { checkUpdate(true); return; }
+        if (!canInstall()) {
+            // une seule fois : Android demande d'autoriser StockInfos à installer ses mises à jour
+            installAfterPermission = true;
+            try { startActivity(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + getPackageName()))); } catch (Exception e) { installAfterPermission = false; }
+            return;
+        }
+        try {
+            Uri u = FileProvider.getUriForFile(this, "fr.stockinfos.app.photos", updFile);
+            Intent i = new Intent(Intent.ACTION_VIEW);
+            i.setDataAndType(u, "application/vnd.android.package-archive");
+            i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(i);
+        } catch (Exception e) { setUpd("error", null, "installation impossible"); }
     }
 
     private void openChooser(WebChromeClient.FileChooserParams p) {
@@ -201,6 +335,9 @@ public class MainActivity extends Activity {
     }
 
     class Bridge {
+        @JavascriptInterface public String updState() { return upd.toString(); }
+        @JavascriptInterface public void updCheck() { ui.post(() -> checkUpdate(true)); }
+        @JavascriptInterface public void updInstall() { ui.post(MainActivity.this::installUpdate); }
         @JavascriptInterface public String version() { try { return getPackageManager().getPackageInfo(getPackageName(), 0).versionName; } catch (Exception e) { return "?"; } }
         @JavascriptInterface public String load() {
             try { File f = dataFile(); return f.exists() ? readAll(new FileInputStream(f)) : ""; } catch (Exception e) { return ""; }
