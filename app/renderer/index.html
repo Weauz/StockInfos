@@ -592,6 +592,10 @@ button.ret:hover strong{color:var(--acc)}
 .pctop{display:flex;align-items:center;gap:10px;padding:12px 10px 0 12px}
 .pcth{width:40px;height:40px;border-radius:9px;flex:none;display:grid;place-items:center;font-weight:700;font-size:14px;color:var(--k);background:color-mix(in srgb,var(--k) 18%,var(--card2));overflow:hidden}
 .pcth img{width:100%;height:100%;object-fit:cover}
+.pcth.ph{width:64px;height:64px;border-radius:12px;background:var(--card2)}
+.pcth.nop{width:64px;height:64px;border-radius:12px;border:1.5px dashed var(--line);background:var(--card2);color:var(--mute);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;font:inherit;padding:0}
+body:not(.mob) .db.p{grid-template-columns:170px minmax(0,1fr)!important}body:not(.mob) .db.p .photo{width:170px;height:170px;max-width:none;border-radius:14px;font-size:13px;gap:6px}body:not(.mob) .db.p .photo svg{width:34px;height:34px}
+.pcth.nop svg{width:20px;height:20px}.pcth.nop small{font-size:10.5px;font-weight:600}.pcth.nop:hover{border-color:var(--acc);color:var(--acc)}
 .pct{flex:1;min-width:0}
 .pct .pcn{min-height:0;-webkit-line-clamp:1;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pct small{display:block;font-size:12px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1086,6 +1090,36 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .mob .ivr{font-size:16px}.mob .ivn{height:48px}
 .mob .mcats .btn{height:48px}
 .mob .tg .tgb{min-height:44px}
+/* fiche produit au téléphone : plein écran, photo d'abord */
+.mob .dlg.pdlg{height:100%;max-height:100%;border-radius:0;display:flex;flex-direction:column}
+.mob .dlg.pdlg>.pad,.mob .dlg.pdlg>.pm{flex:none}
+.pm{padding:16px 16px 4px;display:flex;flex-direction:column;gap:14px}
+.pmph{display:flex;flex-direction:column;align-items:center;gap:8px}
+.pmcam{width:100%;aspect-ratio:16/10;border:2px dashed color-mix(in srgb,var(--acc) 45%,var(--line));border-radius:18px;background:color-mix(in srgb,var(--acc) 6%,var(--card2));color:var(--acc);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font:inherit}
+.pmcam svg{width:44px;height:44px}.pmcam b{font-size:18px}.pmcam small{color:var(--mute);font-size:13.5px}
+.pmph.has{position:relative}.pmph.has img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:18px;background:var(--card2)}
+.pmpa{display:flex;gap:8px;width:100%}.pmpa .btn{flex:1;justify-content:center}
+.pm .f{margin:0}.pm .f label{display:block;font-weight:600;margin-bottom:6px}
+.pmq{display:grid;grid-template-columns:64px 1fr 64px;gap:10px}.pmq .btn{height:58px;font-size:28px;justify-content:center;padding:0}.pmq .in{height:58px;text-align:center;font-size:24px;font-weight:700}
+.pmcats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.pmc{height:42px;padding:0 16px;border-radius:21px;border:1px solid var(--line);background:var(--card);font:inherit;font-size:15px;color:var(--ink)}.pmc.on{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+.pmadv summary{font-size:15px;padding:10px 0;color:var(--mute)}.pmadv .f{margin-top:12px}
+.mob .pcth.ph,.mob .pcth.nop{width:72px;height:72px;border-radius:14px}.mob .pcth.nop svg{width:24px;height:24px}
+.mob .pctop .addto{width:44px;height:44px}
+/* calendriers au téléphone : panneau en bas de l'écran, grosses cases */
+.mob .dp{position:fixed!important;left:0!important;right:0!important;top:auto!important;bottom:0!important;width:auto!important;z-index:80;border-radius:22px 22px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom));box-shadow:0 0 0 100vmax rgba(0,0,0,.45);border:0;animation:dpup .18s ease-out}
+@keyframes dpup{from{transform:translateY(40px);opacity:.4}}
+.mob .dp .dph{font-size:18px;font-weight:700;margin-bottom:6px}.mob .dp .dph .ib{width:48px;height:48px}
+.mob .dp .dphint{font-size:14.5px;margin-bottom:10px}
+.mob .dp .dpg{gap:4px}.mob .dp .dpg i{font-size:13px;padding:4px 0}.mob .dp .dpg button{height:48px;font-size:17px;border-radius:12px}
+.mob .dp .dpx{display:flex}
+.dpx{display:none;width:100%;height:50px;margin-top:12px;justify-content:center}
+.mob .datebar{height:52px}.mob .datebar .ib{width:48px;height:48px}.mob .dbtn{height:48px;font-size:16px}
+.mob .dlg:has(.edcal),.mob .ov:has(.edcal){transform:none!important;animation:none!important;filter:none!important;backdrop-filter:none!important}
+.mob .edcal{position:fixed;left:0;right:0;bottom:0;width:auto!important;max-width:none!important;z-index:80;background:var(--card);border-radius:22px 22px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom));box-shadow:0 0 0 100vmax rgba(0,0,0,.45);animation:dpup .18s ease-out;margin:0}
+.mob .edcal .dph{font-size:18px;font-weight:700}.mob .edcal .dph .ib{width:48px;height:48px}.mob .edcal .dpg button{height:48px;font-size:17px;border-radius:12px}.mob .edcal .dpx{display:flex}
+.mob .edr{flex-wrap:wrap;gap:10px}.mob .edr .qcdb{flex:1 1 100%}.mob .edt{flex:1 1 40%;display:flex;align-items:center;gap:8px;font-size:15px}.mob .edt select{flex:1}
+.mob .qcdb{height:52px!important;font-size:16px!important;width:100%}.mob .qcq .chip{height:42px;display:inline-flex;align-items:center;padding:0 16px!important;font-size:15px!important;border-radius:21px}
 .mob .msteps{grid-template-columns:1fr}.mob .mstep{padding:8px 12px}
 .mob .dsh:has(.wks){flex-wrap:wrap;row-gap:10px}.mob .dsh:has(.wks) h2{white-space:nowrap}.mob .dsh .wks{flex:1 1 100%;margin-left:0;display:flex}.mob .dsh .wks button{flex:1;justify-content:center}.mob .dsh:has(.wks) h2{flex:1;overflow:visible}.mob .wks button{height:40px;padding:0 14px;font-size:14.5px}
 .mob .dsh h2 small,.mob .dsh .lnk{display:none}.mob .dsh{flex-wrap:wrap}
@@ -1362,7 +1396,7 @@ function dateHTML(){
   if(U.dp){const [y,m]=U.dpm.split('-').map(Number),f=`${y}-${pad(m)}-01`;let d=add(f,-((dt(f).getDay()+6)%7)),g='';
     const A=U.pk==='b'?U.date:per?U.a:U.date,B=U.pk==='b'?U.date:per?U.b:U.date;
     for(let i=0;i<42;i++){const sel=d===A||d===B,inr=d>A&&d<B;g+=`<button class="${d.slice(0,7)!==U.dpm?'o ':''}${d===TODAY?'t ':''}${sel?'s':inr?'r':''}" data-act="dp-pick" data-d="${d}">${dt(d).getDate()}</button>`;d=add(d,1)}
-    pop=`<div class="dp"><div class="dph"><button class="ib" data-act="dp-prev" aria-label="Mois précédent">${ic('l')}</button><span>${new Date(y,m-1,1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}</span><button class="ib" data-act="dp-next" aria-label="Mois suivant">${ic('r')}</button></div><div class="dphint">${U.pk==='b'?`<b>${fmt(U.date,{day:'numeric',month:'short'})}</b> choisi. Clique un 2<sup>e</sup> jour pour une période, ou ferme.`:'Clique un jour, ou deux jours pour une période.'}</div><div class="dpg">${['L','M','M','J','V','S','D'].map(x=>`<i>${x}</i>`).join('')}${g}</div><div class="dpf"><button class="btn sm" data-act="dtoday">Revenir à aujourd'hui</button></div></div>`}
+    pop=`<div class="dp"><div class="dph"><button class="ib" data-act="dp-prev" aria-label="Mois précédent">${ic('l')}</button><span>${new Date(y,m-1,1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}</span><button class="ib" data-act="dp-next" aria-label="Mois suivant">${ic('r')}</button></div><div class="dphint">${U.pk==='b'?`<b>${fmt(U.date,{day:'numeric',month:'short'})}</b> choisi. Clique un 2<sup>e</sup> jour pour une période, ou ferme.`:'Clique un jour, ou deux jours pour une période.'}</div><div class="dpg">${['L','M','M','J','V','S','D'].map(x=>`<i>${x}</i>`).join('')}${g}</div><div class="dpf"><button class="btn sm" data-act="dtoday">Revenir à aujourd'hui</button></div><button class="btn pri dpx" data-act="dp-toggle">Valider</button></div>`}
   const lab=per?`<span>Du</span>${fmt(U.a,{day:'numeric',month:'short'})} <span>au</span>${fmt(U.b,{day:'numeric',month:'short'})}`:`<span>Stock au</span>${U.date===TODAY?"aujourd'hui":fmt(U.date,{weekday:'short',day:'numeric',month:'short'})}`;
   return `<div class="dw"><div style="position:relative"><div class="datebar"><button class="ib" data-act="dprev" aria-label="Reculer d'un jour">${ic('l')}</button><button class="dbtn" data-act="dp-toggle" title="Choisir un jour ou une période">${ic('cal')}${lab}</button><button class="ib" data-act="dnext" aria-label="Avancer d'un jour">${ic('r')}</button>${per||U.date!==TODAY?`<button class="ib" data-act="dtoday" title="Revenir à aujourd'hui" aria-label="Revenir à aujourd'hui">${ic('x')}</button>`:''}</div>${pop}</div></div>`;
 }
@@ -1410,7 +1444,7 @@ function qcDates(){const Q=U.qc,a=Q.a<=Q.b?Q.a:Q.b,b=Q.a<=Q.b?Q.b:Q.a,n=diff(a,b
   let pop='';if(U.qcd){const m=U.qcm||a.slice(0,7),[y,mo]=m.split('-').map(Number),f=`${y}-${pad(mo)}-01`;let d=add(f,-((dt(f).getDay()+6)%7)),g='';
     const A=U.qcpk?U.qcpk:a,B=U.qcpk?U.qcpk:b;
     for(let i=0;i<42;i++){const sel=d===A||d===B,inr=d>A&&d<B;g+=`<button class="${d.slice(0,7)!==m?'o ':''}${d===TODAY?'t ':''}${sel?'s':inr?'r':''}" data-act="qcday" data-d="${d}">${dt(d).getDate()}</button>`;d=add(d,1)}
-    pop=`<div class="dp qcdp"><div class="dph"><button class="ib" data-act="qcmon" data-v="-1" aria-label="Mois précédent">${ic('l')}</button><span>${new Date(y,mo-1,1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}</span><button class="ib" data-act="qcmon" data-v="1" aria-label="Mois suivant">${ic('r')}</button></div><div class="dphint">${U.qcpk?`Début : <b>${fmt(U.qcpk,{day:'numeric',month:'short'})}</b>. Clique le dernier jour.`:'Clique le premier jour, puis le dernier.'}</div><div class="dpg">${['L','M','M','J','V','S','D'].map(x=>`<i>${x}</i>`).join('')}${g}</div></div>`}
+    pop=`<div class="dp qcdp"><div class="dph"><button class="ib" data-act="qcmon" data-v="-1" aria-label="Mois précédent">${ic('l')}</button><span>${new Date(y,mo-1,1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}</span><button class="ib" data-act="qcmon" data-v="1" aria-label="Mois suivant">${ic('r')}</button></div><div class="dphint">${U.qcpk?`Début : <b>${fmt(U.qcpk,{day:'numeric',month:'short'})}</b>. Clique le dernier jour.`:'Clique le premier jour, puis le dernier.'}</div><div class="dpg">${['L','M','M','J','V','S','D'].map(x=>`<i>${x}</i>`).join('')}${g}</div><button class="btn pri dpx" data-act="qcdp">Valider</button></div>`}
   return `<div class="qcdr"><div style="position:relative"><button class="dbtn qcdb${U.qcd?' on':''}" data-act="qcdp">${ic('cal')}${n===1?`<span>Le</span>${F(a)}`:`<span>Du</span>${F(a)} <span>au</span>${F(b)}`}<em>${n} jour${n>1?'s':''}</em></button>${pop}</div>
     <div class="qcq">${quick.map(([l,x,z])=>`<button class="chip${x===a&&z===b?' on':''}" data-act="qcq" data-a="${x}" data-b="${z}">${l}</button>`).join('')}</div></div>`}
 // propositions pendant la frappe, comme le clavier d'un téléphone
@@ -1540,7 +1574,7 @@ function pcard(p,I){
   const lo=Math.max(1,Math.round(p.qty*.2)),cls=I.a<0||I.a===0?'ko':I.a<=lo&&I.u>0?'lo':'ok',pct=p.qty?Math.max(0,Math.min(100,I.a/p.qty*100)):0;
   const whoT=I.who.map(ev=>`${short(ev.title)} ×${P(ev).items[p.id]}`).join(', ');
   return `<div class="pc ${cls}" role="button" tabindex="0" data-act="openp" data-id="${p.id}">
-    <span class="pctop"><span class="pcth" style="--k:${catCol(p.cat)}">${p.photo?`<img src="${p.photo}" alt="">`:esc(ini(p.name))}</span><span class="pct"><b class="pcn">${esc(p.name)}</b><small>${p.ref?`Réf. ${esc(p.ref)} · `:''}${esc(p.cat||'Sans catégorie')}${p.unit?` · ${String(usz(p)).replace('.',',')} ${esc(unitLabel(p))}/pièce`:''}${I.a<0?` · <span class="pcbad2">Manque ${-I.a}</span>`:''}</small></span><button class="ib addto" data-act="addto" data-id="${p.id}" title="Ajouter à un chantier" aria-label="Ajouter ${esc(p.name)} à un chantier">${ic('plus')}</button></span>
+    <span class="pctop">${p.photo?`<span class="pcth ph"><img src="${p.photo}" alt=""></span>`:`<button class="pcth nop" data-act="qphoto" data-id="${p.id}" title="Ajouter une photo" aria-label="Ajouter une photo de ${esc(p.name)}">${ic('cam')}<small>Photo</small></button>`}<span class="pct"><b class="pcn">${esc(p.name)}</b><small>${p.ref?`Réf. ${esc(p.ref)} · `:''}${esc(p.cat||'Sans catégorie')}${p.unit?` · ${String(usz(p)).replace('.',',')} ${esc(unitLabel(p))}/pièce`:''}${I.a<0?` · <span class="pcbad2">Manque ${-I.a}</span>`:''}</small></span><button class="ib addto" data-act="addto" data-id="${p.id}" title="Ajouter à un chantier" aria-label="Ajouter ${esc(p.name)} à un chantier">${ic('plus')}</button></span>
     <span class="pcb">
       ${U.mode==='periode'&&I.per.best!==undefined?perBlock(p,I,cls):`<span class="pcv"><b>${I.a}</b><span>/ ${p.qty} dispo</span></span>
       <span class="bar"><i class="${cls}" style="width:${pct}%"></i></span>`}
@@ -2173,7 +2207,7 @@ function drawP(){
   }
   $('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt">
     <div class="dh"><h3 id="mt">${d.id?'Modifier le produit':'Nouveau produit'}</h3><button class="ib" data-act="close" aria-label="Fermer">${ic('x')}</button></div>
-    <div class="db p"><div><button class="photo${d.photo?' has':''}" data-act="pick" id="phbox">${d.photo?`<img src="${d.photo}" alt="Photo du produit">`:`${ic('cam')}<span>Photo</span>`}</button>${d.photo?`<button class="lnk" data-act="rmphoto">Retirer</button>`:''}<input type="file" accept="image/*" id="file" hidden></div>
+    ${MOB?pMobHTML(d,cats):`<div class="db p"><div><button class="photo${d.photo?' has':''}" data-act="pick" id="phbox">${d.photo?`<img src="${d.photo}" alt="Photo du produit">`:`${ic('cam')}<span><b>Ajouter une photo</b><br>clique ou glisse une image</span>`}</button>${d.photo?`<button class="lnk" data-act="pick">Changer</button> · <button class="lnk" data-act="rmphoto">Retirer</button>`:''}<input type="file" accept="image/*" id="file" hidden></div>
     <div><div class="f"><label for="p-name">Nom du produit</label><input class="in" id="p-name" value="${esc(d.name)}" placeholder="Ex : Chapiteau 5x10"></div>
       <div class="f"><label for="p-ref">Référence <span class="h">facultatif</span></label><input class="in" id="p-ref" value="${esc(d.ref||'')}" placeholder="Ex : code fournisseur, n° de série…" autocomplete="off"></div>
       <div class="row2"><div class="f"><label for="p-cat">Catégorie</label><input class="in" id="p-cat" list="cats" value="${esc(d.cat)}" placeholder="Ex : Chapiteaux"><datalist id="cats">${cats.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div>
@@ -2183,18 +2217,34 @@ function drawP(){
         ${unitKey(d.unit)?`<div class="f"><label for="p-usize">Taille d'une pièce</label><div class="step"><input class="in" id="p-usize" value="${esc(String(d.usize??1).replace('.',','))}" inputmode="decimal" style="text-align:center;width:80px;flex:none"><span class="h" style="align-self:center;white-space:nowrap;padding:0 4px">${esc(UL[unitKey(d.unit)]||d.unit)} par pièce</span></div><span class="h">« 10 ${esc(UL[unitKey(d.unit)]||d.unit)} » dans l'agenda = ${toPieces({usize:d.usize},10)} pièce(s)</span></div>`:'<div></div>'}</div>
         <div class="f"><label for="p-kw">Autres noms possibles</label><input class="in" id="p-kw" value="${esc(d.kw.join(', '))}" placeholder="Ex : tente, structure"><span class="h">Séparés par des virgules, pour les descriptions</span></div>
       </details>
-    </div></div>${d.id?`<div class="pad"><h4 style="margin-top:4px">${ic('tool')} Hors service : à réparer ou cassé</h4>
+    </div></div>`}${d.id?`<div class="pad"><h4 style="margin-top:4px">${ic('tool')} Hors service : à réparer ou cassé</h4>
       <div id="hsl">${(d.hs||[]).map((h,i)=>hsRow(h,i)).join('')}</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" data-act="hsadd" data-t="rep">${ic('tool')}Déclarer à réparer</button><button class="btn sm dan" data-act="hsadd" data-t="cas">${ic('alert')}Déclarer cassé</button></div>
       <p class="h" style="margin:6px 0 0"><b>À réparer</b> : plus compté comme dispo, visible dans « À réparer » sur le tableau de bord. <b>Cassé</b> : retiré du stock à l'enregistrement, noté dans « Casse et pertes » (annulable si tu t'es trompé).</p></div>`:''}${extra}
     <div class="df">${MD.confirm?`<span class="l"><b>Supprimer « ${esc(d.name)} » ?</b> Il ne sera plus compté.</span><button class="btn" data-act="delno">Annuler</button><button class="btn pri" data-act="delyes">Supprimer</button>`:`${d.id?`<button class="btn dan l" data-act="delp">Supprimer</button><button class="btn" data-act="addto" data-id="${d.id}">${ic('plus')}Ajouter à un chantier</button>`:''}<button class="btn" data-act="close">Annuler</button><button class="btn pri" data-act="savep">Enregistrer</button>`}</div>
   </div></div>`;
+  $('#modal .dlg').classList.toggle('pdlg',MOB);
+  if($('#filecam'))$('#filecam').addEventListener('change',e=>{const f=e.target.files[0];if(f)loadPhoto(f)});
   const box=$('#phbox');
-  box.addEventListener('dragover',e=>{e.preventDefault();box.classList.add('drag')});
+  if(box){box.addEventListener('dragover',e=>{e.preventDefault();box.classList.add('drag')});
   box.addEventListener('dragleave',()=>box.classList.remove('drag'));
-  box.addEventListener('drop',e=>{e.preventDefault();box.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)loadPhoto(f)});
+  box.addEventListener('drop',e=>{e.preventDefault();box.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)loadPhoto(f)})}
   $('#file').addEventListener('change',e=>{const f=e.target.files[0];if(f)loadPhoto(f)});
 }
+function pMobHTML(d,cats){const unit=UL[unitKey(d.unit)]||'';
+  return `<div class="pm">
+    <div class="pmph${d.photo?' has':''}">${d.photo?`<img src="${d.photo}" alt="Photo du produit"><div class="pmpa"><button class="btn sm" data-act="pickcam">${ic('cam')}Reprendre</button><button class="btn sm" data-act="pick">Galerie</button><button class="btn sm" data-act="rmphoto">Retirer</button></div>`:
+      `<button class="pmcam" data-act="pickcam" id="phbox">${ic('cam')}<b>Prendre une photo</b><small>Pour reconnaître le produit d'un coup d'œil</small></button><button class="lnk" data-act="pick">ou choisir dans la galerie</button>`}
+      <input type="file" accept="image/*" id="file" hidden><input type="file" accept="image/*" capture="environment" id="filecam" hidden></div>
+    <div class="f"><label for="p-name">Nom du produit</label><input class="in" id="p-name" value="${esc(d.name)}" placeholder="Ex : Chapiteau 5x10" autocapitalize="sentences"></div>
+    <div class="f"><label>Quantité en stock</label><div class="pmq"><button class="btn" data-act="qm" aria-label="Moins">−</button><input class="in" id="p-qty" inputmode="numeric" autocomplete="off" value="${d.qty}" aria-label="Quantité en stock"><button class="btn" data-act="qp" aria-label="Plus">+</button></div></div>
+    <div class="f"><label for="p-cat">Catégorie</label>${cats.length?`<div class="pmcats">${cats.sort((a,b)=>a.localeCompare(b,'fr')).map(c=>`<button class="pmc${c===d.cat?' on':''}" data-act="pcat" data-v="${esc(c)}">${esc(c)}</button>`).join('')}</div>`:''}<input class="in" id="p-cat" value="${esc(d.cat)}" placeholder="${cats.length?'Ou écris une nouvelle catégorie':'Ex : Chapiteaux'}"></div>
+    <details class="adv pmadv"${d.ref||d.kw.length||d.unit?' open':''}><summary>Plus d'options : référence, unité, autres noms</summary>
+      <div class="f"><label for="p-ref">Référence</label><input class="in" id="p-ref" value="${esc(d.ref||'')}" placeholder="Ex : code fournisseur, n° de série…" autocomplete="off"></div>
+      <div class="f"><label for="p-unit">Unité de mesure</label><select id="p-unit" class="in" data-punit>${[['','À la pièce (pas d\'unité)'],['m²','Mètre carré (m²)'],['m','Mètre (m)'],['kg','Kilogramme (kg)'],['L','Litre (L)']].map(([v,l])=>`<option value="${v}"${(UL[unitKey(d.unit)]||'')===v?' selected':''}>${l}</option>`).join('')}</select></div>
+      ${unitKey(d.unit)?`<div class="f"><label for="p-usize">Taille d'une pièce (${esc(unit||d.unit)} par pièce)</label><input class="in" id="p-usize" value="${esc(String(d.usize??1).replace('.',','))}" inputmode="decimal"></div>`:''}
+      <div class="f"><label for="p-kw">Autres noms possibles</label><input class="in" id="p-kw" value="${esc(d.kw.join(', '))}" placeholder="Ex : tente, structure"><span class="h">Séparés par des virgules</span></div>
+    </details></div>`}
 function avChart(d,days){
   const lo=Math.max(1,Math.round(d.qty*.2)),vals=days.map(x=>({x,a:d.qty-usage(d.id,x)}));
   const min=vals.reduce((m,v)=>v.a<m.a?v:m,vals[0]),allOk=vals.every(v=>v.a===d.qty);
@@ -2209,7 +2259,10 @@ function histHTML(p){const L=p.log||[];if(!L.length)return '<div class="h">Aucun
   return `<div class="hist">${L.slice(0,12).map(x=>`<div class="hrow t-${x.type}">${ic(I[x.type]||'box')}<span>${esc(x.txt)}</span><small>${new Date(x.t).toLocaleString('fr-FR',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</small></div>`).join('')}</div>${L.length>12?`<div class="h">+ ${L.length-12} plus anciens</div>`:''}`}
 function hsRow(h,i){const cas=h.t==='cas';return `<div class="mrow hsr${cas?' cas':''}" data-from="${esc(h.from||'')}" data-ret="${esc(h.ret||'')}"><input class="in hq" type="number" min="1" value="${h.q||1}" aria-label="Quantité" style="width:64px"><select class="in ht" data-act="hstype" data-i="${i}" aria-label="État" style="width:118px"><option value="rep"${!cas?' selected':''}>À réparer</option><option value="cas"${cas?' selected':''}>Cassé</option></select><input class="in hn" value="${esc(h.note||'')}" placeholder="${cas?'Ce qui est cassé (ex : pied tordu)':'À réparer (ex : toile déchirée)'}" style="flex:1">${cas?`<span class="h" style="white-space:nowrap">${h.from?'depuis le '+fmt(h.from,{day:'numeric',month:'short'}):''}</span><input type="hidden" class="hu" value="">`:`<label class="h" style="white-space:nowrap">jusqu'au</label><input class="in hu" type="date" value="${esc(h.until||'')}" style="width:150px" aria-label="Jusqu'au">`}<button class="ib" data-act="hsrm" data-i="${i}" aria-label="Retirer">${ic('x')}</button></div>`}
 function readP(){if(!MD||MD.k!=='p')return;const d=MD.d;d.name=$('#p-name').value.trim();d.ref=($('#p-ref')?.value||'').trim();d.cat=$('#p-cat').value.trim();d.qty=Math.max(0,parseInt($('#p-qty').value)||0);d.kw=$('#p-kw').value.split(',').map(s=>s.trim()).filter(Boolean);d.unit=($('#p-unit')?.value||'').trim();if($('#p-usize')){const v=parseFloat(String($('#p-usize').value||'1').replace(',','.'));d.usize=v>0?v:1}d.hs=[...document.querySelectorAll('.hsr')].map(r=>({q:Math.max(0,parseInt(r.querySelector('.hq').value)||0),from:r.dataset.from||'',until:r.querySelector('.hu').value||'',note:r.querySelector('.hn').value.trim(),t:r.querySelector('.ht').value,...(r.dataset.ret?{ret:r.dataset.ret}:{})})).filter(h=>h.q>0)}
-function loadPhoto(f){if(!/^image\//.test(f.type)){toast('Ce fichier n\'est pas une image');return}readP();const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,320/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);MD.d.photo=c.toDataURL('image/jpeg',.82);drawP()};im.src=fr.result};fr.readAsDataURL(f)}
+function photoData(f,cb){if(!f||!/^image\//.test(f.type)){toast('Ce fichier n\'est pas une image');return}const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,640/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.8))};im.src=fr.result};fr.readAsDataURL(f)}
+function loadPhoto(f){readP();photoData(f,u=>{MD.d.photo=u;drawP()})}
+// photo prise directement depuis la liste du stock
+let QPH=null;function quickPhoto(id){QPH=id;let i=$('#qphoto');if(!i){i=document.createElement('input');i.type='file';i.accept='image/*';i.id='qphoto';i.hidden=true;document.body.appendChild(i);i.addEventListener('change',e=>{const f=e.target.files[0],pr=byId(QPH);e.target.value='';if(f&&pr)photoData(f,u=>{pr.photo=u;logP(pr,'edit','Photo ajoutée');save();render();toast('Photo enregistrée')})})}i.click()}
 
 /* ---------- fiche kit ---------- */
 function openK(id){const k=id&&byPack(id);MD={k:'k',d:k?{id:k.id,name:k.name,kw:[...(k.kw||[])],rows:Object.entries(k.items||{})}:{id:null,name:'',kw:[],rows:[['',1]]},confirm:false};drawK()}
@@ -2399,7 +2452,7 @@ function eDates(){const d=MD.d,ro=d.src==='google',a=d.start<=d.end?d.start:d.en
   let cal='';if(U.edp){const m=U.edm||a.slice(0,7),[y,mo]=m.split('-').map(Number),f=`${y}-${pad(mo)}-01`;let x=add(f,-((dt(f).getDay()+6)%7)),g='';
     const A=U.edpk||a,B=U.edpk||b;
     for(let i=0;i<42;i++){const sel=x===A||x===B,inr=x>A&&x<B;g+=`<button class="${x.slice(0,7)!==m?'o ':''}${x===TODAY?'t ':''}${sel?'s':inr?'r':''}" data-act="edday" data-d="${x}">${dt(x).getDate()}</button>`;x=add(x,1)}
-    cal=`<div class="edcal"><div class="dph"><button class="ib" data-act="edmon" data-v="-1" aria-label="Mois précédent">${ic('l')}</button><span>${new Date(y,mo-1,1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}</span><button class="ib" data-act="edmon" data-v="1" aria-label="Mois suivant">${ic('r')}</button></div><div class="dphint">${U.edpk?`Début : <b>${fmt(U.edpk,{day:'numeric',month:'short'})}</b>. Clique le dernier jour (ou le même pour un seul jour).`:'Clique le premier jour, puis le dernier.'}</div><div class="dpg">${['L','M','M','J','V','S','D'].map(x=>`<i>${x}</i>`).join('')}${g}</div></div>`}
+    cal=`<div class="edcal"><div class="dph"><button class="ib" data-act="edmon" data-v="-1" aria-label="Mois précédent">${ic('l')}</button><span>${new Date(y,mo-1,1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}</span><button class="ib" data-act="edmon" data-v="1" aria-label="Mois suivant">${ic('r')}</button></div><div class="dphint">${U.edpk?`Début : <b>${fmt(U.edpk,{day:'numeric',month:'short'})}</b>. Clique le dernier jour (ou le même pour un seul jour).`:'Clique le premier jour, puis le dernier.'}</div><div class="dpg">${['L','M','M','J','V','S','D'].map(x=>`<i>${x}</i>`).join('')}${g}</div><button type="button" class="btn pri dpx" data-act="edp">Valider</button></div>`}
   return `<div class="edr"><button type="button" class="qcdb${U.edp?' on':''}" data-act="edp">${lab}</button>
     <label class="edt">De<select class="in" data-ev="t0" aria-label="Heure de début">${opts(d.t0||'')}</select></label><label class="edt">à<select class="in" data-ev="t1" aria-label="Heure de fin">${opts(d.t1||'')}</select></label></div>
     <div class="qcq" style="margin-top:8px">${quick.map(([l,x,z])=>`<button type="button" class="chip${x===a&&z===b?' on':''}" data-act="edq" data-a="${x}" data-b="${z}">${l}</button>`).join('')}</div>${cal}`}
@@ -2666,7 +2719,8 @@ const dbHash=d=>hashId(JSON.stringify(d));
 function dbApply(row){const {kind,id,data}=row,arr=kind==='product'?S.products:kind==='pack'?(S.packs=S.packs||[]):kind==='event'?S.events:kind==='casse'?(S.casse=S.casse||[]):kind==='inventaire'?(S.invRep=S.invRep||[]):null;
   if(kind==='setting'){if(id==='company'&&!row.deleted)S.cfg.company=data.company||'';return}
   if(!arr)return;const i=arr.findIndex(x=>x.id===id);
-  if(row.deleted){if(i>=0)arr.splice(i,1);return}
+  if(kind==='event')DB.evc=true;
+  if(row.deleted){if(i>=0)arr.splice(i,1);if(kind==='event'){S.cfg.gdel=[...(S.cfg.gdel||[]),id].slice(-2000)}return}
   const v={...data,id};if(i>=0)arr[i]=v;else arr.push(v)}
 async function dbStatus(){if(!API||!API.dbStatus)return null;try{DB.st=await API.dbStatus()}catch(e){DB.st=null}return DB.st}
 function dbSoon(ms){if(DB.applying||!(DB.st&&DB.st.connected))return;clearTimeout(DB.timer);DB.timer=setTimeout(()=>dbSync(false),ms??600)}
@@ -2699,6 +2753,8 @@ async function dbSync(manual,first){
       part.forEach(x=>{if(x.deleted)delete S.dbm[x._k];else S.dbm[x._k]=x._h});pushed+=part.length}
     DB.last=Date.now();
     if(pulled||pushed){DB.applying=true;save();DB.applying=false}
+    // un chantier arrivé du téléphone part aussi sur Google Agenda (si ce PC est relié à Google)
+    if(DB.evc){DB.evc=false;if(typeof gSoon==='function'&&API&&API.gApi&&GS.st&&GS.st.connected)gSoon(800)}
     if(pulled){const a=document.activeElement;if(!MD&&!(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)))render()}
     if(manual)toast(pulled||pushed?`Base de données : ${pushed} envoyé${pushed>1?'s':''}, ${pulled} reçu${pulled>1?'s':''}`:'Base de données : déjà à jour');
   }catch(e){DB.applying=false;DB.err=String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,'');if(manual)toast('Base de données : '+DB.err)}
@@ -3029,7 +3085,9 @@ const A={
   hsadd:e=>{readP();MD.d.hs=MD.d.hs||[];MD.d.hs.push({q:1,from:TODAY,until:'',note:'',t:e.dataset.t==='cas'?'cas':'rep'});drawP()},
   hstype:()=>{},
   hsrm:b=>{readP();MD.d.hs.splice(+b.dataset.i,1);drawP()},
-  pick:()=>$('#file').click(),rmphoto:()=>{readP();MD.d.photo='';drawP()},
+  pick:()=>$('#file').click(),pickcam:()=>($('#filecam')||$('#file')).click(),
+  pcat:e=>{const i=$('#p-cat');if(!i)return;i.value=i.value===e.dataset.v?'':e.dataset.v;document.querySelectorAll('.pmc').forEach(b=>b.classList.toggle('on',b.dataset.v===i.value))},
+  qphoto:e=>quickPhoto(e.dataset.id),rmphoto:()=>{readP();MD.d.photo='';drawP()},
   qm:()=>{const i=$('#p-qty');i.value=Math.max(0,(parseInt(i.value)||0)-1)},qp:()=>{const i=$('#p-qty');i.value=(parseInt(i.value)||0)+1},
   savep:()=>{readP();const d=MD.d;if(!d.name){toast('Donne un nom au produit');$('#p-name').focus();return}
     const cas=(d.hs||[]).filter(h=>h.t==='cas');d.hs=(d.hs||[]).filter(h=>h.t!=='cas');
