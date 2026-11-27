@@ -943,6 +943,7 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .qcp{cursor:pointer;border:1px solid var(--line);display:inline-flex;align-items:baseline;gap:6px}.qcp:hover{border-color:var(--acc);color:var(--acc)}.qcp small{font-size:10.5px;color:var(--mute)}
 .note.warn{display:flex;gap:8px;align-items:flex-start;background:var(--ambbg);color:var(--ink);border:1px solid color-mix(in srgb,var(--amb) 40%,transparent);padding:10px 12px;border-radius:10px;font-size:13px}.note.warn svg{color:var(--amb);flex:none;width:16px;height:16px;margin-top:2px}
 .qcbox.edbox,.mob .qcbox.edbox{padding:8px;height:auto;display:flex;flex-direction:column;flex-wrap:nowrap;align-items:stretch;min-width:0;max-width:100%}.edbox .qck{max-width:100%}.edbox #edchips{display:flex;flex-wrap:wrap;gap:6px}.edbox #edchips:empty{display:none}.edbox .qcta{width:100%;border:0;outline:0;background:none;color:var(--ink);font:inherit;font-size:15px;line-height:1.45;padding:4px;resize:vertical;min-height:96px}.mob .edbox .qcta{font-size:16px}.dmlist{display:flex;flex-direction:column;gap:8px}.dmpick{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:12px 14px;border:1px solid var(--line);border-left:4px solid var(--c);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;cursor:pointer}.dmpick:hover{border-color:var(--acc)}.mob .dmpick{padding:16px}.etype .chip{font-size:14px;padding:6px 16px}.mob .etype .chip{font-size:16px;padding:10px 22px}
+.tge[data-seg],.tgbar[data-seg]{touch-action:auto}.tge .tgrs{position:absolute;left:0;right:0;bottom:0;height:7px;cursor:ns-resize;z-index:2}.tge.mv,.tgbar.mv{opacity:.85;z-index:20;box-shadow:0 6px 18px rgba(0,0,0,.25);transition:none}body.mving,body.mving *{cursor:grabbing!important;user-select:none}.mob .tge .tgrs{display:none}
 .qck.kit b{color:var(--acc)}.kr .kqb{font-size:20px;font-weight:600;flex:0 0 auto;width:36px;height:36px}.mob .kr .kqb{width:46px;height:46px;font-size:24px}.kr .q{text-align:center}.qck.kit b svg{width:13px;height:13px;vertical-align:-2px}
 .qcc.kit b{color:var(--acc)}.qcc.kit b svg{width:14px;height:14px;vertical-align:-2px}.edsug:empty{display:none}.edsug{margin-top:6px}
 .qcs{display:flex;flex-direction:column;gap:10px;margin-top:10px;padding:12px;border-radius:10px;background:var(--card2)}
@@ -1701,7 +1702,7 @@ function timeGrid(days){
   const lanes=[];for(const x of top){let l=0;while(lanes[l]&&lanes[l]>=x.r.s)l++;lanes[l]=x.r.e;x.l=l}
   const a0=days[0],b0=days[n-1],L=Math.max(1,lanes.length);
   const bars=top.map(x=>{const si=Math.max(0,diff(a0,x.r.s)),ei=Math.min(n-1,diff(a0,x.r.e)),p=P(x.ev),it=Object.entries(p.items).slice(0,3).map(([id,q])=>byId(id)?`${esc(byId(id).name)} ×${q}`:'').filter(Boolean).join(' · ');
-    return `<button class="tgbar${evShort(x.ev)?' short':''}${x.r.s<a0?' cl':''}${x.r.e>b0?' cr':''}" style="--c:${evColor(x.ev)};grid-column:${si+1}/${ei+2};grid-row:${x.l+1}" data-act="openev" data-id="${x.ev.id}" title="${esc(segT(x))}"><b>${esc(segT(x))}</b>${it?`<small>${it}</small>`:''}</button>`}).join('');
+    return `<button class="tgbar${evShort(x.ev)?' short':''}${x.r.s<a0?' cl':''}${x.r.e>b0?' cr':''}" style="--c:${evColor(x.ev)};grid-column:${si+1}/${ei+2};grid-row:${x.l+1}" data-act="openev" data-id="${x.ev.id}" data-seg="${x.dm?'dm':'mo'}" title="${esc(segT(x))}"><b>${esc(segT(x))}</b>${it?`<small>${it}</small>`:''}</button>`}).join('');
   const bandBg=days.map((d,i)=>`<div class="tgab${d===TODAY?' today':''}" data-dd="${d}" style="grid-column:${i+1};grid-row:1/${L+1}" title="Clique ou glisse pour un chantier sur la journée entière"></div>`).join('');
   const head=days.map(d=>`<button class="ch${d===TODAY?' today':''}" data-act="pvday" data-d="${d}"><small>${fmt(d,{weekday:'short'})}</small><b>${dt(d).getDate()}</b></button>`).join('');
   const sd=d=>fmt(d,{weekday:'short',day:'numeric'});
@@ -1718,7 +1719,7 @@ function timeGrid(days){
     let grp=[],end=-1;const fin=()=>{const ln=[];grp.forEach(x=>{let k=0;while(ln[k]!==undefined&&ln[k]>x.s0)k++;ln[k]=x.e0;x.k=k});grp.forEach(x=>x.nk=ln.length);grp=[]};
     es.forEach(x=>{if(x.s0>=end&&grp.length){fin();end=-1}grp.push(x);end=Math.max(end,x.e0)});if(grp.length)fin();
     const blocks=es.map(x=>{const p=P(x.ev),it=Object.entries(p.items).slice(0,4).map(([id,q])=>byId(id)?`${esc(byId(id).name)} ×${q}`:'').filter(Boolean).join(' · '),h=(x.e0-x.s0)/60*TGH;
-      return `<button class="tge${evShort(x.ev)?' short':''}${h<40?' tiny':''}${x.s0===0&&x.r.s<d?' ct':''}${x.e0===1440&&x.r.e>d?' cb':''}" style="--c:${evColor(x.ev)};top:${x.s0/60*TGH}px;height:${Math.max(20,h-2)}px;left:calc((100% - 14px) * ${x.k/x.nk} + 2px);width:calc((100% - 14px) / ${x.nk} - 4px)" data-act="openev" data-id="${x.ev.id}" title="${esc(segT(x))} · ${esc(x.lab)}"><span class="tgt"><small class="tt">${esc(x.lab)}</small><b>${esc(segT(x))}</b>${h>=58?`<small>${x.ev.lieu?esc(x.ev.lieu)+' · ':''}${it}</small>`:''}</span></button>`}).join('');
+      return `<button class="tge${evShort(x.ev)?' short':''}${h<40?' tiny':''}${x.s0===0&&x.r.s<d?' ct':''}${x.e0===1440&&x.r.e>d?' cb':''}" style="--c:${evColor(x.ev)};top:${x.s0/60*TGH}px;height:${Math.max(20,h-2)}px;left:calc((100% - 14px) * ${x.k/x.nk} + 2px);width:calc((100% - 14px) / ${x.nk} - 4px)" data-act="openev" data-id="${x.ev.id}" data-seg="${x.dm?'dm':'mo'}" title="${esc(segT(x))} · ${esc(x.lab)}">${x.ev.src!=='google'&&x.r.e===d?'<i class="tgrs" title="Glisse pour changer l\'heure de fin"></i>':''}<span class="tgt"><small class="tt">${esc(x.lab)}</small><b>${esc(segT(x))}</b>${h>=58?`<small>${x.ev.lieu?esc(x.ev.lieu)+' · ':''}${it}</small>`:''}</span></button>`}).join('');
     const now=d===TODAY?(()=>{const t=new Date(),m=t.getHours()*60+t.getMinutes();return `<i class="tgnow" style="top:${m/60*TGH}px"></i>`})():'';
     return `<div class="tgc${d===TODAY?' today':''}" data-dd="${d}" title="Clique sur une heure pour créer un chantier, ou glisse sur plusieurs jours">${blocks}${now}</div>`}).join('');
   const hours=[...Array(24)].map((_,h)=>`<span style="top:${h*TGH}px">${h?h+'h':''}</span>`).join('');
@@ -3102,6 +3103,33 @@ window.siBack=function(){
 let DPANELS=null;
 const DRAG={on:false,a:null,b:null,moved:false,skip:false};
 function dragPaint(){const x=DRAG.a<DRAG.b?DRAG.a:DRAG.b,y=DRAG.a<DRAG.b?DRAG.b:DRAG.a;document.querySelectorAll('[data-dd]').forEach(el=>el.classList.toggle('dsel',DRAG.on&&el.dataset.dd>=x&&el.dataset.dd<=y))}
+// ---- glisser un bloc du planning (comme Google Agenda) : déplacer le montage ou le démontage, ou tirer le bas pour l'heure de fin ----
+const MV={};
+const m2t=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+document.addEventListener('pointerdown',e=>{if(e.button!==0||MD||e.pointerType==='touch')return;const el=e.target.closest('.tge[data-seg],.tgbar[data-seg]');if(!el)return;
+  const ev=S.events.find(x=>x.id===el.dataset.id);if(!ev||ev.src==='google')return;const seg=el.dataset.seg,col=el.closest('.tgc'),cols=document.querySelector('.tgcols'),band=el.closest('.tgband');
+  const cw=col?col.offsetWidth:band?band.offsetWidth/Math.max(1,document.querySelectorAll('.tgdays .ch').length):100;
+  Object.assign(MV,{on:true,moved:false,el,ev,seg,sx:e.clientX,sy:e.clientY,cw,rs:!!e.target.closest('.tgrs'),timed:el.classList.contains('tge'),dd:0,dm:0});e.preventDefault()},true);
+document.addEventListener('pointermove',e=>{if(!MV.on)return;const dx=e.clientX-MV.sx,dy=e.clientY-MV.sy;if(!MV.moved&&Math.hypot(dx,dy)<5)return;
+  if(!MV.moved){MV.moved=true;MV.el.classList.add('mv');document.body.classList.add('mving')}
+  MV.dd=MV.rs?0:Math.round(dx/MV.cw);MV.dm=MV.timed?Math.round(dy/TGH*4)*15:0;
+  if(MV.rs){MV.el.style.height=Math.max(18,parseFloat(MV.el.dataset.h0||(MV.el.dataset.h0=MV.el.offsetHeight))+MV.dm/60*TGH)+'px'}
+  else MV.el.style.transform=`translate(${MV.dd*MV.cw}px,${MV.dm/60*TGH}px)`;
+  const tt=MV.el.querySelector('.tt');if(tt){if(!MV.lab0)MV.lab0=tt.textContent;const g=mvGet();tt.textContent=g.t0?hh(g.t0)+(g.t1?' – '+hh(g.t1):''):MV.lab0}});
+// nouvelles valeurs du morceau déplacé
+function mvGet(){const ev=MV.ev,o=MV.seg==='dm'?(ev.dm||{}):ev,r=rng(ev),s0=MV.seg==='dm'?r.ds:r.ms,e0=MV.seg==='dm'?r.de:r.me;let t0=o.t0||'',t1=o.t1||'';
+  if(MV.timed){const a=t0?tmin(t0):0,b=t1?tmin(t1):(t0?a+60:1440);
+    if(MV.rs){const nb=Math.max(a+15,Math.min(1439,b+MV.dm));t1=m2t(nb)}
+    else{let na=a+MV.dm,nb=b+MV.dm;if(na<0){nb-=na;na=0}if(nb>1439){na-=nb-1439;nb=1439}t0=m2t(Math.max(0,na));if(t1||o.t0)t1=m2t(nb)}}
+  return {s:add(s0,MV.dd),e:add(e0,MV.dd),t0,t1}}
+document.addEventListener('pointerup',()=>{if(!MV.on)return;MV.on=false;document.body.classList.remove('mving');if(!MV.moved)return;
+  MV.swallow=true;setTimeout(()=>MV.swallow=false,50);const g=mvGet(),ev=MV.ev;
+  if(MV.seg==='dm'){if(g.s<rng(ev).ms){toast('Le démontage ne peut pas être avant le montage');render();return}ev.dm={start:g.s,end:g.e,t0:g.t0,t1:g.t1}}
+  else{const P0=P(ev);if(P0.dates){toast('Les dates sont écrites dans la description : change-les là');render();return}ev.start=g.s;ev.end=g.e;ev.t0=g.t0;ev.t1=g.t1;
+    if(ev.dm&&!dmTbd(ev)&&ev.dm.start<g.s){ev.dm.end=add(ev.dm.end,diff(ev.dm.start,g.s));ev.dm.start=g.s}}
+  ev.used=Date.now();save();render();gSoon();
+  toast(`${MV.seg==='dm'?'Démontage':ev.dm?'Montage':'Chantier'} : ${fmt(g.s,{weekday:'short',day:'numeric',month:'short'})}${g.t0?' · '+hh(g.t0)+(g.t1?' – '+hh(g.t1):''):''}`)});
+document.addEventListener('click',e=>{if(MV.swallow){e.stopPropagation();e.preventDefault();MV.swallow=false}},true);
 document.addEventListener('mousedown',e=>{if(e.button!==0||MD||PAL.on)return;const t=e.target.closest('[data-dd]');if(!t||e.target.closest('.ev,.cev,.tge,.tgbar'))return;DRAG.on=true;DRAG.a=DRAG.b=t.dataset.dd;DRAG.moved=false;DRAG.cell=t.matches('.cbg,.tgab,.tgc');DRAG.t=null;if(t.classList.contains('tgc')){const m=Math.floor((e.clientY-t.getBoundingClientRect().top)/TGH*2)*30,f=x=>String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');DRAG.t=[f(Math.min(m,1410)),f(Math.min(m+120,1439))]}dragPaint();e.preventDefault()});
 document.addEventListener('mouseover',e=>{if(!DRAG.on)return;const t=e.target.closest('[data-dd]');if(t&&t.dataset.dd!==DRAG.b){DRAG.b=t.dataset.dd;DRAG.moved=DRAG.b!==DRAG.a;dragPaint()}});
 document.addEventListener('mouseup',()=>{if(!DRAG.on)return;DRAG.on=false;const x=DRAG.a<DRAG.b?DRAG.a:DRAG.b,y=DRAG.a<DRAG.b?DRAG.b:DRAG.a;dragPaint();if(DRAG.moved||DRAG.cell){DRAG.skip=true;setTimeout(()=>{DRAG.skip=false},0);openE(null,x,y,DRAG.moved?null:DRAG.t)}});
