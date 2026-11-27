@@ -1,10 +1,52 @@
 {
   "name": "stockinfos",
   "productName": "StockInfos",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Gestion de stock simple, avec planning relié à vos agendas (logiciel libre)",
   "main": "app/main.js",
   "private": true,
   "updateRepo": "Weauz/StockInfos",
-  "repository": "github:Weauz/StockInfos"
+  "repository": "github:Weauz/StockInfos",
+  "scripts": {
+    "start": "electron .",
+    "build:app": "electron-builder --win dir --x64",
+    "build:installer": "makensis -DVERSION=%npm_package_version% installateur/installer.nsi",
+    "build": "npm run build:app && npm run build:installer"
+  },
+  "devDependencies": {
+    "electron": "45.4.1",
+    "electron-builder": "^26.0.0",
+    "resedit": "^3.1.1"
+  },
+  "build": {
+    "appId": "app.stockinfos",
+    "productName": "StockInfos",
+    "directories": {
+      "output": "dist",
+      "buildResources": "installateur"
+    },
+    "files": [
+      "app/**/*",
+      "package.json"
+    ],
+    "afterPack": "installateur/after-pack.mjs",
+    "win": {
+      "target": [
+        {
+          "target": "dir",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "installateur/icon.ico",
+      "signAndEditExecutable": false
+    },
+    "electronFuses": {
+      "runAsNode": false,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "onlyLoadAppFromAsar": true
+    }
+  }
 }
