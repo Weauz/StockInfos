@@ -1734,6 +1734,10 @@ VIEWS.plan=()=>{
   ${calFilter()}
   ${body}
   <p class="note" style="margin-top:10px">${U.pv!=='planning'?'Astuce : clique sur une heure pour créer un chantier à cette heure, ou dans la ligne « Journée » (glisse sur plusieurs jours) pour un chantier sans heure. ':''}${!(GS.st&&GS.st.connected)?'Google Agenda pas connecté (voir Paramètres)':GS.last?'Google Agenda synchronisé à '+new Date(GS.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'Google Agenda connecté'}</p>`};
+// chantiers qui utilisent ce kit (écrit dans la description ou ajouté à la main)
+function kitUsedHTML(k){if(!k)return '';const L=S.events.filter(e=>{const p=P(e);return (p.packs&&p.packs[k.id])||(p.mpacks&&p.mpacks[k.id])}).sort((a,b)=>rng(a).s<rng(b).s?-1:1);
+  if(!L.length)return `<p class="h" style="margin:8px 0 0">Aucun chantier n'utilise ce kit pour l'instant.</p>`;
+  return `<p class="h" style="margin:8px 0 0">Utilisé dans : ${L.map(e=>{const p=P(e),n=(p.packs[k.id]||0)+(p.mpacks[k.id]||0),fromDesc=!!p.packs[k.id];return `<b>${esc(short(e.title))}</b> ×${n}${fromDesc?' (lu dans sa description)':''}`}).join(' · ')}.</p>`}
 function kitCap(k,days,skip){const its=Object.entries(k.items||{}).filter(([id])=>byId(id));if(!its.length)return {n:0,lim:[]};
   const per=its.map(([id,n])=>{const pr=byId(id);let a=Infinity;for(const d of days)a=Math.min(a,pr.qty-usage(id,d,skip));a=Math.max(0,a);return {pr,n,a,c:Math.floor(a/n)}});
   const m=Math.min(...per.map(x=>x.c));return {n:m,lim:per.filter(x=>x.c===m),per}}
@@ -2326,7 +2330,8 @@ function drawK(){
   $('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(560px,100%)">
     <div class="dh"><h3 id="mt">${d.id?'Modifier le kit':'Nouveau kit'}</h3><button class="ib" data-act="close" aria-label="Fermer">${ic('x')}</button></div>
     <div style="padding:14px 16px">
-      ${d.id&&byPack(d.id)?(()=>{const c=kitCap(byPack(d.id),spanDays());return `<div class="info">${ic('pack')}<span>On peut en faire <b>${c.n}</b> ${U.mode==='periode'?`du ${fmt(U.a)} au ${fmt(U.b)}`:`le ${fmt(U.date)}`} : ${c.per.map(x=>`${esc(x.pr.name)} : ${x.a} dispo → ${x.c} kit${x.c>1?'s':''}`).join(' · ')}</span></div>`})():''}
+      ${d.id&&byPack(d.id)?(()=>{const c=kitCap(byPack(d.id),spanDays());const when=U.mode==='periode'?`du ${fmt(U.a)} au ${fmt(U.b)}`:`le ${fmt(U.date)}`,lim=c.lim&&c.lim[0];
+        return `<div class="info">${ic('pack')}<span>Tu peux préparer <b>${c.n} kit${c.n>1?'s':''} complet${c.n>1?'s':''}</b> ${when}${/\.$/.test(when)?'':'.'}${lim?` ${c.per.length>1?'Ce qui limite : il':'Il'} faut ${lim.n} « ${esc(lim.pr.name)} » par kit et il y en a ${lim.a} de disponible${lim.a>1?'s':''}.`:''}${c.per.length>1?`<br><small>${c.per.map(x=>`${esc(x.pr.name)} : ${x.n} par kit, ${x.a} dispo`).join(' · ')}</small>`:''}</span></div>`+kitUsedHTML(byPack(d.id))})():''}
       <div class="f"><label for="k-name">Nom du kit</label><input class="in" id="k-name" value="${esc(d.name)}" placeholder="Ex : Chapiteau"><span class="h">C'est ce mot que l'app cherche dans tes descriptions Google (le pluriel est reconnu).</span></div>
       <div class="f"><label for="k-kw">Autres noms possibles</label><input class="in" id="k-kw" value="${esc(d.kw.join(', '))}" placeholder="Ex : barnum, tente"></div>
       <div class="f"><label>Contenu d'un kit</label>${d.rows.map(([pid,n],i)=>`<div class="mrow kr"><select class="in" aria-label="Produit">${opts(pid)}</select><input class="in q" type="number" min="1" value="${n}" aria-label="Quantité"><button class="ib" data-act="krm" data-i="${i}" aria-label="Retirer">${ic('x')}</button></div>`).join('')}
