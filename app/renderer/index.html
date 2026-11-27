@@ -2913,24 +2913,25 @@ function fabInit(){if(!MOB||$('#fab'))return;
   window.addEventListener('resize',fabPlace)}
 function fabPlace(){const f=$('#fab');if(!f)return;const s=f.offsetWidth||56,W=innerWidth,H=innerHeight,x=FAB.x??1,y=FAB.y??0.82;
   f.style.left=(x?W-s-8:8)+'px';f.style.top=Math.round(Math.min(H-s-8,Math.max(8,y*(H-s))))+'px'}
-// menu du logo : une molette. 6 boutons visibles sur l'arc, les suivants dépassent en transparence aux deux bouts ;
+// menu du logo : une molette. 4 boutons visibles sur l'arc, les suivants dépassent en transparence aux deux bouts ;
 // on glisse le doigt vers le haut ou le bas pour la faire tourner (elle boucle), et elle se cale en relâchant.
-const FABW=6;
+const FABW=4;
 function fabGeo(){const f=$('#fab'),s=f.offsetWidth,cx=f.offsetLeft+s/2,right=cx>innerWidth/2,n=fabItems().length,H=innerHeight,W=innerWidth;
-  const vis=Math.min(n,FABW),span=150,step=span/Math.max(1,vis-1),st=step*Math.PI/180;
+  const vis=Math.min(n,FABW),span=n>vis?120:150,step=span/Math.max(1,vis-1),st=step*Math.PI/180;
   const R=Math.min(Math.max(150,(72+8)/(2*Math.sin(st/2))),W-60,(H-100)/2),cy=Math.min(H-R-44,Math.max(R+44,f.offsetTop+s/2));
   const bs=Math.max(56,Math.min(72,Math.floor(2*R*Math.sin(st/2))-8));
-  return {cx,cy,R,right,n,vis,step,bs,wheel:n>vis}}
+  const wheel=n>vis,ax=wheel?cx+(right?-1:1)*(s/2+bs/2+10):cx,a0=wheel?120:105;
+  return {cx,ax,a0,cy,R,right,n,vis,step,bs,wheel}}
 function fabLay(anim){const m=$('#fabm');if(!m||!FAB.g)return;const g=FAB.g,bt=m.querySelectorAll('.fabi');
   bt.forEach((b,k)=>{let p=k-(g.wheel?FAB.rot:0);if(g.wheel){p=((p%g.n)+g.n)%g.n;if(p>g.n-1.5)p-=g.n}
     const out=p<0?-p:p>g.vis-1?p-(g.vis-1):0,op=g.wheel?(out>=1.6?0:out>0?Math.max(0,1-out*.6):1):1,sc=out>0?Math.max(.7,1-out*.25):1;
-    const pp=out>0?(p<0?-Math.min(out,1)*.82:g.vis-1+Math.min(out,1)*.82):p,deg=g.right?105+g.step*pp:75-g.step*pp,a=deg*Math.PI/180,x=g.cx+Math.cos(a)*g.R,y=g.cy-Math.sin(a)*g.R;
+    const pp=out>0?(p<0?-Math.min(out,1)*.82:g.vis-1+Math.min(out,1)*.82):p,deg=g.right?g.a0+g.step*pp:180-g.a0-g.step*pp,a=deg*Math.PI/180,x=g.ax+Math.cos(a)*g.R,y=g.cy-Math.sin(a)*g.R;
     b.style.transition=anim?'left .2s ease-out,top .2s ease-out,opacity .2s,transform .2s':'none';
     b.style.left=Math.round(x)+'px';b.style.top=Math.round(y)+'px';b.style.opacity=op;b.style.transform=`scale(${sc})`;b.style.pointerEvents=out>.5?'none':'';b.tabIndex=out>.5?-1:0})}
 function fabOpen(){const f=$('#fab'),m=$('#fabm');if(!f||!m)return;FAB.open=true;f.classList.add('open');
   const it=fabItems();FAB.g=fabGeo();if(FAB.rot==null||!FAB.g.wheel)FAB.rot=0;const bs=FAB.g.bs;
   m.innerHTML=it.map(([v,i,l])=>`<button class="fabi${U.view===v?' cur':''}" data-fv="${v}" style="width:${bs}px;height:${bs}px;margin:${-bs/2}px 0 0 ${-bs/2}px">${ic(i)}<span>${l}</span></button>`).join('')
-    +(FAB.g.wheel?`<span class="fabhint" style="left:${Math.round(FAB.g.cx+(FAB.g.right?-1:1)*(FAB.g.R+58))}px;top:${Math.round(FAB.g.cy)}px"><i>${ic('l')}</i><small>glisse</small><i class="dn">${ic('l')}</i></span>`:'');
+    +(FAB.g.wheel?`<span class="fabhint" style="left:${Math.round(FAB.g.ax+(FAB.g.right?-1:1)*(FAB.g.R+58))}px;top:${Math.round(FAB.g.cy)}px"><i>${ic('l')}</i><small>glisse</small><i class="dn">${ic('l')}</i></span>`:'');
   fabLay(false);m.hidden=false;requestAnimationFrame(()=>m.classList.add('show'))}
 function fabClose(){const f=$('#fab'),m=$('#fabm');FAB.open=false;if(f)f.classList.remove('open');if(m){m.classList.remove('show');setTimeout(()=>{if(!FAB.open)m.hidden=true},160)}}
 let DPANELS=null;
