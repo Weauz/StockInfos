@@ -2635,8 +2635,12 @@ async function gSrvAuto(force){if(!API||!API.gServerOn||S.cfg.gsrvOff||GS.srvPen
   const g=GS.st||await gStatus(),d=DB.st||await dbStatus();if(!(g&&g.connected&&d&&d.connected))return;
   try{GS.srvPending=true;await dbSync(false);await API.gServerOn({cal:S.cfg.gcal||''});setTimeout(()=>dbSync(false),4000);setTimeout(()=>dbSync(false),12000)}catch(e){GS.srvPending=false;GS.err=String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,'')}
   if(U.view==='set')render()}
+// matériel pour Google Agenda : les kits par leur nom, puis seulement les produits ajoutés en plus (pas le détail des kits)
+function gItems(p){const kits={},loose={...p.items};
+  for(const src of [p.packs||{},p.mpacks||{}])for(const [id,q] of Object.entries(src)){const k=byPack(id);if(!k||!(q>0))continue;kits[id]=(kits[id]||0)+q;for(const [pid,n] of Object.entries(k.items||{}))loose[pid]=(loose[pid]||0)-n*q}
+  return [...Object.entries(kits).map(([id,q])=>`- ${byPack(id).name} ×${q} (kit)`),...Object.entries(loose).filter(([id,q])=>q>0&&byId(id)).map(([id,q])=>`- ${byId(id).name} ×${q}`)]}
 const gSrvOn=()=>!!((S.cfg.gsrv&&S.cfg.gsrv.on)||GS.srvPending);
-function gBody(ev){const r=rng(ev),p=P(ev),its=Object.entries(p.items).map(([id,q])=>byId(id)?`- ${byId(id).name} ×${q}`:'').filter(Boolean);
+function gBody(ev){const r=rng(ev),p=P(ev),its=gItems(p);
   const pm=x=>{const [h,m]=x.split(':').map(Number);return h*60+m},fm=n=>String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
   let start,end;
   if(!ev.t0){start={date:r.s};end={date:add(r.e,1)}}
