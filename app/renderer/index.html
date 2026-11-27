@@ -2748,7 +2748,9 @@ function dbEntities(){const M=new Map();
   if(S.cfg.gsrv)M.set(dbKey('setting','gserver'),{kind:'setting',id:'gserver',data:S.cfg.gsrv});
   M.set(dbKey('setting','company'),{kind:'setting',id:'company',data:{name:'Entreprise',company:S.cfg.company||'',kits:!!S.cfg.kits}});
   return M}
-const dbHash=d=>hashId(JSON.stringify(d));
+// empreinte indépendante de l'ordre des champs : la base range les champs à sa façon, il ne faut pas y voir un changement
+const stableJSON=v=>v===null||typeof v!=='object'?JSON.stringify(v):Array.isArray(v)?'['+v.map(x=>x===undefined?'null':stableJSON(x)).join(',')+']':'{'+Object.keys(v).filter(k=>v[k]!==undefined).sort().map(k=>JSON.stringify(k)+':'+stableJSON(v[k])).join(',')+'}';
+const dbHash=d=>hashId(stableJSON(d));
 function dbApply(row){const {kind,id,data}=row,arr=kind==='product'?S.products:kind==='pack'?(S.packs=S.packs||[]):kind==='event'?S.events:kind==='casse'?(S.casse=S.casse||[]):kind==='inventaire'?(S.invRep=S.invRep||[]):null;
   if(kind==='setting'){if(id==='company'&&!row.deleted){S.cfg.company=data.company||'';if('kits' in data)S.cfg.kits=!!data.kits}if(id==='gserver'){if(row.deleted)delete S.cfg.gsrv;else{S.cfg.gsrv=data;if(data.on)GS.srvPending=false}}return}
   if(!arr)return;const i=arr.findIndex(x=>x.id===id);

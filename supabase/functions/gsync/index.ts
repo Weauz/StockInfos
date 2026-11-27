@@ -53,6 +53,8 @@ function readJ(it: any) {
 const si = (it: any) => it.extendedProperties && it.extendedProperties.private && it.extendedProperties.private.si;
 const gbHash = (gb: any) => gb && gb.extendedProperties && gb.extendedProperties.private && gb.extendedProperties.private.h;
 const syncable = (d: any) => d && d.src === "manuel" && !d.essai;
+// comparaison indépendante de l'ordre des champs (la base les range à sa façon)
+const stable = (v: any): string => v === null || typeof v !== "object" ? JSON.stringify(v) : Array.isArray(v) ? "[" + v.map(stable).join(",") + "]" : "{" + Object.keys(v).filter((k) => v[k] !== undefined).sort().map((k) => JSON.stringify(k) + ":" + stable(v[k])).join(",") + "}";
 
 async function token(a: any) {
   const r = await fetch("https://oauth2.googleapis.com/token", {
@@ -151,7 +153,7 @@ async function run(a: any): Promise<string> {
   const st = byId.get("gserver");
   const want = { name: "Synchro Google", on: true, cal, email: a.email || "" };
   const cur = (await sb("GET", "si_items?kind=eq.setting&id=eq.gserver&select=data,deleted"))?.[0];
-  if (!cur || cur.deleted || JSON.stringify(cur.data) !== JSON.stringify(want)) {
+  if (!cur || cur.deleted || stable(cur.data) !== stable(want)) {
     await sb("POST", "si_items?on_conflict=kind,id", [{ kind: "setting", id: "gserver", data: want, deleted: false }], "resolution=merge-duplicates,return=minimal");
   }
   void st;
@@ -177,7 +179,7 @@ Deno.serve(async (req) => {
     const want = { name: "Synchro Google", on: !/invalid_grant/i.test(err), cal: begin.cal || null, email: begin.email || "", err: /invalid_grant/i.test(err) ? "Accès Google expiré : reconnecte Google sur le PC puis réactive la synchro serveur" : err };
     try {
       const cur = (await sb("GET", "si_items?kind=eq.setting&id=eq.gserver&select=data,deleted"))?.[0];
-      if (!cur || JSON.stringify(cur.data) !== JSON.stringify(want)) await sb("POST", "si_items?on_conflict=kind,id", [{ kind: "setting", id: "gserver", data: want, deleted: false }], "resolution=merge-duplicates,return=minimal");
+      if (!cur || stable(cur.data) !== stable(want)) await sb("POST", "si_items?on_conflict=kind,id", [{ kind: "setting", id: "gserver", data: want, deleted: false }], "resolution=merge-duplicates,return=minimal");
     } catch { /* */ }
   }
   return new Response(JSON.stringify({ ok: !err, err }), { headers: { "Content-Type": "application/json" } });
