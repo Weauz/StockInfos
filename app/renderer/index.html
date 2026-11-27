@@ -2955,6 +2955,14 @@ function fabOpen(){const f=$('#fab'),m=$('#fabm');if(!f||!m)return;FAB.open=true
   m.innerHTML=it.map(([v,i,l])=>`<button class="fabi${U.view===v?' cur':''}" data-fv="${v}" style="width:${bs}px;height:${bs}px;margin:${-bs/2}px 0 0 ${-bs/2}px">${ic(i)}<span>${l}</span></button>`).join('');
   fabLay(false);m.hidden=false;requestAnimationFrame(()=>m.classList.add('show'))}
 function fabClose(){const f=$('#fab'),m=$('#fabm');FAB.open=false;if(f)f.classList.remove('open');if(m){m.classList.remove('show');setTimeout(()=>{if(!FAB.open)m.hidden=true},160)}}
+// bouton « retour » d'Android : ferme ce qui est ouvert, sinon revient à l'accueil ; renvoie 0 seulement à l'accueil (l'appli se ferme alors)
+window.siBack=function(){
+  if(typeof TOUR!=='undefined'&&TOUR.on){tourEnd();return 1}
+  if(FAB.open){fabClose();return 1}
+  if(MD){closeM();render();return 1}
+  if(U.dp||U.qcd||U.edp||U.pvm){U.dp=false;U.qcd=false;U.edp=false;U.pvm=false;render();return 1}
+  if(U.view!=='home'){setView('home');return 1}
+  return 0};
 let DPANELS=null;
 const DRAG={on:false,a:null,b:null,moved:false,skip:false};
 function dragPaint(){const x=DRAG.a<DRAG.b?DRAG.a:DRAG.b,y=DRAG.a<DRAG.b?DRAG.b:DRAG.a;document.querySelectorAll('[data-dd]').forEach(el=>el.classList.toggle('dsel',DRAG.on&&el.dataset.dd>=x&&el.dataset.dd<=y))}
