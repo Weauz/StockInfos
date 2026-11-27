@@ -64,6 +64,12 @@ const si = (it: any) => it.extendedProperties && it.extendedProperties.private &
 const gbHash = (gb: any) => gb && gb.extendedProperties && gb.extendedProperties.private && gb.extendedProperties.private.h;
 const syncable = (d: any) => d && d.src === "manuel" && !d.essai;
 // comparaison indépendante de l'ordre des champs (la base les range à sa façon)
+// Google fusionne start/end quand on modifie : on efface l'autre forme (journée entière ↔ avec heure), sinon « Invalid start time »
+function fixWhen(b: any) {
+  if (!b) return b;
+  const f = (x: any) => !x ? x : x.dateTime ? { ...x, date: null } : x.date ? { ...x, dateTime: null, timeZone: null } : x;
+  return { ...b, start: f(b.start), end: f(b.end) };
+}
 const stable = (v: any): string => v === null || typeof v !== "object" ? JSON.stringify(v) : Array.isArray(v) ? "[" + v.map(stable).join(",") + "]" : "{" + Object.keys(v).filter((k) => v[k] !== undefined).sort().map((k) => JSON.stringify(k) + ":" + stable(v[k])).join(",") + "}";
 
 async function token(a: any) {
@@ -116,15 +122,17 @@ async function run(a: any): Promise<string> {
   };
   let nA = 0, nU = 0, nD = 0, nI = 0;
 
+  let firstErr = ""; // une erreur sur un chantier n'empêche pas les autres de se synchroniser
   for (const r of rows) {
     if (r.deleted || !syncable(r.data)) continue;
+    try {
     const d = r.data, it = bySi.get(r.id) || (d.gid ? byGid.get(d.gid) : null), lh = gbHash(d.gb);
     let nd: any = { ...d }, gone = false; // les changements s'accumulent puis sont écrits en une fois
     if (it) {
       used.add(it.id);
       const vr = vis(it), remoteChanged = !!d.gv && vr !== d.gv, localChanged = !!d.gb && lh !== d.gh;
       if (localChanged) {
-        const p = await g("PATCH", base + "/" + encodeURIComponent(it.id), d.gb);
+        const p = await g("PATCH", base + "/" + encodeURIComponent(it.id), fixWhen(d.gb));
         if (p.status < 300) { nd = { ...nd, gid: it.id, gh: lh, gv: vis(p.json || d.gb), gcal: cal }; nU++; }
       } else if (remoteChanged) {
         const f: any = gToLocal(it);
@@ -133,7 +141,7 @@ async function run(a: any): Promise<string> {
     } else if (d.gid && d.gcal === cal) {
       gone = true; nI++; // supprimé dans Google
     } else if (d.gb) {
-      const p = await g("POST", base, d.gb);
+      const p = await g("POST", base, fixWhen(d.gb));
       nd = { ...nd, gid: p.json.id, gh: lh, gv: vis(p.json), gcal: cal }; nA++;
     }
     // le démontage (2e événement)
@@ -144,7 +152,7 @@ async function run(a: any): Promise<string> {
         if (itd) {
           const vr = vis(itd);
           if (lhd !== d.ghd) {
-            const p = await g("PATCH", base + "/" + encodeURIComponent(itd.id), d.gbd);
+            const p = await g("PATCH", base + "/" + encodeURIComponent(itd.id), fixWhen(d.gbd));
             if (p.status < 300) { nd = { ...nd, gidd: itd.id, ghd: lhd, gvd: vis(p.json || d.gbd) }; nU++; }
           } else if (d.gvd && vr !== d.gvd) {
             const f: any = gToLocal(itd);
@@ -153,7 +161,7 @@ async function run(a: any): Promise<string> {
         } else if (d.gidd && d.gcal === cal) {
           nd = { ...nd, dm: { tbd: 1 } }; delete nd.gidd; delete nd.ghd; delete nd.gvd; nI++; // démontage supprimé dans Google : date à redéfinir
         } else {
-          const p = await g("POST", base, d.gbd);
+          const p = await g("POST", base, fixWhen(d.gbd));
           nd = { ...nd, gidd: p.json.id, ghd: lhd, gvd: vis(p.json) }; nA++;
         }
       } else if (itd) {
@@ -163,6 +171,7 @@ async function run(a: any): Promise<string> {
     }
     if (gone) await upd(r, {}, true);
     else if (stable(nd) !== stable(d)) await upd(r, nd);
+    } catch (e) { const m = String((e as Error).message || e); console.error("chantier " + r.id + " : " + m); if (!firstErr) firstErr = m + " (chantier « " + (r.data.title || r.id) + " »)"; }
   }
   // supprimé dans l'appli : on l'enlève aussi de Google
   for (const r of rows) {
@@ -201,6 +210,7 @@ async function run(a: any): Promise<string> {
     await sb("POST", "si_items?on_conflict=kind,id", [{ kind: "setting", id: "gserver", data: want, deleted: false }], "resolution=merge-duplicates,return=minimal");
   }
   void st;
+  if (firstErr) throw new Error(firstErr);
   console.log(`synchro ok : ${nA} envoyés, ${nU} mis à jour, ${nD} retirés, ${nI} reçus`);
   return cal!;
 }

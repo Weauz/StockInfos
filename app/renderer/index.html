@@ -2695,11 +2695,12 @@ function gItems(p){const kits={},loose={...p.items};
 const gSrvOn=()=>!!((S.cfg.gsrv&&S.cfg.gsrv.on)||GS.srvPending);
 function gWhen(s0,e0,t0,t1){const pm=x=>{const [h,m]=x.split(':').map(Number);return h*60+m},fm=n=>String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
   let start,end;
-  if(!t0){start={date:s0};end={date:add(e0,1)}}
-  else{start={dateTime:`${s0}T${t0}:00`,timeZone:TZ};
-    if(t1){let e=e0;if(e0===s0&&pm(t1)<=pm(t0))e=add(e,1);end={dateTime:`${e}T${t1}:00`,timeZone:TZ}}
-    else if(e0===s0){const n=Math.min(pm(t0)+60,1439);end={dateTime:`${s0}T${fm(n)}:00`,timeZone:TZ}}
-    else end={dateTime:`${e0}T23:59:00`,timeZone:TZ}}
+  // date:null / dateTime:null : Google fusionne les champs quand on modifie, il faut effacer l'autre forme (sinon « Invalid start time »)
+  if(!t0){start={date:s0,dateTime:null};end={date:add(e0,1),dateTime:null}}
+  else{start={dateTime:`${s0}T${t0}:00`,timeZone:TZ,date:null};
+    if(t1){let e=e0;if(e0===s0&&pm(t1)<=pm(t0))e=add(e,1);end={dateTime:`${e}T${t1}:00`,timeZone:TZ,date:null}}
+    else if(e0===s0){const n=Math.min(pm(t0)+60,1439);end={dateTime:`${s0}T${fm(n)}:00`,timeZone:TZ,date:null}}
+    else end={dateTime:`${e0}T23:59:00`,timeZone:TZ,date:null}}
   return {start,end}}
 const gDay=(a,b)=>a===b?fmt(a):'du '+fmt(a)+' au '+fmt(b);
 // avec un démontage séparé, Google reçoit 2 événements : « Montage · … » (celui-ci) et « Démontage · … » (gBodyDm)
