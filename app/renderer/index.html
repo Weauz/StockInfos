@@ -1130,7 +1130,7 @@ body:has(#modal .ov) #fab,body:has(#modal .ov) #fabm{display:none!important}
 #fab svg{width:28px;height:28px;stroke-width:1.8}#fab.on,#fab.open{opacity:1}#fab.on{transform:scale(1.08)}#fab.open{transform:rotate(-12deg)}
 #fabm{position:fixed;inset:0;z-index:69;background:rgba(0,0,0,0);transition:background .16s}#fabm.show{background:rgba(0,0,0,.35)}
 .fabi{position:fixed;width:72px;height:72px;margin:-36px 0 0 -36px;border-radius:50%;border:0;background:var(--card);color:var(--ink);box-shadow:0 6px 16px rgba(0,0,0,.25);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:inherit;font-size:11px;font-weight:600;transform:scale(.3);opacity:0;transition:transform .16s,opacity .16s}
-#fabm.show .fabi{transform:scale(1);opacity:1}.fabi svg{width:24px;height:24px;color:var(--acc)}.fabi.cur{background:var(--acc);color:var(--accink)}.fabi.cur svg{color:inherit}.fabi span{max-width:66px;line-height:1.1;text-align:center}#fabm{touch-action:none}.fabhint{position:fixed;width:50px;margin:-34px 0 0 -25px;display:flex;flex-direction:column;align-items:center;color:#fff;opacity:.85;pointer-events:none;font-size:11px;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.5)}.fabhint i{display:block;line-height:0}.fabhint svg{width:22px;height:22px;transform:rotate(90deg)}.fabhint .dn svg{transform:rotate(-90deg)}.mob .body{grid-template-rows:minmax(0,1fr)!important}
+#fabm.show .fabi{transform:scale(1);opacity:1}.fabi svg{width:24px;height:24px;color:var(--acc)}.fabi.cur{background:var(--acc);color:var(--accink)}.fabi.cur svg{color:inherit}.fabi span{max-width:66px;line-height:1.1;text-align:center}#fabm{touch-action:none}.mob .body{grid-template-rows:minmax(0,1fr)!important}
 .mob main{padding:0 12px 24px}
 .mhead{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:6px;margin:0 -12px 12px;padding:14px 12px 10px;background:var(--bg);border-bottom:1px solid var(--line)}
 .mhead b{font-size:19px}.mhead .ib{width:52px;height:52px;border-radius:14px;background:var(--card);border:1px solid var(--line)}.mhead .ib svg{width:26px;height:26px}
@@ -2930,8 +2930,7 @@ function fabLay(anim){const m=$('#fabm');if(!m||!FAB.g)return;const g=FAB.g,bt=m
     b.style.left=Math.round(x)+'px';b.style.top=Math.round(y)+'px';b.style.opacity=op;b.style.transform=`scale(${sc})`;b.style.pointerEvents=out>.5?'none':'';b.tabIndex=out>.5?-1:0})}
 function fabOpen(){const f=$('#fab'),m=$('#fabm');if(!f||!m)return;FAB.open=true;f.classList.add('open');
   const it=fabItems();FAB.g=fabGeo();if(FAB.rot==null||!FAB.g.wheel)FAB.rot=0;const bs=FAB.g.bs;
-  m.innerHTML=it.map(([v,i,l])=>`<button class="fabi${U.view===v?' cur':''}" data-fv="${v}" style="width:${bs}px;height:${bs}px;margin:${-bs/2}px 0 0 ${-bs/2}px">${ic(i)}<span>${l}</span></button>`).join('')
-    +(FAB.g.wheel?`<span class="fabhint" style="left:${Math.round(FAB.g.ax+(FAB.g.right?-1:1)*(FAB.g.R+58))}px;top:${Math.round(FAB.g.cy)}px"><i>${ic('l')}</i><small>glisse</small><i class="dn">${ic('l')}</i></span>`:'');
+  m.innerHTML=it.map(([v,i,l])=>`<button class="fabi${U.view===v?' cur':''}" data-fv="${v}" style="width:${bs}px;height:${bs}px;margin:${-bs/2}px 0 0 ${-bs/2}px">${ic(i)}<span>${l}</span></button>`).join('');
   fabLay(false);m.hidden=false;requestAnimationFrame(()=>m.classList.add('show'))}
 function fabClose(){const f=$('#fab'),m=$('#fabm');FAB.open=false;if(f)f.classList.remove('open');if(m){m.classList.remove('show');setTimeout(()=>{if(!FAB.open)m.hidden=true},160)}}
 let DPANELS=null;
