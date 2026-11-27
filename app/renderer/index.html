@@ -942,7 +942,7 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .qca{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px}.qca>span{font-size:12.5px;color:var(--amb);font-weight:600;margin-right:2px}
 .qcp{cursor:pointer;border:1px solid var(--line);display:inline-flex;align-items:baseline;gap:6px}.qcp:hover{border-color:var(--acc);color:var(--acc)}.qcp small{font-size:10.5px;color:var(--mute)}
 .note.warn{display:flex;gap:8px;align-items:flex-start;background:var(--ambbg);color:var(--ink);border:1px solid color-mix(in srgb,var(--amb) 40%,transparent);padding:10px 12px;border-radius:10px;font-size:13px}.note.warn svg{color:var(--amb);flex:none;width:16px;height:16px;margin-top:2px}
-.qcbox.edbox,.mob .qcbox.edbox{padding:8px;height:auto;display:flex;flex-direction:column;flex-wrap:nowrap;align-items:stretch;min-width:0;max-width:100%}.edbox .qck{max-width:100%}.edbox #edchips{display:flex;flex-wrap:wrap;gap:6px}.edbox #edchips:empty{display:none}.edbox .qcta{width:100%;border:0;outline:0;background:none;color:var(--ink);font:inherit;font-size:15px;line-height:1.45;padding:4px;resize:vertical;min-height:96px}.mob .edbox .qcta{font-size:16px}.qck.kit b{color:var(--acc)}.qck.kit b svg{width:13px;height:13px;vertical-align:-2px}
+.qcbox.edbox,.mob .qcbox.edbox{padding:8px;height:auto;display:flex;flex-direction:column;flex-wrap:nowrap;align-items:stretch;min-width:0;max-width:100%}.edbox .qck{max-width:100%}.edbox #edchips{display:flex;flex-wrap:wrap;gap:6px}.edbox #edchips:empty{display:none}.edbox .qcta{width:100%;border:0;outline:0;background:none;color:var(--ink);font:inherit;font-size:15px;line-height:1.45;padding:4px;resize:vertical;min-height:96px}.mob .edbox .qcta{font-size:16px}.qck.kit b{color:var(--acc)}.kr .kqb{font-size:20px;font-weight:600;flex:0 0 auto;width:36px;height:36px}.mob .kr .kqb{width:46px;height:46px;font-size:24px}.kr .q{text-align:center}.qck.kit b svg{width:13px;height:13px;vertical-align:-2px}
 .qcc.kit b{color:var(--acc)}.qcc.kit b svg{width:14px;height:14px;vertical-align:-2px}.edsug:empty{display:none}.edsug{margin-top:6px}
 .qcs{display:flex;flex-direction:column;gap:10px;margin-top:10px;padding:12px;border-radius:10px;background:var(--card2)}
 .qcg{display:flex;flex-direction:column;gap:7px}.qcgt{font-size:13.5px;font-weight:600;color:var(--amb)}
@@ -1292,7 +1292,7 @@ if(!S.packs)S.packs=[];
 S.events.forEach((e,i)=>{if(!e.created)e.created=Date.now()-(i+1)*36e5});
 const PC=new Map();
 // les kits comptent dès qu'il en existe (même si la page Kits est cachée)
-const kitsOn=()=>!!(S.cfg.kits||(S.packs||[]).length);
+const kitsOn=()=>true; // la page Kits est toujours là
 function save(){PC.clear();if(typeof dbSoon==='function')dbSoon();try{if(API){const r=API.save(S);if(r!==true)throw new Error(r)}else localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Erreur d\'enregistrement : '+e.message)}}
 const U={pv:'4j',pd:TODAY,pvm:false,sort:'az',mode:'jour',a:TODAY,b:add(TODAY,6),pk:'a',dp:false,dpm:TODAY.slice(0,7),view:'dash',date:TODAY,plan:'mois',ym:TODAY.slice(0,7),q:'',cat:'',reset:false};
 const HV={tableau:'dash',stock:'stock',kits:'packs',planning:'plan',reglages:'set',accueil:'home',verif:'qc',inventaire:'minv',avenir:'avenir',retours:'ret'};
@@ -1419,7 +1419,7 @@ function whenTxt(ev,short){const r=rng(ev),f=d=>short?fmt(d,{weekday:'short',day
 
 /* ---------- vues ---------- */
 const NAV=[['dash','Tableau de bord','home'],['stock','Stock','box'],['minv','Inventaire','check'],['packs','Kits','pack'],['plan','Planning','cal'],['ret','Retours','back'],['set','Paramètres','gear']];
-function navHTML(){const rc=retToCheck().length,showRet=rc||retSoon(7).length||U.view==='ret';return NAV.filter(([v])=>(v!=='packs'||S.cfg.kits)&&(v!=='ret'||showRet)).map(([v,l,i])=>`<button class="nb${U.view===v?' on':''}${v==='ret'&&rc?' alert':''}" data-act="view" data-v="${v}" title="${l}">${ic(i)}<span>${l}</span>${v==='dash'&&SH.length?`<b class="badge">${SH.length}</b>`:''}${v==='ret'&&rc?`<b class="badge pulse" title="${rc} retour${rc>1?'s':''} à vérifier">${rc}</b>`:''}</button>`).join('')+`<div class="grow"></div>${dbNavHTML()}<div class="gs" title="Google Agenda">${gSrvOn()?`<i class="dot${S.cfg.gsrv&&S.cfg.gsrv.err?' err':''}"></i><span>${S.cfg.gsrv&&S.cfg.gsrv.err?'Google : synchro en erreur':'Google Agenda · par le serveur'}</span></div>`:`<i class="dot${!(GS.st&&GS.st.connected)?' off':GS.err?' err':''}"></i><span>${!(GS.st&&GS.st.connected)?'Google non connecté':GS.err?'Synchro en échec':GS.busy?'Synchro en cours…':'Google Agenda · synchro '+(GS.last?new Date(GS.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'—')}</span></div>`}`}
+function navHTML(){const rc=retToCheck().length,showRet=rc||retSoon(7).length||U.view==='ret';return NAV.filter(([v])=>(v!=='ret'||showRet)).map(([v,l,i])=>`<button class="nb${U.view===v?' on':''}${v==='ret'&&rc?' alert':''}" data-act="view" data-v="${v}" title="${l}">${ic(i)}<span>${l}</span>${v==='dash'&&SH.length?`<b class="badge">${SH.length}</b>`:''}${v==='ret'&&rc?`<b class="badge pulse" title="${rc} retour${rc>1?'s':''} à vérifier">${rc}</b>`:''}</button>`).join('')+`<div class="grow"></div>${dbNavHTML()}<div class="gs" title="Google Agenda">${gSrvOn()?`<i class="dot${S.cfg.gsrv&&S.cfg.gsrv.err?' err':''}"></i><span>${S.cfg.gsrv&&S.cfg.gsrv.err?'Google : synchro en erreur':'Google Agenda · par le serveur'}</span></div>`:`<i class="dot${!(GS.st&&GS.st.connected)?' off':GS.err?' err':''}"></i><span>${!(GS.st&&GS.st.connected)?'Google non connecté':GS.err?'Synchro en échec':GS.busy?'Synchro en cours…':'Google Agenda · synchro '+(GS.last?new Date(GS.last).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'—')}</span></div>`}`}
 function isDark(){if(S.theme!=='auto')return S.theme==='dark';const r=document.documentElement.dataset.theme;if(r==='dark'||r==='light')return r==='dark';return matchMedia('(prefers-color-scheme: dark)').matches}
 function dateHTML(){
   const per=U.mode==='periode';let pop='';
@@ -2215,7 +2215,6 @@ VIEWS.set=()=>{const cals=S.cfg.cals;
   ${gSetHTML()}
   ${cals.length?`<h3 class="seth">Anciens liens iCal</h3><p class="note" style="margin:-4px 0 8px">Ces liens marchent encore, mais ne sont plus nécessaires : tu peux les retirer. Les chantiers qu'ils ont importés disparaîtront de l'appli.</p>${cals.map(c=>`<div class="setr"><span class="seti" style="color:${esc(c.color)}">${ic('cal')}</span><span class="sett"><b>${esc(c.name)}</b><small>${c.err?`<span style="color:var(--red)">Échec : ${esc(c.err)}</span>`:`${S.events.filter(e=>e.cal===c.id).length} événement(s)`}</small></span><span class="setc">${U.delcal===c.id?`<button class="btn sm" data-act="caldel-no">Annuler</button><button class="btn sm pri" data-act="caldel-yes" data-id="${c.id}">Retirer</button>`:`<button class="btn sm" data-act="caldel" data-id="${c.id}">Retirer</button>`}</span></div>`).join('')}`:''}
   <h3 class="seth">Fonctions</h3>
-  ${setRow('pack','Page Kits','Regrouper plusieurs produits (ex. « Chapiteau réception ») et les ajouter d\'un coup',`<input type="checkbox" class="sw" id="s-kits" data-cfg="kits"${S.cfg.kits?' checked':''} aria-label="Page Kits">`)}
 
   <h3 class="seth">Apparence</h3>
   ${setRow('home','Nom de l\'entreprise','Affiché dans la barre de titre',`<input class="in" id="s-co" data-cfg="company" value="${esc(S.cfg.company||'')}" placeholder="Ex : Location Martin" style="width:220px">`)}
@@ -2224,7 +2223,6 @@ VIEWS.set=()=>{const cals=S.cfg.cals;
   <h3 class="seth">Données</h3>
   ${setRow('box','Mes données',`${S.products.length} produits · ${(S.packs||[]).length} kits · ${S.events.length} chantiers`,`<button class="btn sm" data-act="folder">Ouvrir le dossier</button>`)}
   ${setRow('ul','Importer un stock','Depuis un fichier Excel (.xlsx), CSV ou PDF : les colonnes sont reconnues automatiquement',`<button class="btn sm" data-act="impopen">Importer un fichier</button>`)}
-  ${setRow('cal','Chantiers d\'essai','Crée quelques chantiers avec tes produits pour voir comment réagit le stock (dates qui se chevauchent, manque, retours). Ils se suppriment en un clic.',S.events.some(e=>e.essai)?`<button class="btn sm" data-act="essaidel">Supprimer les ${S.events.filter(e=>e.essai).length} chantiers d'essai</button>`:`<button class="btn sm" data-act="essaiadd"${S.products.some(p=>p.qty>0)?'':' disabled'}>Créer des chantiers d'essai</button>`)}
   ${setRow('back','Sauvegarde','Une copie est faite automatiquement chaque jour (30 jours gardés)',`<button class="btn sm" data-act="export">Exporter</button><button class="btn sm" data-act="import">Importer</button>`)}
   ${setRow('trash','Supprimer tout le stock',`${S.products.length} produit${S.products.length>1?'s':''} et ${(S.packs||[]).length} kit${(S.packs||[]).length>1?'s':''}. Les chantiers restent.`,`<button class="btn sm dan" data-act="wipe" data-v="stock"${S.products.length||(S.packs||[]).length?'':' disabled'}>Supprimer tout le stock</button>`)}
   ${setRow('trash','Supprimer tous les chantiers',`${S.events.length} chantier${S.events.length>1?'s':''}. Aussi supprimés de Google Agenda (« Chantiers StockInfos ») et des autres PC.`,`<button class="btn sm dan" data-act="wipe" data-v="ev"${S.events.length?'':' disabled'}>Supprimer tous les chantiers</button>`)}
@@ -2234,7 +2232,6 @@ VIEWS.set=()=>{const cals=S.cfg.cals;
 if(S&&S.cfg&&(S.cfg.logo||S.cfg.site)){delete S.cfg.logo;delete S.cfg.site}
 function render(){setTimeout(()=>{tgScroll();if($("#qcsug")){qcSuggest();qcGrow()}},0);
   if(!VIEWS[U.view])U.view=MOB?'home':'dash';if(!MOB&&['home','qc','avenir'].includes(U.view))U.view='dash';
-  if(U.view==='packs'&&!S.cfg.kits)U.view='dash';
   {const t=iso(new Date());if(t!==TODAY){if(U.date===TODAY)U.date=t;TODAY=t;PC.clear()}}
   SH=shortages();
   document.querySelector('.win').className='win'+(S.theme==='auto'?'':' t-'+S.theme);
@@ -2342,7 +2339,7 @@ function drawK(){
         return `<div class="info">${ic('pack')}<span>Tu peux préparer <b>${c.n} kit${c.n>1?'s':''} complet${c.n>1?'s':''}</b> ${when}${/\.$/.test(when)?'':'.'}${lim?` ${c.per.length>1?'Ce qui limite : il':'Il'} faut ${lim.n} du produit « ${esc(lim.pr.name)} » par kit et il y en a ${lim.a} de disponible${lim.a>1?'s':''}.`:''}${c.per.length>1?`<br><small>${c.per.map(x=>`${esc(x.pr.name)} : ${x.n} par kit, ${x.a} dispo`).join(' · ')}</small>`:''}</span></div>`+kitUsedHTML(byPack(d.id))})():''}
       <div class="f"><label for="k-name">Nom du kit</label><input class="in" id="k-name" value="${esc(d.name)}" placeholder="Ex : Kit barnum équipé"><span class="h">C'est ce nom que l'app cherche dans les descriptions des chantiers (le pluriel est reconnu).</span><div id="kclash">${kitClashHTML(d.name,d.id)}</div></div>
       <div class="f"><label for="k-kw">Autres noms possibles</label><input class="in" id="k-kw" value="${esc(d.kw.join(', '))}" placeholder="Ex : barnum, tente"></div>
-      <div class="f"><label>Contenu d'un kit</label>${d.rows.map(([pid,n],i)=>`<div class="mrow kr"><select class="in" aria-label="Produit">${opts(pid)}</select><input class="in q" type="number" min="1" value="${n}" aria-label="Quantité"><button class="ib" data-act="krm" data-i="${i}" aria-label="Retirer">${ic('x')}</button></div>`).join('')}
+      <div class="f"><label>Contenu d'un kit</label>${d.rows.map(([pid,n],i)=>`<div class="mrow kr"><select class="in" aria-label="Produit">${opts(pid)}</select><button type="button" class="ib kqb" data-act="kq" data-n="-1" aria-label="Moins">−</button><input class="in q" type="number" min="1" value="${n}" aria-label="Quantité"><button type="button" class="ib kqb" data-act="kq" data-n="1" aria-label="Plus">+</button><button class="ib" data-act="krm" data-i="${i}" aria-label="Retirer">${ic('x')}</button></div>`).join('')}
       <button class="btn sm" data-act="kadd" style="margin-top:6px;align-self:flex-start">${ic('plus')}Ajouter un produit</button></div>
     </div>
     <div class="df">${MD.confirm?`<span class="l"><b>Supprimer ce kit ?</b></span><button class="btn" data-act="delno">Annuler</button><button class="btn pri" data-act="delyes">Supprimer</button>`:`${d.id?`<button class="btn dan l" data-act="delk">Supprimer</button>`:''}<button class="btn" data-act="close">Annuler</button><button class="btn pri" data-act="savek">Enregistrer</button>`}</div>
@@ -2534,7 +2531,7 @@ function drawE(){
       <div class="f"><label>Dates et heures</label><div id="edw">${eDates()}</div></div>
       <div class="f"><label for="e-l">Lieu</label><input class="in" id="e-l" ${d.src==='google'?'readonly':''} data-ev="lieu" value="${esc(d.lieu)}" placeholder="Ex : Segré-en-Anjou Bleu"></div>
       <div class="f"><label for="e-d">Description</label><div class="qcbox in edbox"><div id="edchips" class="qcks">${edChips()}</div><textarea class="qcta" id="e-d" ${d.src==='google'?'readonly':''} data-ev="desc" rows="5" placeholder="Ex : besoin de 2 chapiteaux, 120 chaises et 4 chauffages">${esc(d.desc)}</textarea></div><div class="qcs edsug" id="edsug"></div><span class="h">Écris comme tu veux : « 120 chaises », « deux barnums », « table x15 », « 2 chapiteaux » (kit)… Tu peux aussi mettre « du 02/12 au 05/12 ».</span></div>
-      <div class="f"><label>Ajouter à la main</label><div class="pks">${(S.cfg.kits?S.packs||[]:[]).map(k=>{const c=kitCap(k,evDays(d),d.id).n;return `<button class="btn sm" data-act="addpk" data-id="${k.id}" title="${c} kit(s) complet(s) possible(s) sur ces dates">${ic('pack')}${esc(k.name)} <span class="h" style="color:${c?'var(--mute)':'var(--red)'}">· ${c} possible${c>1?'s':''}</span></button>`}).join('')}</div><select class="in" data-additem aria-label="Ajouter un produit"><option value="">+ Ajouter un produit seul…</option>${[...S.products].sort((a,b)=>a.name.localeCompare(b.name,'fr')).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select><div id="manl">${manHTML()}</div></div>
+      <div class="f"><label>Ajouter à la main</label><div class="pks">${(S.packs||[]).map(k=>{const c=kitCap(k,evDays(d),d.id).n;return `<button class="btn sm" data-act="addpk" data-id="${k.id}" title="${c} kit(s) complet(s) possible(s) sur ces dates">${ic('pack')}${esc(k.name)} <span class="h" style="color:${c?'var(--mute)':'var(--red)'}">· ${c} possible${c>1?'s':''}</span></button>`}).join('')}</div><select class="in" data-additem aria-label="Ajouter un produit"><option value="">+ Ajouter un produit seul…</option>${[...S.products].sort((a,b)=>a.name.localeCompare(b.name,'fr')).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select><div id="manl">${manHTML()}</div></div>
     </div><div class="read" id="readp">${readHTML()}</div></div>
     <div class="df">${MD.confirm?`<span class="l"><b>Supprimer ce chantier ?</b></span><button class="btn" data-act="delno">Annuler</button><button class="btn pri" data-act="delyes">Supprimer</button>`:`${d.id&&d.src!=='google'?`<button class="btn dan l" data-act="dele">Supprimer</button>`:''}<button class="btn" data-act="ecancel">Annuler</button><button class="btn pri" data-act="savee">Enregistrer</button>`}</div>
   </div></div>`;
@@ -2542,7 +2539,10 @@ function drawE(){
 const evDays=d=>{const r=rng(d),o=[];for(let x=r.s;x<=r.re;x=add(x,1))o.push(x);return o};
 function manHTML(){const m=MD.d.man,rows=[...Object.entries(m.packs).map(([id,q])=>['packs',id,q,byPack(id)?.name,true]),...Object.entries(m.items).map(([id,q])=>['items',id,q,byId(id)?.name,false])].filter(r=>r[3]);
   return rows.map(([t,id,q,n,k])=>`<div class="mrow">${k?ic('pack'):ic('box')}<span>${k?'Kit ':''}<b>${esc(n)}</b></span><button class="ib" data-act="manq" data-t="${t}" data-id="${id}" data-n="-1" aria-label="Moins">−</button><b style="min-width:22px;text-align:center">${q}</b><button class="ib" data-act="manq" data-t="${t}" data-id="${id}" data-n="1" aria-label="Plus">+</button><button class="ib" data-act="manx" data-t="${t}" data-id="${id}" aria-label="Retirer">${ic('x')}</button></div>`).join('')}
-const redrawMan=()=>{const l=$('#manl');if(l)l.innerHTML=manHTML();const c=$('#edchips');if(c)c.innerHTML=edChips();redrawRead()};
+function manPack(){if(!MD||!MD.d||!MD.d.man)return;const m=MD.d.man,c=kitPack(m.items||{});const ids=Object.keys(c.kits);if(!ids.length)return;
+  m.items=c.loose;m.packs=m.packs||{};for(const id of ids)m.packs[id]=(m.packs[id]||0)+c.kits[id];
+  toast(ids.map(id=>'« '+byPack(id).name+' »').join(', ')+' : tous les éléments y sont, regroupés en kit')}
+const redrawMan=()=>{manPack();const l=$('#manl');if(l)l.innerHTML=manHTML();const c=$('#edchips');if(c)c.innerHTML=edChips();redrawRead()};
 // blocs du chantier (comme la vérif rapide) : un par produit ou kit choisi, quantité modifiable, croix pour retirer
 function edChips(){if(!MD||!MD.d||!MD.d.man)return '';const m=MD.d.man,rows=[...Object.entries(m.packs||{}).map(([id,q])=>['packs',id,q,byPack(id)]),...Object.entries(m.items||{}).map(([id,q])=>['items',id,q,byId(id)])].filter(r=>r[3]);
   return rows.map(([t,id,q,x])=>`<span class="qck${t==='packs'?' kit':''}"><input type="number" class="qckq edkq" min="1" value="${q}" data-t="${t}" data-id="${id}" aria-label="Quantité de ${esc(x.name)}"><b>${t==='packs'?ic('box')+' ':''}${esc(x.name)}</b><button type="button" class="qckx" data-act="manx" data-t="${t}" data-id="${id}" aria-label="Retirer ${esc(x.name)}" title="Retirer">${ic('x')}</button></span>`).join('')}
@@ -2635,9 +2635,16 @@ async function gSrvAuto(force){if(!API||!API.gServerOn||S.cfg.gsrvOff||GS.srvPen
   const g=GS.st||await gStatus(),d=DB.st||await dbStatus();if(!(g&&g.connected&&d&&d.connected))return;
   try{GS.srvPending=true;await dbSync(false);await API.gServerOn({cal:S.cfg.gcal||''});setTimeout(()=>dbSync(false),4000);setTimeout(()=>dbSync(false),12000)}catch(e){GS.srvPending=false;GS.err=String(e.message||e).replace(/^Error invoking remote method '[^']+': (Error: )?/,'')}
   if(U.view==='set')render()}
+// si tous les éléments d'un kit sont là (en quantité suffisante), on les remplace par le kit : plus court à lire
+function kitPack(items){const kits={},loose={...items};if(!kitsOn())return {kits,loose};
+  const ks=(S.packs||[]).filter(k=>Object.keys(k.items||{}).filter(pid=>k.items[pid]>0).length>=2).sort((a,b)=>Object.keys(b.items).length-Object.keys(a.items).length);
+  for(const k of ks){const ent=Object.entries(k.items).filter(([,n])=>n>0);const q=Math.min(...ent.map(([pid,n])=>Math.floor((loose[pid]||0)/n)));
+    if(q>=1){kits[k.id]=q;for(const [pid,n] of ent){loose[pid]-=n*q;if(loose[pid]<=0)delete loose[pid]}}}
+  return {kits,loose}}
 // matériel pour Google Agenda : les kits par leur nom, puis seulement les produits ajoutés en plus (pas le détail des kits)
 function gItems(p){const kits={},loose={...p.items};
   for(const src of [p.packs||{},p.mpacks||{}])for(const [id,q] of Object.entries(src)){const k=byPack(id);if(!k||!(q>0))continue;kits[id]=(kits[id]||0)+q;for(const [pid,n] of Object.entries(k.items||{}))loose[pid]=(loose[pid]||0)-n*q}
+  const c=kitPack(Object.fromEntries(Object.entries(loose).filter(([,q])=>q>0)));for(const [id,q] of Object.entries(c.kits))kits[id]=(kits[id]||0)+q;Object.keys(loose).forEach(k=>{loose[k]=c.loose[k]||0});
   return [...Object.entries(kits).map(([id,q])=>`- ${byPack(id).name} ×${q} (kit)`),...Object.entries(loose).filter(([id,q])=>q>0&&byId(id)).map(([id,q])=>`- ${byId(id).name} ×${q}`)]}
 const gSrvOn=()=>!!((S.cfg.gsrv&&S.cfg.gsrv.on)||GS.srvPending);
 function gBody(ev){const r=rng(ev),p=P(ev),its=gItems(p);
@@ -2742,11 +2749,11 @@ function planSync(){clearTimeout(SYNC.timer);const m=+S.cfg.auto;if((S.cfg.cals.
 /* ---------- recherche Ctrl+K ---------- */
 const PAL={on:false,q:'',i:0,res:[]};
 function palItems(){const q=norm(PAL.q).trim(),m=x=>!q||norm(x).includes(q),out=[];
-  const pages=[['dash','Tableau de bord','home'],['stock','Stock','box'],...(S.cfg.kits?[['packs','Kits','pack']]:[]),['plan','Planning','cal'],['set','Paramètres','gear']];
+  const pages=[['dash','Tableau de bord','home'],['stock','Stock','box'],['packs','Kits','pack'],['plan','Planning','cal'],['set','Paramètres','gear']];
   for(const [v,l,i] of pages)if(m(l))out.push({g:'Pages',ico:i,t:l,s:'',act:()=>setView(v)});
   for(const p of S.products.filter(p=>m(p.name+' '+(p.cat||'')+' '+(p.kw||[]).join(' '))).slice(0,8))out.push({g:'Produits',ico:'box',t:p.name,s:`${p.qty} en stock${p.cat?' · '+p.cat:''}`,act:()=>openP(p.id)});
   for(const ev of S.events.filter(e=>m(e.title+' '+(e.lieu||''))).sort((a,b)=>Math.abs(diff(TODAY,rng(a).s))-Math.abs(diff(TODAY,rng(b).s))).slice(0,8))out.push({g:'Chantiers',ico:'cal',t:ev.title,s:range(rng(ev).s,rng(ev).e),act:()=>openR(ev.id)});
-  if(S.cfg.kits)for(const k of (S.packs||[]).filter(k=>m(k.name)).slice(0,5))out.push({g:'Kits',ico:'pack',t:k.name,s:'kit',act:()=>openK(k.id)});
+  for(const k of (S.packs||[]).filter(k=>m(k.name)).slice(0,5))out.push({g:'Kits',ico:'pack',t:k.name,s:'kit',act:()=>openK(k.id)});
   return out}
 function drawPal(){const el=$('#pal');if(!PAL.on){el.innerHTML='';return}PAL.res=palItems();if(PAL.i>=PAL.res.length)PAL.i=Math.max(0,PAL.res.length-1);let g=null;
   el.innerHTML=`<div class="ov pov" data-act="palclose"><div class="pbox" role="dialog" aria-label="Recherche"><div class="pin">${ic('search')}<input id="palq" value="${esc(PAL.q)}" placeholder="Chercher un produit, un chantier, une page…" autocomplete="off"><kbd>Échap</kbd></div><div class="plist2">${PAL.res.map((r,i)=>{const h=r.g!==g?`<div class="pg">${r.g}</div>`:'';g=r.g;return h+`<button class="pit${i===PAL.i?' on':''}" data-act="palgo" data-i="${i}">${ic(r.ico)}<span><b>${esc(r.t)}</b>${r.s?`<small>${esc(r.s)}</small>`:''}</span></button>`}).join('')||'<div class="empty" style="padding:16px">Rien trouvé.</div>'}</div></div></div>`;
@@ -2971,7 +2978,7 @@ function invReportPrint(r,mode){const co=(S.cfg.company||'').trim();const tot=r.
   outPrint(mode||'pdf',`Inventaire-${r.date}${r.cat?'-'+r.cat.replace(/[^\w\-]+/g,'_'):''}.pdf`)}
 /* ---------- téléphone : logo flottant déplaçable + menu en cercle ---------- */
 const FAB={x:null,y:null,open:false,drag:null};
-function fabItems(){const rc=retToCheck().length;return [['home','home','Accueil'],['stock','box','Stock'],['minv','check','Inventaire'],...(S.cfg.kits?[['packs','pack','Kits']]:[]),['+','plus','Ajouter'],['plan','cal','Planning'],['ret','back',rc?`Retours (${rc})`:'Retours'],['set','gear','Réglages']]}
+function fabItems(){const rc=retToCheck().length;return [['home','home','Accueil'],['stock','box','Stock'],['minv','check','Inventaire'],['packs','pack','Kits'],['+','plus','Ajouter'],['plan','cal','Planning'],['ret','back',rc?`Retours (${rc})`:'Retours'],['set','gear','Réglages']]}
 function fabInit(){if(!MOB||$('#fab'))return;
   try{const p=JSON.parse(localStorage.getItem('si-fab')||'null');if(p){FAB.x=p.x;FAB.y=p.y}}catch(e){}
   const f=document.createElement('button');f.id='fab';f.setAttribute('aria-label','Menu');f.innerHTML='<svg class="i" viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5zM3 7.5l9 4.5 9-4.5M12 12v9"/></svg>';
@@ -3113,21 +3120,6 @@ const A={
   invdel:e=>{U.invdel=e.dataset.id;render()},invdelno:()=>{U.invdel=null;render()},
   invdelyes:e=>{const i=(S.invRep||[]).findIndex(x=>x.id===e.dataset.id);U.invdel=null;if(i>=0){S.invRep.splice(i,1);save();toast('Inventaire supprimé (les quantités du stock ne changent pas)')}render()},
   qcnew:()=>{const Q=U.qc;openE(null,Q.a<=Q.b?Q.a:Q.b,Q.a<=Q.b?Q.b:Q.a);if(MD&&MD.d){MD.d.desc=Q.txt;MD.d.man.items={...qcMan()};MD.d.man.packs={...qcKits()};drawE()}},
-  essaiadd:()=>{const pr=S.products.filter(p=>p.qty>0).sort((a,b)=>b.qty-a.qty);if(!pr.length)return;
-    const P=k=>pr[k%pr.length],q=(p,f)=>Math.max(1,Math.ceil(p.qty*f)),D=n=>add(TODAY,n);
-    const mk=(title,a,b,lieu,items,t0,t1)=>{const m={};items.forEach(([p,n])=>{m[p.id]=(m[p.id]||0)+n});return{id:'e'+uid(),title:'Essai · '+title,start:D(a),end:D(b),lieu,desc:'Chantier d\'essai créé par StockInfos (Paramètres › Chantiers d\'essai).',src:'manuel',ci:S.events.length%COLORS.length,man:{packs:{},items:m},created:Date.now(),used:Date.now(),essai:true,...(t0?{t0}:{}),...(t1?{t1}:{})}};
-    const ev=[mk('Fête de village',-1,1,'Place de la mairie',[[P(2),q(P(2),.4)],[P(0),q(P(0),.2)]],'14:00','23:00'),
-      mk('Livraison mairie',0,0,'Mairie',[[P(1),q(P(1),.2)]],'08:30','10:00'),
-      mk('Vin d\'honneur',0,0,'Salle polyvalente',[[P(2),q(P(2),.2)]],'09:00','12:30'),
-      mk('Repas associatif',0,0,'Gymnase',[[P(0),q(P(0),.15)]],'18:00','22:00'),
-      mk('Mariage Dupont',2,4,'Domaine des Chênes',[[P(0),q(P(0),.6)],[P(1),q(P(1),.5)]],'15:00','02:00'),
-      mk('Salon professionnel',3,6,'Parc des expositions',[[P(0),q(P(0),.55)],[P(1),q(P(1),.3)],[P(3),q(P(3),.5)]]),
-      mk('Conférence',1,1,'Centre des congrès',[[P(3),q(P(3),.3)]],'09:00','17:30'),
-      mk('Anniversaire Martin',7,7,'Salle des fêtes',[[P(0),q(P(0),.5)],[P(2),q(P(2),.3)]],'19:00','23:30'),
-      mk('Cocktail entreprise',7,7,'Bureaux Axion',[[P(1),q(P(1),.2)]],'17:00','20:00'),
-      mk('Séminaire',11,13,'Hôtel du Lac',[[P(1),q(P(1),.4)],[P(3),q(P(3),.6)],[P(4),q(P(4),.5)]])];
-    ev.forEach(e=>{e.ci=S.events.length%COLORS.length;S.events.push(e)});save();render();toast(`${ev.length} chantiers d'essai créés : regarde le Planning et le Stock`)},
-  essaidel:()=>{const n=S.events.filter(e=>e.essai).length;S.events=S.events.filter(e=>!e.essai);save();render();toast(`${n} chantiers d'essai supprimés`)},
   impback0:()=>{MD={k:'imp',step:0};drawImp()},impchoose:b=>{if(b.dataset.v==='inv'){MD.step='inv';MD.inv={rows:null,errs:[]}}else MD.step=1;drawImp()},
   invagain:()=>{MD.inv={rows:null,errs:[]};drawImp()},invgo:()=>invApply(),
   impopen:()=>openImp(),impback:()=>{MD.step=1;drawImp()},impgo:()=>impApply(),
@@ -3149,6 +3141,7 @@ const A={
   savek:()=>{readK();const d=MD.d,items={};for(const [pid,n] of d.rows)if(pid&&n>0)items[pid]=(items[pid]||0)+n;
     if(!d.name){toast('Donne un nom au kit');return}if(!Object.keys(items).length){toast('Ajoute au moins un produit');return}
     const k={id:d.id||'k'+uid(),name:d.name,kw:d.kw,items};if(d.id)Object.assign(byPack(d.id),k);else S.packs.push(k);save();closeM();render();toast(d.id?'Kit mis à jour':'Kit créé')},
+  kq:b=>{const i=b.parentElement.querySelector('.q');if(i)i.value=Math.max(1,(parseInt(i.value)||0)+(+b.dataset.n))},
   addpk:b=>{const m=MD.d.man.packs;m[b.dataset.id]=(m[b.dataset.id]||0)+1;redrawMan()},
   manq:b=>{const m=MD.d.man[b.dataset.t],id=b.dataset.id;m[id]=Math.max(1,(m[id]||0)+(+b.dataset.n));redrawMan()},
   manx:b=>{delete MD.d.man[b.dataset.t][b.dataset.id];redrawMan()},
@@ -3260,6 +3253,7 @@ const A={
   'nk-ok':()=>{const n=$('#nk-name').value.trim();if(!n)return;const u=parse(MD.d.desc).unknown[MD.mk];const kw=u&&norm(u.name)!==norm(n)?[u.name]:[];S.products.push({id:'p'+uid(),name:n,cat:'',qty:Math.max(0,parseInt($('#nk-qty').value)||0),kw,photo:''});MD.mk=-1;save();redrawRead();render();toast('« '+n+' » ajouté au stock')},
   ign:b=>{const u=parse(MD.d.desc).unknown[+b.dataset.k];if(u){S.ignored=S.ignored||[];S.ignored.push(norm(u.name));save();redrawRead();render();toast('Ce mot sera ignoré')}}
 };
+document.addEventListener('change',e=>{if(e.target.classList&&e.target.classList.contains('edkq')&&MD&&MD.k==='e')redrawMan()});
 document.addEventListener('input',e=>{if(e.target.classList.contains('edkq')&&MD&&MD.k==='e'){const m=MD.d.man[e.target.dataset.t];if(m){m[e.target.dataset.id]=Math.max(1,parseInt(e.target.value)||1);const l=$('#manl');if(l)l.innerHTML=manHTML();redrawRead()}return}if(e.target.id==='k-name'&&MD&&MD.k==='k'){const c=$('#kclash');if(c)c.innerHTML=kitClashHTML(e.target.value,MD.d.id);return}if(e.target.id==='p-qty'||e.target.id==='p-usize'){unitLive();return}if(e.target.classList.contains('ivn')&&MD&&MD.k==='invr'&&MD.rows){const l=MD.rows[+e.target.dataset.i];l[e.target.dataset.k]=Math.max(0,parseInt(e.target.value)||0);const d=l.bon+l.rep+l.cas-l.e,c=document.querySelector('.ivd'+e.target.dataset.i);if(c)c.innerHTML=`<em class="${d<0?'neg':'pos'}">${d>0?'+':''}${d}</em>`;e.target.closest('.ivr').classList.toggle('bad',!!d);return}
   const D=S.cfg&&S.cfg.mretDraft;if(!D)return;if(e.target.id==='mretn'){const r=D.rows[+e.target.dataset.mretNote];if(r){r.note=e.target.value;save()}}else if(e.target.id==='mretc'){D.comment=e.target.value;save()}});
 document.addEventListener('click',e=>{
