@@ -1519,8 +1519,9 @@ function hsHTML(){const L=[];S.products.forEach(p=>(p.hs||[]).forEach((h,i)=>{if
   if(!L.length)return '<div class="empty">Rien à réparer.</div>';
   return `<p class="h" style="margin:0 0 4px">Clique sur une ligne quand c'est réparé, cassé ou jeté.</p>`+L.map(({p,h,i})=>`<button class="hsr2" data-act="hsfix" data-p="${p.id}" data-i="${i}"><b>${esc(p.name)}</b><span class="hq">${h.q} à réparer</span><small>${h.note?esc(h.note)+' · ':''}${h.from?'depuis le '+fmt(h.from,{day:'numeric',month:'short'}):''}${h.until?` · retour prévu le ${fmt(h.until,{day:'numeric',month:'short'})}`:''}</small></button>`).join('')}
 function lossHTML(){const L=[];
-  (S.casse||[]).forEach(c=>L.push({k:'c',id:c.id,name:c.name,q:c.q,date:c.date,txt:`${c.q} cassé${c.q>1?'s':''}`,sub:[c.note,c.ev?'retour de « '+c.ev+' »':'déclaré dans le stock'].filter(Boolean).join(' · ')}));
-  S.events.forEach(ev=>{if(!ev.checked)return;(ev.checked.losses||[]).forEach((l,i)=>{if(l.fate==='perdu'&&!l.undone)L.push({k:'p',ev:ev.id,i,name:l.name,q:l.q,date:ev.checked.date,txt:`${l.q} perdu${l.q>1?'s':''}`,sub:'retour de « '+short(ev.title)+' »'})})});
+  // un produit supprimé du stock n'apparaît plus ici (son historique revient si on annule la suppression)
+  (S.casse||[]).filter(c=>byId(c.pid)).forEach(c=>L.push({k:'c',id:c.id,name:c.name,q:c.q,date:c.date,txt:`${c.q} cassé${c.q>1?'s':''}`,sub:[c.note,c.ev?'retour de « '+c.ev+' »':'déclaré dans le stock'].filter(Boolean).join(' · ')}));
+  S.events.forEach(ev=>{if(!ev.checked)return;(ev.checked.losses||[]).forEach((l,i)=>{if(l.fate==='perdu'&&!l.undone&&(!l.pid||byId(l.pid)))L.push({k:'p',ev:ev.id,i,name:l.name,q:l.q,date:ev.checked.date,txt:`${l.q} perdu${l.q>1?'s':''}`,sub:'retour de « '+short(ev.title)+' »'})})});
   if(!L.length)return '<div class="empty">Rien de cassé ni de perdu pour l\'instant.</div>';
   L.sort((x,y)=>x.date<y.date?1:x.date>y.date?-1:0);
   const tc=L.filter(x=>x.k==='c').reduce((n,x)=>n+x.q,0),tp=L.filter(x=>x.k==='p').reduce((n,x)=>n+x.q,0);
@@ -1554,7 +1555,7 @@ VIEWS.dash=()=>{
   ${sec('search','Vérif rapide pour un devis','Écris le matériel, l\'appli vérifie le stock sur les dates choisies',qcHTML(),{cls:'qc qcbig'})}
   ${sec('truck','À venir','5 prochains jours',weekHTML(),{link:`<button class="lnk" data-act="view" data-v="plan" style="margin-left:auto">Ouvrir le planning</button><div class="seg wks" role="tablist"><button class="${(U.wkm||'out')==='out'?'on':''}" data-act="wkm" data-v="out" role="tab">Chantiers <span class="wkn">${wkCount('out')}</span></button><button class="${U.wkm==='in'?'on':''}" data-act="wkm" data-v="in" role="tab">Retours <span class="wkn">${wkCount('in')}</span></button></div>`})}
   ${(()=>{const allEv=S.events.filter(ev=>rng(ev).e>=TODAY).sort((a,b)=>evKey(a)<evKey(b)?-1:1),hsN=S.products.reduce((n,p)=>n+(p.hs||[]).filter(h=>h.t!=='cas'&&(!h.from||h.from<=TODAY)&&(!h.until||h.until>=TODAY)).reduce((m,h)=>m+(+h.q||0),0),0);
-    const lossN=(S.casse||[]).filter(c=>c.date>=add(TODAY,-30)).reduce((n,c)=>n+c.q,0)+S.events.filter(ev=>ev.checked&&ev.checked.date>=add(TODAY,-30)).reduce((n,ev)=>n+(ev.checked.losses||[]).filter(l=>l.fate==='perdu'&&!l.undone).reduce((m,l)=>m+l.q,0),0);
+    const lossN=(S.casse||[]).filter(c=>c.date>=add(TODAY,-30)&&byId(c.pid)).reduce((n,c)=>n+c.q,0)+S.events.filter(ev=>ev.checked&&ev.checked.date>=add(TODAY,-30)).reduce((n,ev)=>n+(ev.checked.losses||[]).filter(l=>l.fate==='perdu'&&!l.undone&&(!l.pid||byId(l.pid))).reduce((m,l)=>m+l.q,0),0);
     DPANELS={
       evs:{t:'Chantiers en cours et à venir',i:'cal',h:`<div class="dlist">${allEv.map(dcard).join('')||'<div class="empty">Aucun chantier prévu.</div>'}</div>`},
       man:{t:'Manques à venir',i:'alert',h:SH.length?`<div class="al-card">${SH.map(sh=>`<button class="al" data-act="openp" data-id="${sh.p.id}">${ic('alert')}<span><strong>Il manque ${sh.miss} ${esc(sh.p.name)}</strong><small>${sh.from===sh.to?'le '+fmt(sh.from):'du '+fmt(sh.from)+' au '+fmt(sh.to)} · ${sh.evs.map(e=>esc(short(e.title))).join(', ')}</small></span></button>`).join('')}</div>`:'<div class="empty">Tout le matériel est disponible sur les chantiers prévus.</div>'},
