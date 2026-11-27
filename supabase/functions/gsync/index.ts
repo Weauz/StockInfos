@@ -31,13 +31,21 @@ function htmlToText(h: string) {
   return h.replace(/<br\s*\/?>/gi, "\n").replace(/<\/(p|div|li|h\d)>/gi, "\n").replace(/<li[^>]*>/gi, "- ").replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\n{3,}/g, "\n\n").trim();
 }
 function hashId(s: string) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return "g" + (h >>> 0).toString(36); }
+// heure Google → heure de Paris (Google peut renvoyer l'heure dans un autre fuseau, ex. celui de l'agenda)
+const gLocF = new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+function gLoc(x: string): [string, string] {
+  if (!/(Z|[+-]\d\d:?\d\d)$/.test(x)) return [x.slice(0, 10), x.slice(11, 16)];
+  const d = new Date(x); if (isNaN(+d)) return [x.slice(0, 10), x.slice(11, 16)];
+  const p: any = Object.fromEntries(gLocF.formatToParts(d).map((o) => [o.type, o.value]));
+  return [`${p.year}-${p.month}-${p.day}`, `${p.hour}:${p.minute}`];
+}
 function gToLocal(it: any) {
   const S0 = it.start || {}, E0 = it.end || {};
   let start: string, end: string, t0 = "", t1 = "";
   if (S0.date) { start = S0.date; end = E0.date ? add(E0.date, -1) : start; }
   else if (S0.dateTime) {
-    start = S0.dateTime.slice(0, 10); t0 = S0.dateTime.slice(11, 16);
-    if (E0.dateTime) { end = E0.dateTime.slice(0, 10); t1 = E0.dateTime.slice(11, 16); if (t1 === "00:00" && end > start) { end = add(end, -1); t1 = ""; } } else end = start;
+    [start, t0] = gLoc(S0.dateTime);
+    if (E0.dateTime) { [end, t1] = gLoc(E0.dateTime); if (t1 === "00:00" && end > start) { end = add(end, -1); t1 = ""; } } else end = start;
   } else return null;
   if (end < start) end = start;
   return { title: it.summary || "(Sans titre)", start, end, t0, t1, lieu: it.location || "", desc: htmlToText(it.description || "") };

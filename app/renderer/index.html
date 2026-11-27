@@ -1547,13 +1547,21 @@ function qcRes(){const Q=U.qc;if(!Q||(!Q.txt.trim()&&!(Q.items||[]).length))retu
     return `<div class="qcl ${good?'ok':'ko'}">${ic(good?'check':'alert')}<b>${esc(x.pr.name)} ×${x.q}</b><span>${good?`OK · ${mn} dispo au plus juste`:`Il en manque ${x.q-Math.max(0,mn)} le ${fmt(wd,{weekday:'short',day:'numeric',month:'short'})} (${Math.max(0,mn)} dispo)`}</span></div>`}).join('');
   return `<div class="qcv ${ok?'ok':'ko'}">${ok?'Tout est disponible':'Pas assez de matériel'} <small>${days.length>1?`du ${fmt(a,{day:'numeric',month:'short'})} au ${fmt(b,{day:'numeric',month:'short'})}`:`le ${fmt(a,{day:'numeric',month:'short'})}`}</small></div>${rows}${unk}
     <button class="btn sm" data-act="qcnew" style="margin-top:8px">${ic('plus')}Créer un chantier avec ce matériel</button>`}
+// le prochain montage ou démontage : celui qui a commencé reste affiché jusqu'au suivant (ou jusqu'à la fin de la journée)
+function dashNext(){const now=new Date(),hm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0'),L=[];
+  for(const ev of S.events){if(!counts(ev)||!Object.keys(P(ev).items).length)continue;const r=rng(ev);
+    L.push({ev,k:'mo',d:r.ms,t:ev.t0||''});
+    if(ev.dm){if(r.ds)L.push({ev,k:'dm',d:r.ds,t:ev.dm.t0||''})}else if(!ev.checked)L.push({ev,k:'dm',d:r.e,t:ev.t1||''})}
+  const key=x=>x.d+' '+(x.t||'00:00'),cur=TODAY+' '+hm;L.sort((a,b)=>key(a)<key(b)?-1:key(a)>key(b)?1:a.k==='dm'?-1:1);
+  const started=L.filter(x=>x.d===TODAY&&key(x)<=cur).pop(),next=L.find(x=>key(x)>cur);
+  return started?{...started,now:true}:next||null}
 function wkList(d){const L=[];S.events.filter(ev=>counts(ev)&&retItems(ev)).forEach(ev=>{const r=rng(ev);if(r.s===d)L.push({ev,k:'out',t:ev.t0||''});if(ev.dm?r.ds===d:(r.e===d&&!ev.checked))L.push({ev,k:'in',t:ev.dm?(ev.dm.t0||''):(ev.t1||'')})});return L}
 function wkCount(k){let n=0;for(let i=0;i<5;i++)n+=wkList(add(TODAY,i)).filter(x=>x.k===k).length;return n}
 function weekHTML(){const days=[...Array(5)].map((_,i)=>add(TODAY,i)),M=U.wkm||'out';
   const col=d=>{const L=wkList(d).filter(x=>x.k===M);
     L.sort((a,b)=>(a.t||'')<(b.t||'')?-1:(a.t||'')>(b.t||'')?1:a.k==='in'?-1:1);const j=diff(TODAY,d);
     return `<div class="wkd${j===0?' td':''}${L.length?'':' empty'}"><div class="wkh"><b>${j===0?'Aujourd\'hui':j===1?'Demain':fmt(d,{weekday:'long'})}</b><small>${fmt(d,{day:'numeric',month:'short'})}</small></div>
-      ${L.map(({ev,k,t})=>`<button class="wki ${k==='out'?'wko':'wkr'}" data-act="openev" data-id="${ev.id}"><span>${ic(k==='out'?'ul':'back')}${k==='out'?'Départ':'Démontage'}${t?`<em class="wkt">${hh(t)}</em>`:''}</span><b>${esc(short(ev.title))}</b><small>${itemsTxt(ev)}</small></button>`).join('')}
+      ${L.map(({ev,k,t})=>`<button class="wki ${k==='out'?'wko':'wkr'}" data-act="openev" data-id="${ev.id}"><span>${ic(k==='out'?'ul':'back')}${k==='out'?'Montage':'Démontage'}${t?`<em class="wkt">${hh(t)}</em>`:''}</span><b>${esc(short(ev.title))}</b><small>${itemsTxt(ev)}</small></button>`).join('')}
       ${L.length?'':'<span class="h">Rien</span>'}</div>`};
   const pend=M==='in'?S.events.filter(e=>counts(e)&&dmTbd(e)).length:0;
   return `${pend?`<button class="lnk" data-act="dmpend" style="display:block;margin:0 0 8px">${ic('alert')} ${pend} démontage${pend>1?'s':''} à planifier</button>`:''}<div class="wk">${days.map(col).join('')}</div>`}
@@ -1589,16 +1597,15 @@ VIEWS.dash=()=>{
   const tc=S.events.filter(ev=>{const r=rng(ev);return counts(ev)&&r.e<=TODAY&&r.e>=add(TODAY,-30)&&!ev.checked&&Object.keys(P(ev).items).length}).sort((a,b)=>rng(b).e<rng(a).e?-1:1);
   return `<div class="dash">
   <div class="hero two">
-    ${(()=>{const now=new Date(),hm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-      const nx=S.events.filter(ev=>counts(ev)&&Object.keys(P(ev).items).length&&(ev.start>TODAY||(ev.start===TODAY&&(!ev.t0||ev.t0>=hm))&&!evOut(ev,add(TODAY,-1)))).sort((x,y)=>evKey(x)<evKey(y)?-1:1)[0];
-      if(!nx)return `<div class="htile"><span class="hi">${ic('truck')}</span><span><small>Prochain départ</small><b class="hn">Aucun</b><em>Pas de chantier prévu avec du matériel.</em></span></div>`;
-      const dd=diff(TODAY,nx.start),when=(dd===0?'Aujourd\'hui':dd===1?'Demain':fmt(nx.start,{weekday:'long',day:'numeric',month:'short'}))+(nx.t0?' à '+hh(nx.t0):''),pi=P(nx).items,np=Object.values(pi).reduce((n,q)=>n+q,0),nr=Object.keys(pi).length;
-      return `<div class="htile hnext"><span class="hi">${ic('truck')}</span><span><small>Prochain départ · <span class="hw">${when}</span></small><button class="hlink" data-act="openev" data-id="${nx.id}">${esc(nx.title)}</button><em>${nr} produit${nr>1?'s':''} · ${np} pièce${np>1?'s':''}${nx.lieu?' · '+esc(nx.lieu):''}</em></span><span class="hact"><button class="btn sm" data-act="printload" data-id="${nx.id}">${ic('print')}Liste de chargement</button></span></div>`})()}
+    ${(()=>{const it=dashNext();
+      if(!it)return `<div class="htile"><span class="hi">${ic('truck')}</span><span><small>Prochain montage ou démontage</small><b class="hn">Aucun</b><em>Pas de chantier prévu avec du matériel.</em></span></div>`;
+      const nx=it.ev,dd=diff(TODAY,it.d),when=(dd===0?'Aujourd\'hui':dd===1?'Demain':fmt(it.d,{weekday:'long',day:'numeric',month:'short'}))+(it.t?' à '+hh(it.t):''),pi=P(nx).items,np=Object.values(pi).reduce((n,q)=>n+q,0),nr=Object.keys(pi).length;
+      return `<div class="htile hnext"><span class="hi">${ic(it.k==='mo'?'truck':'back')}</span><span><small>${it.now?'En ce moment':'Prochain'} : <b>${it.k==='mo'?'montage':'démontage'}</b> · <span class="hw">${when}</span></small><button class="hlink" data-act="openev" data-id="${nx.id}">${esc(nx.title)}</button><em>${nr} produit${nr>1?'s':''} · ${np} pièce${np>1?'s':''}${nx.lieu?' · '+esc(nx.lieu):''}</em></span><span class="hact"><button class="btn sm" data-act="printload" data-id="${nx.id}">${ic('print')}Liste de chargement</button></span></div>`})()}
     ${(()=>{const lim=add(TODAY,30),sh=SH.filter(x=>x.from<=lim),evs=new Map();sh.forEach(x=>x.evs.forEach(e=>evs.set(e.id,e)));const n=evs.size,first=sh[0];
       return `<button class="htile${n?' bad':' good'}" data-act="dpanel" data-k="man"><span class="hi">${ic(n?'alert':'check')}</span><span><small>Manques à venir · 30 jours</small><b>${n?`${n} chantier${n>1?'s':''}`:'Aucun'}</b><em>${first?`Il manque ${first.miss} ${esc(first.p.name)} ${first.from===first.to?'le '+fmt(first.from,{day:'numeric',month:'short'}):'dès le '+fmt(first.from,{day:'numeric',month:'short'})}${sh.length>1?` · et ${sh.length-1} autre${sh.length>2?'s':''}`:''}`:'Tout le matériel est disponible.'}</em></span></button>`})()}
   </div>
   ${sec('search','Vérif rapide pour un devis','Écris le matériel, l\'appli vérifie le stock sur les dates choisies',qcHTML(),{cls:'qc qcbig'})}
-  ${sec('truck','À venir','5 prochains jours',weekHTML(),{link:`<button class="lnk" data-act="view" data-v="plan" style="margin-left:auto">Ouvrir le planning</button><div class="seg wks" role="tablist"><button class="${(U.wkm||'out')==='out'?'on':''}" data-act="wkm" data-v="out" role="tab">Chantiers <span class="wkn">${wkCount('out')}</span></button><button class="${U.wkm==='in'?'on':''}" data-act="wkm" data-v="in" role="tab">Démontages <span class="wkn">${wkCount('in')}</span></button></div>`})}
+  ${sec('truck','À venir','5 prochains jours',weekHTML(),{link:`<button class="lnk" data-act="view" data-v="plan" style="margin-left:auto">Ouvrir le planning</button><div class="seg wks" role="tablist"><button class="${(U.wkm||'out')==='out'?'on':''}" data-act="wkm" data-v="out" role="tab">Montages <span class="wkn">${wkCount('out')}</span></button><button class="${U.wkm==='in'?'on':''}" data-act="wkm" data-v="in" role="tab">Démontages <span class="wkn">${wkCount('in')}</span></button></div>`})}
   ${(()=>{const allEv=S.events.filter(ev=>rng(ev).e>=TODAY).sort((a,b)=>evKey(a)<evKey(b)?-1:1),hsN=S.products.reduce((n,p)=>n+(p.hs||[]).filter(h=>h.t!=='cas'&&(!h.from||h.from<=TODAY)&&(!h.until||h.until>=TODAY)).reduce((m,h)=>m+(+h.q||0),0),0);
     const lossN=(S.casse||[]).filter(c=>c.date>=add(TODAY,-30)&&byId(c.pid)).reduce((n,c)=>n+c.q,0)+S.events.filter(ev=>ev.checked&&ev.checked.date>=add(TODAY,-30)).reduce((n,ev)=>n+(ev.checked.losses||[]).filter(l=>l.fate==='perdu'&&!l.undone&&(!l.pid||byId(l.pid))).reduce((m,l)=>m+l.q,0),0);
     DPANELS={
@@ -2714,9 +2721,13 @@ const gStripDesc=d=>String(d||'').replace(/^Matériel :\n(?:- .*(?:\n|$))*/,'').
 function gReadJ(it){const pr=(it.extendedProperties&&it.extendedProperties.private)||{};let j='';for(let k=0;pr['j'+k]!==undefined;k++)j+=pr['j'+k];
   if(j){try{return JSON.parse(j)}catch(e){}}
   const f=gToLocal(it);if(!f)return null;f.desc=gStripDesc(f.desc);return f}
+// heure Google → heure de Paris (Google peut renvoyer l'heure dans un autre fuseau, ex. celui de l'agenda)
+const gLocF=new Intl.DateTimeFormat('fr-FR',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+function gLoc(x){if(!/(Z|[+-]\d\d:?\d\d)$/.test(x))return [x.slice(0,10),x.slice(11,16)];const d=new Date(x);if(isNaN(d))return [x.slice(0,10),x.slice(11,16)];
+  const p=Object.fromEntries(gLocF.formatToParts(d).map(o=>[o.type,o.value]));return [`${p.year}-${p.month}-${p.day}`,`${p.hour}:${p.minute}`]}
 function gToLocal(it){const S0=it.start||{},E0=it.end||{};let start,end,t0='',t1='';
   if(S0.date){start=S0.date;end=E0.date?add(E0.date,-1):start}
-  else if(S0.dateTime){start=S0.dateTime.slice(0,10);t0=S0.dateTime.slice(11,16);if(E0.dateTime){end=E0.dateTime.slice(0,10);t1=E0.dateTime.slice(11,16);if(t1==='00:00'&&end>start){end=add(end,-1);t1=''}}else end=start}
+  else if(S0.dateTime){[start,t0]=gLoc(S0.dateTime);if(E0.dateTime){[end,t1]=gLoc(E0.dateTime);if(t1==='00:00'&&end>start){end=add(end,-1);t1=''}}else end=start}
   else return null;if(end<start)end=start;
   return{title:it.summary||'(Sans titre)',start,end,t0,t1,lieu:it.location||'',desc:htmlToText(it.description||'')}}
 async function gPoll(){
@@ -2824,9 +2835,9 @@ function closePal(){PAL.on=false;drawPal()}
 /* ---------- glisser pour créer un chantier ---------- */
 /* ---------- visite guidée ---------- */
 const TSTEPS=[
-  {v:'dash',s:'.hero',t:'Le tableau de bord',x:'En haut, deux infos : le <b>prochain départ</b> (clique sur son nom pour l\'ouvrir, ou sur « Liste de chargement » pour l\'imprimer) et les <b>manques à venir</b> sur 30 jours (clique pour voir ce qui manque et quand).'},
+  {v:'dash',s:'.hero',t:'Le tableau de bord',x:'En haut, deux infos : le <b>prochain montage ou démontage</b> (clique sur son nom pour l\'ouvrir, ou sur « Liste de chargement » pour l\'imprimer) et les <b>manques à venir</b> sur 30 jours (clique pour voir ce qui manque et quand).'},
   {v:'dash',s:'.qc',t:'Vérif rapide pour un devis',x:'Choisis les dates, puis écris le matériel, par exemple « 120 chaises, 2 barnums ». À droite, l\'appli dit tout de suite s\'il y en a assez. Un produit choisi dans les propositions devient un bloc : tu peux changer sa quantité ou le retirer avec la croix. « Créer un chantier avec ce matériel » reprend tout.'},
-  {v:'dash',s:'.dsec:has(.wks)',t:'À venir',x:'Les 5 prochains jours. Le bouton « Chantiers » montre les départs, « Retours » ce qui doit revenir. « Ouvrir le planning » mène au planning complet.'},
+  {v:'dash',s:'.dsec:has(.wks)',t:'À venir',x:'Les 5 prochains jours. Le bouton « Montages » montre les montages, « Démontages » les démontages. « Ouvrir le planning » mène au planning complet.'},
   {v:'dash',s:'.dbar',t:'La barre du bas',x:'Un clic ouvre chaque liste : « Retours à vérifier », « Matériel le plus demandé », « À réparer » (clique sur une ligne quand c\'est réparé ou cassé) et « Casse et pertes » (l\'historique de ce qui a été retiré du stock, avec « Annuler » en cas d\'erreur). « Mots non reconnus » apparaît quand un chantier contient un mot que l\'appli ne comprend pas.'},
   {v:'stock',s:'.pgrid,.stbl,.plist',t:'Le stock',x:'Tout ton matériel, avec ce qui est dispo à la date choisie en haut. Clique sur un produit pour changer sa quantité, utiliser « Déclarer à réparer » ou « Déclarer cassé », et voir sur quels chantiers il est réservé. « Ajouter un produit » en crée un nouveau.'},
   {v:'stock',s:'[data-act=impopen]',t:'Importer',x:'Remplis ton stock d\'un coup depuis un fichier Excel, CSV ou PDF. L\'appli devine les colonnes, et tu vérifies avant de valider.'},
@@ -2951,7 +2962,7 @@ VIEWS.home=()=>{const dr=S.cfg.minvDraft,rc=retToCheck().length;
   <div class="mqs" hidden>${Q('view','stock','box','Stock')}${Q('view','minv','check',dr?'Inventaire…':'Inventaire','acc')}${Q('addp','','plus','Ajouter')}${Q('view','plan','cal','Planning')}${Q('view','ret','back',rc?`Retours (${rc})`:'Retours',rc?'warn':'')}${Q('view','set','gear','Réglages')}</div>
   ${VIEWS.dash()}`};
 VIEWS.qc=()=>`<section class="card dsec qc qcbig"><div class="dsb" style="padding:12px">${qcHTML()}</div></section>`;
-VIEWS.avenir=()=>`<div class="seg wks" role="tablist" style="margin:0 0 10px"><button class="${(U.wkm||'out')==='out'?'on':''}" data-act="wkm" data-v="out" role="tab">Départs <span class="wkn">${wkCount('out')}</span></button><button class="${U.wkm==='in'?'on':''}" data-act="wkm" data-v="in" role="tab">Démontages <span class="wkn">${wkCount('in')}</span></button></div>${weekHTML()}`;
+VIEWS.avenir=()=>`<div class="seg wks" role="tablist" style="margin:0 0 10px"><button class="${(U.wkm||'out')==='out'?'on':''}" data-act="wkm" data-v="out" role="tab">Montages <span class="wkn">${wkCount('out')}</span></button><button class="${U.wkm==='in'?'on':''}" data-act="wkm" data-v="in" role="tab">Démontages <span class="wkn">${wkCount('in')}</span></button></div>${weekHTML()}`;
 
 /* ---------- téléphone : inventaire produit par produit ---------- */
 const outToday=pid=>usage(pid,TODAY)-((byId(pid)||{}).hs||[]).filter(h=>(!h.from||h.from<=TODAY)&&(!h.until||h.until>=TODAY)).reduce((n,h)=>n+(+h.q||0),0);
