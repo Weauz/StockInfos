@@ -2778,7 +2778,7 @@ async function dbSync(manual,first){
     DB.applying=true;
     for(const r of rows){const k=dbKey(r.kind,r.id);if(r.updated_at&&(!S.dbcur||r.updated_at>S.dbcur))S.dbcur=r.updated_at;
       if(r.deleted){if(S.dbm[k]!==undefined||first){dbApply(r);delete S.dbm[k];pulled++}continue}
-      const h=dbHash({...r.data,id:r.id});if(S.dbm[k]===h)continue;dbApply(r);S.dbm[k]=h;pulled++}
+      const h=dbHash(r.data);if(S.dbm[k]===h)continue;dbApply(r);S.dbm[k]=h;pulled++}
     DB.applying=false;
     // 2. envoyer ce qui a changé ici
     const cur=dbEntities(),up=[];
