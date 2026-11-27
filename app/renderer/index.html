@@ -941,6 +941,7 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .rrow i.tm{color:var(--amb)}
 .qca{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px}.qca>span{font-size:12.5px;color:var(--amb);font-weight:600;margin-right:2px}
 .qcp{cursor:pointer;border:1px solid var(--line);display:inline-flex;align-items:baseline;gap:6px}.qcp:hover{border-color:var(--acc);color:var(--acc)}.qcp small{font-size:10.5px;color:var(--mute)}
+.qcc.kit b{color:var(--acc)}.qcc.kit b svg{width:14px;height:14px;vertical-align:-2px}.edsug:empty{display:none}.edsug{margin-top:6px}
 .qcs{display:flex;flex-direction:column;gap:10px;margin-top:10px;padding:12px;border-radius:10px;background:var(--card2)}
 .qcg{display:flex;flex-direction:column;gap:7px}.qcgt{font-size:13.5px;font-weight:600;color:var(--amb)}
 .qcgl{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
@@ -1104,6 +1105,7 @@ i.tm.e{margin:0 0 0 6px;font-weight:600;opacity:.7}
 .pmph.has{position:relative}.pmph.has img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:18px;background:var(--card2)}
 .pmpa{display:flex;gap:8px;width:100%}.pmpa .btn{flex:1;justify-content:center}
 .pm .f{margin:0}.pm .f label{display:block;font-weight:600;margin-bottom:6px}
+.unitrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.unitrow select{flex:1 1 180px;min-width:160px}.usz{display:flex;align-items:center;gap:8px;font-weight:600;white-space:nowrap}.usz[hidden]{display:none}.usz .in{width:90px;text-align:center;font-weight:700}.usz b{min-width:24px}
 .pmq{display:grid;grid-template-columns:64px 1fr 64px;gap:10px}.pmq .btn{height:58px;font-size:28px;justify-content:center;padding:0}.pmq .in{height:58px;text-align:center;font-size:24px;font-weight:700}
 .pmcats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
 .pmc{height:42px;padding:0 16px;border-radius:21px;border:1px solid var(--line);background:var(--card);font:inherit;font-size:15px;color:var(--ink)}.pmc.on{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
@@ -1256,6 +1258,11 @@ function PACKS0(){return [
   {id:'k1',name:'Chapiteau réception',kw:['chapiteau'],items:{p1:1,p5:8,p6:50,p10:2,p14:1}},
   {id:'k2',name:'Kit mariage 100 pers.',kw:['kit mariage'],items:{p7:13,p8:100,p9:6,p10:4,p12:2}},
   {id:'k3',name:'Barnum équipé',kw:['barnum equipe'],items:{p3:1,p5:4,p11:1}}]}
+// les exemples créés au premier lancement (« Avec des exemples ») : reconnus à leur identifiant ET leur nom d'origine
+function isExample(kind,x){if(!x)return false;if(x.ex)return true;const d=seed(),L=kind==='product'?d.products:kind==='pack'?d.packs:d.events;const o=L.find(y=>y.id===x.id);return !!o&&(o.name||o.title)===(x.name||x.title)}
+function dropExamples(){let n=0;const keep=(k,L)=>L.filter(x=>{const e=isExample(k,x);if(e)n++;return !e});
+  S.products=keep('product',S.products||[]);S.packs=keep('pack',S.packs||[]);S.events=keep('event',S.events||[]);
+  const ids=new Set(S.products.map(p=>p.id));S.casse=(S.casse||[]).filter(c=>ids.has(c.pid));return n}
 function seed(){
   const P=(id,name,cat,qty,kw)=>({id,name,cat,qty,kw:kw||[],photo:''});
   let ago=0;const E=(id,title,a,b,lieu,desc,src,ci,man)=>({created:Date.now()-(ago+=3)*36e5,id,title,start:add(TODAY,a),end:add(TODAY,b),lieu,desc,src,ci,man:man||{packs:{},items:{}}});
@@ -1282,6 +1289,8 @@ S.cfg=Object.assign({auto:'15',kits:true},S.cfg||{});S.cfg.read=true;if(S.cfg.co
 if(!S.packs)S.packs=[];
 S.events.forEach((e,i)=>{if(!e.created)e.created=Date.now()-(i+1)*36e5});
 const PC=new Map();
+// les kits comptent dès qu'il en existe (même si la page Kits est cachée)
+const kitsOn=()=>!!(S.cfg.kits||(S.packs||[]).length);
 function save(){PC.clear();if(typeof dbSoon==='function')dbSoon();try{if(API){const r=API.save(S);if(r!==true)throw new Error(r)}else localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Erreur d\'enregistrement : '+e.message)}}
 const U={pv:'4j',pd:TODAY,pvm:false,sort:'az',mode:'jour',a:TODAY,b:add(TODAY,6),pk:'a',dp:false,dpm:TODAY.slice(0,7),view:'dash',date:TODAY,plan:'mois',ym:TODAY.slice(0,7),q:'',cat:'',reset:false};
 const HV={tableau:'dash',stock:'stock',kits:'packs',planning:'plan',reglages:'set',accueil:'home',verif:'qc',inventaire:'minv',avenir:'avenir',retours:'ret'};
@@ -1321,7 +1330,7 @@ function parse(desc){
   if(m0){const s=mkDate(m0[1],m0[2],m0[3]),e=mkDate(m0[4],m0[5],m0[6]);if(s&&e){res.dates={start:s,end:e<s?s:e,a:m0.index,b:m0.index+m0[0].length};mark(res.dates.a,res.dates.b)}}
   const al=[];for(const p of S.products)for(const a of [p.name,...(p.kw||[])]){const pat=aliasPat(a);if(pat)al.push({p,pat,l:norm(a).length})}
   {const sn=shortNames();for(const p of S.products)for(const a of (sn[p.id]||[])){const pat=aliasPat(a);if(pat)al.push({p,pat,l:a.length-.25})}}
-  if(S.cfg.kits)for(const k of (S.packs||[]))for(const a of [k.name,...(k.kw||[])]){const pat=aliasPat(a);if(pat)al.push({k,pat,l:norm(a).length+.5})}
+  if(kitsOn())for(const k of (S.packs||[]))for(const a of [k.name,...(k.kw||[])]){const pat=aliasPat(a);if(pat)al.push({k,pat,l:norm(a).length+.5})}
   al.sort((x,y)=>y.l-x.l);
   for(const {p,k,pat} of al){
     const re=new RegExp('(?<![a-z0-9œ])'+pat+'(?![a-z0-9œ])','g');let m;
@@ -1366,10 +1375,10 @@ function parse(desc){
   PC.set(key,res);return res;
 }
 const EMPTY={items:{},hits:[],unknown:[],dates:null,packs:{},amb:[],umiss:[]};
-function P(ev){const man=ev.man||{},key='§'+(S.cfg.read?1:0)+(S.cfg.kits?1:0)+'|'+(ev.desc||'')+'|'+JSON.stringify(man)+'|'+JSON.stringify(ev.upick||{});if(PC.has(key))return PC.get(key);
+function P(ev){const man=ev.man||{},key='§'+(S.cfg.read?1:0)+(kitsOn()?1:0)+'|'+(ev.desc||'')+'|'+JSON.stringify(man)+'|'+JSON.stringify(ev.upick||{});if(PC.has(key))return PC.get(key);
   const b=S.cfg.read?parse(ev.desc):EMPTY,r={...b,items:{...b.items},mpacks:{},mitems:{},amb:[]};
   for(const a of b.amb||[]){const pid=ev.upick&&ev.upick[a.k],x=pid&&a.cands.includes(pid)&&byId(pid);if(x){r.items[x.id]=(r.items[x.id]||0)+toPieces(x,a.val)}else r.amb.push(a)}
-  for(const [id,q] of Object.entries(man.packs||{})){const k=byPack(id);if(!S.cfg.kits||!k||q<1)continue;r.mpacks[id]=q;for(const [pid,n] of Object.entries(k.items||{}))r.items[pid]=(r.items[pid]||0)+n*q}
+  for(const [id,q] of Object.entries(man.packs||{})){const k=byPack(id);if(!kitsOn()||!k||q<1)continue;r.mpacks[id]=q;for(const [pid,n] of Object.entries(k.items||{}))r.items[pid]=(r.items[pid]||0)+n*q}
   for(const [pid,q] of Object.entries(man.items||{})){if(q<1||!byId(pid))continue;r.mitems[pid]=q;r.items[pid]=(r.items[pid]||0)+q}
   PC.set(key,r);return r}
 function rng(ev){const p=P(ev);let s=p.dates?.start||ev.start,e=p.dates?.end||ev.end;if(!e||e<s)e=s;return {s,e,re:e,back:e,free:add(e,1)}}
@@ -1448,11 +1457,12 @@ function qcHTML(){const Q=U.qc||(U.qc={a:TODAY,b:add(TODAY,2),txt:''});
     <div class="qcmain"><div class="qcf"><div class="qcbox in"><div id="qcchips" class="qcks">${qcChips()}</div><textarea class="qcta" data-qc="txt" rows="2" placeholder="${(Q.items||[]).length?'Ajoute un autre produit…':'Écris le matériel : 120 chaises, 2 chapiteaux, 30 m² de plancher…'}">${esc(Q.txt)}</textarea></div><div class="qcs" id="qcsug"></div></div>
     <div class="qcr" id="qcr">${qcRes()}</div></div>`}
 // produits choisis : un bloc chacun, avec sa quantité modifiable et une croix pour le retirer
-function qcChips(){const L=(U.qc&&U.qc.items)||[];return L.map((x,i)=>{const p=byId(x.id);return p?`<span class="qck"><input type="number" class="qckq" min="1" value="${x.q}" data-qk="${i}" aria-label="Quantité de ${esc(p.name)}"><b>${esc(p.name)}</b><button type="button" class="qckx" data-act="qckdel" data-i="${i}" aria-label="Retirer ${esc(p.name)}" title="Retirer">${ic('x')}</button></span>`:''}).join('')}
-const qcMan=()=>{const m={};((U.qc&&U.qc.items)||[]).forEach(x=>{if(byId(x.id)&&x.q>0)m[x.id]=(m[x.id]||0)+(+x.q)});return m};
+function qcChips(){const L=(U.qc&&U.qc.items)||[];return L.map((x,i)=>{const p=x.k?byPack(x.id):byId(x.id);return p?`<span class="qck"><input type="number" class="qckq" min="1" value="${x.q}" data-qk="${i}" aria-label="Quantité de ${esc(p.name)}"><b>${esc(p.name)}</b><button type="button" class="qckx" data-act="qckdel" data-i="${i}" aria-label="Retirer ${esc(p.name)}" title="Retirer">${ic('x')}</button></span>`:''}).join('')}
+const qcMan=()=>{const m={};((U.qc&&U.qc.items)||[]).forEach(x=>{if(!x.k&&byId(x.id)&&x.q>0)m[x.id]=(m[x.id]||0)+(+x.q)});return m};
+const qcKits=()=>{const m={};((U.qc&&U.qc.items)||[]).forEach(x=>{if(x.k&&byPack(x.id)&&x.q>0)m[x.id]=(m[x.id]||0)+(+x.q)});return m};
 // remplace le mot (et la quantité tapée juste avant) par un bloc
-function qcToChip(id,i,j){const Q=U.qc,pr=byId(id);if(!Q||!pr)return;let t=Q.txt,st=i;const before=t.slice(0,i),m=before.match(/(\d+(?:[.,]\d+)?)\s*(?:x\s*)?$/i);let q=1;if(m){q=Math.max(1,Math.round(parseFloat(m[1].replace(',','.'))));st=i-m[0].length}
-  t=(t.slice(0,st)+t.slice(j)).replace(/^[ ,;]+/,'').replace(/[ ]{2,}/g,' ');Q.txt=t;Q.items=Q.items||[];const ex=Q.items.find(x=>x.id===id);if(ex)ex.q=+ex.q+q;else Q.items.push({id,q});
+function qcToChip(id,i,j,isK){const Q=U.qc,pr=isK?byPack(id):byId(id);if(!Q||!pr)return;let t=Q.txt,st=i;const before=t.slice(0,i),m=before.match(/(\d+(?:[.,]\d+)?)\s*(?:x\s*)?$/i);let q=1;if(m){q=Math.max(1,Math.round(parseFloat(m[1].replace(',','.'))));st=i-m[0].length}
+  t=(t.slice(0,st)+t.slice(j)).replace(/^[ ,;]+/,'').replace(/[ ]{2,}/g,' ');Q.txt=t;Q.items=Q.items||[];const ex=Q.items.find(x=>x.id===id&&!!x.k===!!isK);if(ex)ex.q=+ex.q+q;else Q.items.push(isK?{id,q,k:1}:{id,q});
   const el=document.querySelector('[data-qc=txt]');if(el){el.value=t;el.placeholder='Ajoute un autre produit…';el.focus();const c=Math.min(st,t.length);el.setSelectionRange(c,c)}
   $('#qcchips').innerHTML=qcChips();const r=$('#qcr');if(r)r.innerHTML=qcRes();qcSuggest();qcGrow()}
 // la zone d'écriture s'agrandit avec le texte : jamais de défilement dedans
@@ -1480,25 +1490,42 @@ function qcAmb(txt){const tn=norm(txt),cov=qcMask(txt);
     const st=w.replace(/(s|x)$/,''),c=S.products.filter(p=>norm(p.name).split(/[^a-z0-9œ]+/).some(x=>x.startsWith(st)||(st.length>=4&&x.replace(/(s|x)$/,'')===st)));
     if(c.length)amb.push({w,i:m.index,l:w.length,orig:txt.slice(m.index,m.index+w.length),c});else miss.push(w)}
   return{amb,miss}}
+// produits ET kits qui commencent comme le mot tapé (kits en premier quand leur nom correspond)
+function sugList(st){const rk=(name,kw)=>{const ws=norm(name).split(/[^a-z0-9œ]+/).filter(Boolean),k=ws.findIndex(x=>x.startsWith(st)),kk=(kw||[]).map(norm).some(x=>x.startsWith(st));return k===0?0:k>0?1:kk?2:9};
+  const L=S.products.map(p=>({p,r:rk(p.name,p.kw)}));
+  if(kitsOn())for(const k of S.packs||[])L.push({p:k,k:1,r:rk(k.name,k.kw)-.5});
+  return L.filter(x=>x.r<9).sort((x,y)=>x.r-y.r||x.p.name.localeCompare(y.p.name)).slice(0,8)}
+const kitCard=(k,act,first)=>`<button class="qcc kit" data-act="${act}" data-id="${k.id}" data-k="1" tabindex="-1"><b>${ic('box')} ${esc(k.name)}</b><small>Kit · ${Object.keys(k.items||{}).length} produit${Object.keys(k.items||{}).length>1?'s':''}${first?' · <kbd>Tab</kbd>':''}</small></button>`;
 const qcCard=(p,act,extra,first)=>`<button class="qcc" data-act="${act}" data-id="${p.id}" ${extra} tabindex="-1"><b>${esc(p.name)}</b><small>${p.qty} en stock${first?' · <kbd>Tab</kbd>':''}</small></button>`;
 function qcSuggest(){const box=$('#qcsug');if(!box)return;const Q=U.qc;let W=qcWord();if(W&&Q){const m=qcMask(Q.txt);if(m[W.i])W=null}
   const {amb}=qcAmb(Q?Q.txt:'');let groups=[];
   if(W){const st=norm(W.w).replace(/(s|x)$/,'');if(st.length>=2){
-    const L=S.products.map(p=>{const ws=norm(p.name).split(/[^a-z0-9œ]+/).filter(Boolean),kw=(p.kw||[]).map(norm);const k=ws.findIndex(x=>x.startsWith(st));const kk=kw.some(x=>x.startsWith(st));return{p,r:k===0?0:k>0?1:kk?2:9}}).filter(x=>x.r<9).sort((x,y)=>x.r-y.r||x.p.name.localeCompare(y.p.name)).slice(0,8);
+    const L=sugList(st);
     const exact=L.length===1&&norm(L[0].p.name)===norm(W.w);
-    if(L.length&&!exact)groups.push(`<div class="qcg"><span class="qcgt">« ${esc(W.w)} » ${L.length>1?'— choisis le bon produit':'— c\'est celui-ci ?'}</span><div class="qcgl">${L.map((x,n)=>qcCard(x.p,'qcsug','',n===0)).join('')}</div></div>`)}}
+    if(L.length&&!exact)groups.push(`<div class="qcg"><span class="qcgt">« ${esc(W.w)} » ${L.length>1?'— choisis le bon produit':'— c\'est celui-ci ?'}</span><div class="qcgl">${L.map((x,n)=>x.k?kitCard(x.p,'qcsug',n===0):qcCard(x.p,'qcsug','',n===0)).join('')}</div></div>`)}}
   // autres mots déjà tapés qui correspondent à plusieurs produits
   amb.filter(x=>!(W&&x.i>=W.i&&x.i<W.j)).forEach(x=>groups.push(`<div class="qcg"><span class="qcgt">« ${esc(x.orig)} » ${x.c.length>1?'— lequel ?':'— tu veux dire ?'}</span><div class="qcgl">${x.c.slice(0,8).map(p=>qcCard(p,'qcpick',`data-i="${x.i}" data-l="${x.l}"`,false)).join('')}</div></div>`));
   box.innerHTML=groups.join('');return;
 }
-function qcAccept(id){const W=qcWord(),el=document.querySelector('[data-qc=txt]');if(!byId(id)||!W||!el)return;if(qcMask(el.value)[W.i]){qcSuggest();return}U.qc.txt=el.value;qcToChip(id,W.i,W.j)}
+// description d'un chantier : mêmes propositions que la vérif rapide pendant la frappe (produits et kits)
+function edWord(){const el=$('#e-d');if(!el||document.activeElement!==el)return null;const c=el.selectionStart??el.value.length,v=el.value;let i=c;while(i>0&&/[\p{L}\d²\-']/u.test(v[i-1]))i--;let j=c;while(j<v.length&&/[\p{L}\d²\-']/u.test(v[j]))j++;const w=v.slice(i,j);return /\p{L}{2,}/u.test(w)&&!/^\d/.test(w)?{i,j,w}:null}
+function edSuggest(){const box=$('#edsug');if(!box)return;const el=$('#e-d'),W=edWord();if(!W||el.readOnly){box.innerHTML='';return}
+  // mot déjà reconnu (fait partie d'un nom de produit ou de kit lu dans la description) : rien à proposer
+  const tn=norm(el.value),cov=new Uint8Array(tn.length+1);(parse(el.value).hits||[]).forEach(h=>cov.fill(1,h.s,h.e));if(cov[W.i]){box.innerHTML='';return}
+  const st=norm(W.w).replace(/(s|x)$/,'');if(st.length<2){box.innerHTML='';return}
+  const L=sugList(st);if(!L.length||(L.length===1&&norm(L[0].p.name)===norm(W.w))){box.innerHTML='';return}
+  box.innerHTML=`<div class="qcg"><span class="qcgt">« ${esc(W.w)} » ${L.length>1?'— choisis le bon produit':'— c\'est celui-ci ?'}</span><div class="qcgl">${L.map((x,n)=>x.k?kitCard(x.p,'edsug',n===0):qcCard(x.p,'edsug','',n===0)).join('')}</div></div>`}
+function edAccept(id,isK){const el=$('#e-d'),it=isK?byPack(id):byId(id);if(!el||!it)return;el.focus();const W=edWord();if(!W)return;
+  const name=it.name.toLowerCase(),v=el.value,t=v.slice(0,W.i)+name+v.slice(W.j);el.value=t;const c=W.i+name.length;el.setSelectionRange(c,c);
+  if(MD&&MD.k==='e'){MD.d.desc=t;MD.mk=-1;redrawRead()}$('#edsug').innerHTML=''}
+function qcAccept(id,isK){const W=qcWord(),el=document.querySelector('[data-qc=txt]');if(!(isK?byPack(id):byId(id))||!W||!el)return;if(qcMask(el.value)[W.i]){qcSuggest();return}U.qc.txt=el.value;qcToChip(id,W.i,W.j,isK)}
 function qcRedraw(){const w=$('#qcdw');if(w)w.innerHTML=qcDates();const r=$('#qcr');if(r)r.innerHTML=qcRes();qcSuggest()}
 function qcRes(){const Q=U.qc;if(!Q||(!Q.txt.trim()&&!(Q.items||[]).length))return '<p class="h" style="margin:0">Le résultat s\'affiche ici au fur et à mesure.</p>';
   const a=Q.a<=Q.b?Q.a:Q.b,b=Q.a<=Q.b?Q.b:Q.a,days=[];for(let d=a;d<=b&&days.length<92;d=add(d,1))days.push(d);
-  const p=P({desc:Q.txt,man:{packs:{},items:qcMan()}}),its=Object.entries(p.items).map(([id,q])=>({pr:byId(id),q})).filter(x=>x.pr);
+  const p=P({desc:Q.txt,man:{packs:qcKits(),items:qcMan()}}),its=Object.entries(p.items).map(([id,q])=>({pr:byId(id),q})).filter(x=>x.pr);
   const {amb,miss}=qcAmb(Q.txt),miss2=miss.map(esc);
   const unk=miss2.length?`<p class="h" style="margin:6px 0 0">Pas reconnu : ${miss2.join(', ')}. Vérifie l'orthographe ou ajoute ce nom dans les mots-clés du produit.</p>`:'';
-  if(!its.length)return amb.length?`<p class="h" style="margin:0">Choisis le bon produit dans les propositions au-dessus.</p>`:`<p class="h" style="margin:0">Aucun produit reconnu${miss2.length?' : '+miss2.join(', '):'.'} Vérifie l'orthographe ou ajoute ce nom dans les mots-clés du produit.</p>`;
+  if(!its.length&&!Object.keys(qcKits()).length)return amb.length?`<p class="h" style="margin:0">Choisis le bon produit dans les propositions au-dessus.</p>`:`<p class="h" style="margin:0">Aucun produit reconnu${miss2.length?' : '+miss2.join(', '):'.'} Vérifie l'orthographe ou ajoute ce nom dans les mots-clés du produit.</p>`;
   let ok=true;const rows=its.map(x=>{let mn=1e9,wd=a;for(const d of days){const v=x.pr.qty-usage(x.pr.id,d);if(v<mn){mn=v;wd=d}}const good=mn>=x.q;if(!good)ok=false;
     return `<div class="qcl ${good?'ok':'ko'}">${ic(good?'check':'alert')}<b>${esc(x.pr.name)} ×${x.q}</b><span>${good?`OK · ${mn} dispo au plus juste`:`Il en manque ${x.q-Math.max(0,mn)} le ${fmt(wd,{weekday:'short',day:'numeric',month:'short'})} (${Math.max(0,mn)} dispo)`}</span></div>`}).join('');
   return `<div class="qcv ${ok?'ok':'ko'}">${ok?'Tout est disponible':'Pas assez de matériel'} <small>${days.length>1?`du ${fmt(a,{day:'numeric',month:'short'})} au ${fmt(b,{day:'numeric',month:'short'})}`:`le ${fmt(a,{day:'numeric',month:'short'})}`}</small></div>${rows}${unk}
@@ -2232,9 +2259,8 @@ function drawP(){
       <div class="f"><label for="p-ref">Référence <span class="h">facultatif</span></label><input class="in" id="p-ref" value="${esc(d.ref||'')}" placeholder="Ex : code fournisseur, n° de série…" autocomplete="off"></div>
       <div class="row2"><div class="f"><label for="p-cat">Catégorie</label><input class="in" id="p-cat" list="cats" value="${esc(d.cat)}" placeholder="Ex : Chapiteaux"><datalist id="cats">${cats.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div>
       <div class="f"><label for="p-qty">Quantité en stock</label><div class="step"><button class="btn" data-act="qm" aria-label="Moins">−</button><input class="in" id="p-qty" inputmode="numeric" autocomplete="off" value="${d.qty}"><button class="btn" data-act="qp" aria-label="Plus">+</button></div></div></div>
-      <details class="adv"${d.kw.length||d.unit?' open':''}><summary>Options avancées</summary>
-        <div class="row2"><div class="f"><label for="p-unit">Unité de mesure</label><select id="p-unit" data-punit>${[['','À la pièce (pas d\'unité)'],['m²','Mètre carré (m²)'],['m','Mètre (m)'],['kg','Kilogramme (kg)'],['L','Litre (L)']].map(([v,l])=>`<option value="${v}"${(UL[unitKey(d.unit)]||'')===v?' selected':''}>${l}</option>`).join('')}</select></div>
-        ${unitKey(d.unit)?`<div class="f"><label for="p-usize">Taille d'une pièce</label><div class="step"><input class="in" id="p-usize" value="${esc(String(d.usize??1).replace('.',','))}" inputmode="decimal" style="text-align:center;width:80px;flex:none"><span class="h" style="align-self:center;white-space:nowrap;padding:0 4px">${esc(UL[unitKey(d.unit)]||d.unit)} par pièce</span></div><span class="h">« 10 ${esc(UL[unitKey(d.unit)]||d.unit)} » dans l'agenda = ${toPieces({usize:d.usize},10)} pièce(s)</span></div>`:'<div></div>'}</div>
+      ${unitHTML(d)}
+      <details class="adv"${d.kw.length?' open':''}><summary>Options avancées</summary>
         <div class="f"><label for="p-kw">Autres noms possibles</label><input class="in" id="p-kw" value="${esc(d.kw.join(', '))}" placeholder="Ex : tente, structure"><span class="h">Séparés par des virgules, pour les descriptions</span></div>
       </details>
     </div></div>`}${d.id?`<div class="pad"><h4 style="margin-top:4px">${ic('tool')} Hors service : à réparer ou cassé</h4>
@@ -2251,6 +2277,15 @@ function drawP(){
   box.addEventListener('drop',e=>{e.preventDefault();box.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)loadPhoto(f)})}
   $('#file').addEventListener('change',e=>{const f=e.target.files[0];if(f)loadPhoto(f)});
 }
+// unité de mesure : « 1 pièce = [50] m² », visible tout de suite, avec le total du stock calculé en direct
+function unitHTML(d){const u=UL[unitKey(d.unit)]||'',sz=String(d.usize??1).replace('.',',');
+  return `<div class="f punit"><label for="p-unit">Unité de mesure <span class="h">facultatif</span></label>
+    <div class="unitrow"><select id="p-unit" class="in" data-punit>${[['','À la pièce'],['m²','Mètre carré (m²)'],['m','Mètre (m)'],['kg','Kilogramme (kg)'],['L','Litre (L)']].map(([v,l])=>`<option value="${v}"${u===v?' selected':''}>${l}</option>`).join('')}</select>
+    <span class="usz"${u?'':' hidden'}><span>1 pièce =</span><input class="in" id="p-usize" value="${esc(sz)}" inputmode="decimal" autocomplete="off" aria-label="Taille d'une pièce"><b id="p-uu">${esc(u)}</b></span></div>
+    <span class="h" id="p-utot">${unitTot(d.qty,u,d.usize)}</span></div>`}
+function unitTot(q,u,sz){if(!u)return 'Ex : un chapiteau de 50 m² au sol → choisis « Mètre carré », puis écris 50.';const v=parseFloat(String(sz??1).replace(',','.'))||1,n=Math.max(0,parseInt(q)||0),t=Math.round(n*v*100)/100;
+  return `En stock : ${n} pièce${n>1?'s':''} × ${String(v).replace('.',',')} ${u} = <b>${String(t).replace('.',',')} ${u}</b>. Dans un chantier, « ${String(Math.round(v*2*100)/100).replace('.',',')} ${u} » comptera 2 pièces.`}
+function unitLive(){const u=$('#p-unit');if(!u)return;const v=u.value,z=$('.usz'),uu=$('#p-uu'),tt=$('#p-utot');if(z)z.hidden=!v;if(uu)uu.textContent=v;if(tt)tt.innerHTML=unitTot($('#p-qty')?.value,v,$('#p-usize')?.value)}
 function pMobHTML(d,cats){const unit=UL[unitKey(d.unit)]||'';
   return `<div class="pm">
     <div class="pmph${d.photo?' has':''}">${d.photo?`<img src="${d.photo}" alt="Photo du produit"><div class="pmpa"><button class="btn sm" data-act="pickcam">${ic('cam')}Reprendre</button><button class="btn sm" data-act="pick">Galerie</button><button class="btn sm" data-act="rmphoto">Retirer</button></div>`:
@@ -2259,10 +2294,9 @@ function pMobHTML(d,cats){const unit=UL[unitKey(d.unit)]||'';
     <div class="f"><label for="p-name">Nom du produit</label><input class="in" id="p-name" value="${esc(d.name)}" placeholder="Ex : Chapiteau 5x10" autocapitalize="sentences"></div>
     <div class="f"><label>Quantité en stock</label><div class="pmq"><button class="btn" data-act="qm" aria-label="Moins">−</button><input class="in" id="p-qty" inputmode="numeric" autocomplete="off" value="${d.qty}" aria-label="Quantité en stock"><button class="btn" data-act="qp" aria-label="Plus">+</button></div></div>
     <div class="f"><label for="p-cat">Catégorie</label>${cats.length?`<div class="pmcats">${cats.sort((a,b)=>a.localeCompare(b,'fr')).map(c=>`<button class="pmc${c===d.cat?' on':''}" data-act="pcat" data-v="${esc(c)}">${esc(c)}</button>`).join('')}</div>`:''}<input class="in" id="p-cat" value="${esc(d.cat)}" placeholder="${cats.length?'Ou écris une nouvelle catégorie':'Ex : Chapiteaux'}"></div>
-    <details class="adv pmadv"${d.ref||d.kw.length||d.unit?' open':''}><summary>Plus d'options : référence, unité, autres noms</summary>
+    ${unitHTML(d)}
+    <details class="adv pmadv"${d.ref||d.kw.length?' open':''}><summary>Plus d'options : référence, autres noms</summary>
       <div class="f"><label for="p-ref">Référence</label><input class="in" id="p-ref" value="${esc(d.ref||'')}" placeholder="Ex : code fournisseur, n° de série…" autocomplete="off"></div>
-      <div class="f"><label for="p-unit">Unité de mesure</label><select id="p-unit" class="in" data-punit>${[['','À la pièce (pas d\'unité)'],['m²','Mètre carré (m²)'],['m','Mètre (m)'],['kg','Kilogramme (kg)'],['L','Litre (L)']].map(([v,l])=>`<option value="${v}"${(UL[unitKey(d.unit)]||'')===v?' selected':''}>${l}</option>`).join('')}</select></div>
-      ${unitKey(d.unit)?`<div class="f"><label for="p-usize">Taille d'une pièce (${esc(unit||d.unit)} par pièce)</label><input class="in" id="p-usize" value="${esc(String(d.usize??1).replace('.',','))}" inputmode="decimal"></div>`:''}
       <div class="f"><label for="p-kw">Autres noms possibles</label><input class="in" id="p-kw" value="${esc(d.kw.join(', '))}" placeholder="Ex : tente, structure"><span class="h">Séparés par des virgules</span></div>
     </details></div>`}
 function avChart(d,days){
@@ -2486,7 +2520,7 @@ function drawE(){
       <div class="f"><label for="e-title">Nom du chantier</label><input class="in" id="e-title" ${d.src==='google'?'readonly':''} data-ev="title" value="${esc(d.title)}" placeholder="Ex : Mariage Durand – Château"></div>
       <div class="f"><label>Dates et heures</label><div id="edw">${eDates()}</div></div>
       <div class="f"><label for="e-l">Lieu</label><input class="in" id="e-l" ${d.src==='google'?'readonly':''} data-ev="lieu" value="${esc(d.lieu)}" placeholder="Ex : Segré-en-Anjou Bleu"></div>
-      <div class="f"><label for="e-d">Description</label><textarea class="in" id="e-d" ${d.src==='google'?'readonly':''} data-ev="desc" rows="7" placeholder="Ex : besoin de 2 chapiteaux, 120 chaises et 4 chauffages">${esc(d.desc)}</textarea><span class="h">Écris comme tu veux : « 120 chaises », « deux barnums », « table x15 », « 2 chapiteaux » (kit)… Tu peux aussi mettre « du 02/12 au 05/12 ».</span></div>
+      <div class="f"><label for="e-d">Description</label><textarea class="in" id="e-d" ${d.src==='google'?'readonly':''} data-ev="desc" rows="7" placeholder="Ex : besoin de 2 chapiteaux, 120 chaises et 4 chauffages">${esc(d.desc)}</textarea><div class="qcs edsug" id="edsug"></div><span class="h">Écris comme tu veux : « 120 chaises », « deux barnums », « table x15 », « 2 chapiteaux » (kit)… Tu peux aussi mettre « du 02/12 au 05/12 ».</span></div>
       <div class="f"><label>Ajouter à la main</label><div class="pks">${(S.cfg.kits?S.packs||[]:[]).map(k=>{const c=kitCap(k,evDays(d),d.id).n;return `<button class="btn sm" data-act="addpk" data-id="${k.id}" title="${c} kit(s) complet(s) possible(s) sur ces dates">${ic('pack')}${esc(k.name)} <span class="h" style="color:${c?'var(--mute)':'var(--red)'}">· ${c} possible${c>1?'s':''}</span></button>`}).join('')}</div><select class="in" data-additem aria-label="Ajouter un produit"><option value="">+ Ajouter un produit seul…</option>${[...S.products].sort((a,b)=>a.name.localeCompare(b.name,'fr')).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select><div id="manl">${manHTML()}</div></div>
     </div><div class="read" id="readp">${readHTML()}</div></div>
     <div class="df">${MD.confirm?`<span class="l"><b>Supprimer ce chantier ?</b></span><button class="btn" data-act="delno">Annuler</button><button class="btn pri" data-act="delyes">Supprimer</button>`:`${d.id&&d.src!=='google'?`<button class="btn dan l" data-act="dele">Supprimer</button>`:''}<button class="btn" data-act="ecancel">Annuler</button><button class="btn pri" data-act="savee">Enregistrer</button>`}</div>
@@ -2774,7 +2808,10 @@ async function dbSync(manual,first){
         // la base a déjà des données : elle fait foi, ce PC les reprend (copie de sécurité faite juste avant)
         S.products=[];S.packs=[];S.events=[];S.casse=[];S.dbm={};
         let all=[],o2=0;for(;;){const r=await req('GET',`si_items?select=kind,id,data,deleted,updated_at&order=updated_at.asc&limit=1000&offset=${o2}`);all=all.concat(r||[]);if(!r||r.length<1000)break;o2+=1000}
-        rows=all.filter(r=>!r.id.startsWith('_'))}}
+        rows=all.filter(r=>!r.id.startsWith('_'))}
+      else{
+        // base vide : on n'y envoie pas les exemples de démarrage (matériel, kits et chantiers fictifs), seulement les vraies données
+        const n=dropExamples();if(n)toast(n+' exemple'+(n>1?'s':'')+' de démarrage retiré'+(n>1?'s':'')+' : la base reste propre')}}
     DB.applying=true;
     for(const r of rows){const k=dbKey(r.kind,r.id);if(r.updated_at&&(!S.dbcur||r.updated_at>S.dbcur))S.dbcur=r.updated_at;
       if(r.deleted){if(S.dbm[k]!==undefined||first){dbApply(r);delete S.dbm[k];pulled++}continue}
@@ -2980,7 +3017,8 @@ const A={
   qcmon:e=>{const [y,m]=(U.qcm||TODAY.slice(0,7)).split('-').map(Number),d=new Date(y,m-1+(+e.dataset.v),1);U.qcm=`${d.getFullYear()}-${pad(d.getMonth()+1)}`;qcRedraw()},
   qcday:e=>{const d=e.dataset.d;if(!U.qcpk){U.qcpk=d}else{const x=U.qcpk<d?U.qcpk:d,y=U.qcpk<d?d:U.qcpk;U.qc.a=x;U.qc.b=y;U.qcpk=null;U.qcd=false}qcRedraw()},
   qcq:e=>{U.qc.a=e.dataset.a;U.qc.b=e.dataset.b;U.qcd=false;U.qcpk=null;qcRedraw()},
-  qcsug:e=>qcAccept(e.dataset.id),
+  qcsug:e=>qcAccept(e.dataset.id,!!e.dataset.k),
+  edsug:e=>edAccept(e.dataset.id,!!e.dataset.k),
   dpanel:e=>{const P0=(DPANELS&&DPANELS[e.dataset.k])||(e.dataset.k==='invs'?{t:'Rapports d\'inventaire',i:'print',h:invRepHTML()}:null);if(!P0)return;MD={k:'dp'};$('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(760px,100%)"><div class="dh"><h3 id="mt" style="display:flex;align-items:center;gap:8px">${ic(P0.i)}${P0.t}</h3><span class="sp" style="flex:1"></span><button class="ib" data-act="close" aria-label="Fermer">${ic('x')}</button></div><div class="dpb">${P0.h}</div></div></div>`},
   edp:()=>{U.edp=!U.edp;U.edpk=null;U.edm=(MD.d.start<=MD.d.end?MD.d.start:MD.d.end).slice(0,7);edRedraw()},
   edmon:e=>{const [y,m]=(U.edm||TODAY.slice(0,7)).split('-').map(Number),x=new Date(y,m-1+(+e.dataset.v),1);U.edm=`${x.getFullYear()}-${pad(x.getMonth()+1)}`;edRedraw()},
@@ -3054,7 +3092,7 @@ const A={
   invvdelyes:()=>{const i=(S.invRep||[]).findIndex(x=>x.id===MD.id);if(i>=0){S.invRep.splice(i,1);save();toast('Inventaire supprimé (les quantités du stock ne changent pas)')}closeM();render()},
   invdel:e=>{U.invdel=e.dataset.id;render()},invdelno:()=>{U.invdel=null;render()},
   invdelyes:e=>{const i=(S.invRep||[]).findIndex(x=>x.id===e.dataset.id);U.invdel=null;if(i>=0){S.invRep.splice(i,1);save();toast('Inventaire supprimé (les quantités du stock ne changent pas)')}render()},
-  qcnew:()=>{const Q=U.qc;openE(null,Q.a<=Q.b?Q.a:Q.b,Q.a<=Q.b?Q.b:Q.a);if(MD&&MD.d){MD.d.desc=Q.txt;MD.d.man.items={...qcMan()};drawE()}},
+  qcnew:()=>{const Q=U.qc;openE(null,Q.a<=Q.b?Q.a:Q.b,Q.a<=Q.b?Q.b:Q.a);if(MD&&MD.d){MD.d.desc=Q.txt;MD.d.man.items={...qcMan()};MD.d.man.packs={...qcKits()};drawE()}},
   essaiadd:()=>{const pr=S.products.filter(p=>p.qty>0).sort((a,b)=>b.qty-a.qty);if(!pr.length)return;
     const P=k=>pr[k%pr.length],q=(p,f)=>Math.max(1,Math.ceil(p.qty*f)),D=n=>add(TODAY,n);
     const mk=(title,a,b,lieu,items,t0,t1)=>{const m={};items.forEach(([p,n])=>{m[p.id]=(m[p.id]||0)+n});return{id:'e'+uid(),title:'Essai · '+title,start:D(a),end:D(b),lieu,desc:'Chantier d\'essai créé par StockInfos (Paramètres › Chantiers d\'essai).',src:'manuel',ci:S.events.length%COLORS.length,man:{packs:{},items:m},created:Date.now(),used:Date.now(),essai:true,...(t0?{t0}:{}),...(t1?{t1}:{})}};
@@ -3134,7 +3172,7 @@ const A={
   calvis:b=>{const v=b.dataset.v,H=S.ui.hide=S.ui.hide||[];const i=H.indexOf(v);if(i<0)H.push(v);else H.splice(i,1);save();render()},
   'co-ok':()=>{S.cfg.company=($('#w-co').value||'').trim();S.cfg.coAsked=true;save();closeM();render()},
   'co-skip':()=>{S.cfg.company='';S.cfg.coAsked=true;save();closeM();render()},
-  welcome:b=>{const co=($('#w-co')?.value||'').trim();if(b.dataset.v==='vide'){S={...S,products:[],packs:[],events:[]}}S.cfg.company=co;S.cfg.coAsked=true;save();closeM();U.view='dash';render();setTimeout(tourStart,300)},
+  welcome:b=>{const co=($('#w-co')?.value||'').trim();if(b.dataset.v==='vide'){S={...S,products:[],packs:[],events:[]}}S.cfg.company=co;S.cfg.coAsked=true;save();closeM();U.view=MOB?'home':'dash';render();if(!MOB)setTimeout(tourStart,300)},
   close:closeM,
   addto:b=>openA(b.dataset.id),
   aq:b=>{MD.q=Math.max(1,(parseInt($('#a-q').value)||1)+(+b.dataset.n));drawA()},
@@ -3153,7 +3191,7 @@ const A={
   pick:()=>$('#file').click(),pickcam:()=>($('#filecam')||$('#file')).click(),
   pcat:e=>{const i=$('#p-cat');if(!i)return;i.value=i.value===e.dataset.v?'':e.dataset.v;document.querySelectorAll('.pmc').forEach(b=>b.classList.toggle('on',b.dataset.v===i.value))},
   qphoto:e=>quickPhoto(e.dataset.id),rmphoto:()=>{readP();MD.d.photo='';drawP()},
-  qm:()=>{const i=$('#p-qty');i.value=Math.max(0,(parseInt(i.value)||0)-1)},qp:()=>{const i=$('#p-qty');i.value=(parseInt(i.value)||0)+1},
+  qm:()=>{const i=$('#p-qty');i.value=Math.max(0,(parseInt(i.value)||0)-1);unitLive()},qp:()=>{const i=$('#p-qty');i.value=(parseInt(i.value)||0)+1;unitLive()},
   savep:()=>{readP();const d=MD.d;if(!d.name){toast('Donne un nom au produit');$('#p-name').focus();return}
     const cas=(d.hs||[]).filter(h=>h.t==='cas');d.hs=(d.hs||[]).filter(h=>h.t!=='cas');
     if(d.id){const o=byId(d.id),oh=(o.hs||[]).reduce((n,h)=>n+(+h.q||0),0),nh=(d.hs||[]).reduce((n,h)=>n+(+h.q||0),0);const log=o.log||[];Object.assign(o,d);o.log=log;
@@ -3168,7 +3206,7 @@ const A={
     else{const i=S.events.findIndex(e=>e.id===MD.d.id),o=S.events[i];S.events.splice(i,1);undo=()=>{S.events.splice(i,0,o)}}
     const wasEv=MD.k!=='p'&&MD.k!=='k',did=wasEv&&MD.d.id;if(did){S.cfg.gdel=[...(S.cfg.gdel||[]),did]}save();closeM();render();if(wasEv)gSoon();toast('Supprimé',()=>{undo();if(did)S.cfg.gdel=(S.cfg.gdel||[]).filter(x=>x!==did);save();render();if(wasEv)gSoon();toast('Suppression annulée')})},
   savee:()=>{const d=MD.d;if(!d.title.trim()){toast('Donne un nom au chantier');$('#e-title').focus();return}if(d.end<d.start)d.end=d.start;
-    const {mk,...rest}=d;let nid=d.id;if(d.id)Object.assign(S.events.find(e=>e.id===d.id),rest);else{nid='e'+uid();S.events.push({...rest,id:nid,created:Date.now()})}S.events.find(e=>e.id===nid).used=Date.now();save();render();openR(nid);gSoon();toast('Chantier enregistré')},
+    const {mk,...rest}=d;let nid=d.id;if(d.id)Object.assign(S.events.find(e=>e.id===d.id),rest);else{nid='e'+uid();S.events.push({...rest,id:nid,created:Date.now()})}S.events.find(e=>e.id===nid).used=Date.now();save();closeM();render();gSoon();toast('Chantier enregistré')},
   ecancel:()=>{if(MD&&MD.d&&MD.d.id)openR(MD.d.id);else closeM()},
   redit:b=>openE(b.dataset.id),
   setunit:b=>{const x=byId(b.dataset.p);if(!x)return;x.unit=b.dataset.u;x.usize=x.usize||1;save();if(MD&&MD.k==='r')drawR();else redrawRead();render();toast('« '+x.name+' » est maintenant compté en '+b.dataset.u)},
@@ -3202,7 +3240,7 @@ const A={
   'nk-ok':()=>{const n=$('#nk-name').value.trim();if(!n)return;const u=parse(MD.d.desc).unknown[MD.mk];const kw=u&&norm(u.name)!==norm(n)?[u.name]:[];S.products.push({id:'p'+uid(),name:n,cat:'',qty:Math.max(0,parseInt($('#nk-qty').value)||0),kw,photo:''});MD.mk=-1;save();redrawRead();render();toast('« '+n+' » ajouté au stock')},
   ign:b=>{const u=parse(MD.d.desc).unknown[+b.dataset.k];if(u){S.ignored=S.ignored||[];S.ignored.push(norm(u.name));save();redrawRead();render();toast('Ce mot sera ignoré')}}
 };
-document.addEventListener('input',e=>{if(e.target.classList.contains('ivn')&&MD&&MD.k==='invr'&&MD.rows){const l=MD.rows[+e.target.dataset.i];l[e.target.dataset.k]=Math.max(0,parseInt(e.target.value)||0);const d=l.bon+l.rep+l.cas-l.e,c=document.querySelector('.ivd'+e.target.dataset.i);if(c)c.innerHTML=`<em class="${d<0?'neg':'pos'}">${d>0?'+':''}${d}</em>`;e.target.closest('.ivr').classList.toggle('bad',!!d);return}
+document.addEventListener('input',e=>{if(e.target.id==='p-qty'||e.target.id==='p-usize'){unitLive();return}if(e.target.classList.contains('ivn')&&MD&&MD.k==='invr'&&MD.rows){const l=MD.rows[+e.target.dataset.i];l[e.target.dataset.k]=Math.max(0,parseInt(e.target.value)||0);const d=l.bon+l.rep+l.cas-l.e,c=document.querySelector('.ivd'+e.target.dataset.i);if(c)c.innerHTML=`<em class="${d<0?'neg':'pos'}">${d>0?'+':''}${d}</em>`;e.target.closest('.ivr').classList.toggle('bad',!!d);return}
   const D=S.cfg&&S.cfg.mretDraft;if(!D)return;if(e.target.id==='mretn'){const r=D.rows[+e.target.dataset.mretNote];if(r){r.note=e.target.value;save()}}else if(e.target.id==='mretc'){D.comment=e.target.value;save()}});
 document.addEventListener('click',e=>{
   if(DRAG.skip){DRAG.skip=false;return}
@@ -3218,7 +3256,8 @@ document.addEventListener('keydown',e=>{
   if(U.view==='minv'&&S.cfg.minvDraft&&!S.cfg.minvDraft.done&&!MD&&!(e.target&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))){if(/^[0-9]$/.test(e.key)){e.preventDefault();A.minvk({dataset:{v:e.key}});return}if(e.key==='Backspace'){e.preventDefault();A.minvk({dataset:{v:'del'}});return}if(e.key==='Enter'){e.preventDefault();A.minvnext();return}}
   if(TOUR.on){if(e.key==='Escape'){e.preventDefault();tourEnd();return}if(e.key==='ArrowRight'){e.preventDefault();A.tournext();return}if(e.key==='ArrowLeft'){e.preventDefault();A.tourprev();return}}
   if(e.target.dataset&&e.target.dataset.qc==='txt'&&e.key==='Backspace'&&e.target.selectionStart===0&&e.target.selectionEnd===0&&U.qc&&(U.qc.items||[]).length){e.preventDefault();U.qc.items.pop();$('#qcchips').innerHTML=qcChips();const r=$('#qcr');if(r)r.innerHTML=qcRes();return}
-  if(e.target.dataset&&e.target.dataset.qc==='txt'){const f=document.querySelector('#qcsug [data-act=qcsug]');if(e.key==='Tab'&&f&&!e.shiftKey){e.preventDefault();qcAccept(f.dataset.id);return}if(e.key==='Escape'&&f){$('#qcsug').innerHTML='';e.stopPropagation();return}}
+  if(e.target.id==='e-d'){const f=document.querySelector('#edsug [data-act=edsug]');if(e.key==='Tab'&&f&&!e.shiftKey){e.preventDefault();edAccept(f.dataset.id,!!f.dataset.k);return}if(e.key==='Escape'&&f){$('#edsug').innerHTML='';e.stopPropagation();return}}
+  if(e.target.dataset&&e.target.dataset.qc==='txt'){const f=document.querySelector('#qcsug [data-act=qcsug]');if(e.key==='Tab'&&f&&!e.shiftKey){e.preventDefault();qcAccept(f.dataset.id,!!f.dataset.k);return}if(e.key==='Escape'&&f){$('#qcsug').innerHTML='';e.stopPropagation();return}}
   if(e.key==='Enter'&&e.target.matches('.cname'))e.target.blur();
   if(e.key==='Enter'&&e.target.id==='w-co'&&MD&&MD.k==='co'){A['co-ok']()}
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();PAL.on?closePal():openPal();return}
@@ -3249,7 +3288,7 @@ document.addEventListener('input',e=>{
   if(MD&&MD.k==='ret'&&t.classList.contains('rnote'))MD.rows[+t.dataset.i].note=t.value;
   if(MD&&MD.k==='ret'&&t.id==='rcom')MD.comment=t.value;
   if(t.dataset.in==='q'){U.q=t.value;$('#plist').innerHTML=plistHTML()}
-  if(t.dataset.ev&&MD&&MD.k==='e'){MD.d[t.dataset.ev]=t.value;MD.mk=-1;redrawRead()}
+  if(t.dataset.ev&&MD&&MD.k==='e'){MD.d[t.dataset.ev]=t.value;MD.mk=-1;redrawRead();if(t.dataset.ev==='desc')edSuggest()}
 });
 document.addEventListener('change',e=>{
   const t=e.target;
@@ -3264,7 +3303,7 @@ document.addEventListener('change',e=>{
     else if(t.dataset.in==='impmode')I.mode=v;
     else if(t.dataset.in==='impex'){I.ex=I.ex||{};if(t.checked)delete I.ex[t.dataset.k];else I.ex[t.dataset.k]=1;I.open=true}
     drawImp();return}
-  if(t.matches('[data-punit]')&&MD&&MD.k==='p'){readP();if(!MD.d.usize)MD.d.usize=1;drawP();$('.adv')?.setAttribute('open','')}
+  if(t.matches('[data-punit]')&&MD&&MD.k==='p'){unitLive();if(t.value){const z=$('#p-usize');if(z){z.focus();z.select()}}}
   if(t.dataset.calf){const c=calById(t.dataset.id);if(c){const f=t.dataset.calf;c[f]=f==='count'?t.checked:f==='name'?(t.value.trim()||c.name):t.value;save();render();if(f==='count')toast(t.checked?'Ses événements sortent du matériel':'Ses événements ne sortent plus de matériel')}}
   if(t.dataset.cfg){S.cfg[t.dataset.cfg]=t.type==='checkbox'?t.checked:t.value;save();render();planSync();toast('Réglage enregistré')}
   if(t.dataset.additem!==undefined&&t.value&&MD){const m=MD.d.man.items;m[t.value]=(m[t.value]||0)+1;t.value='';redrawMan()}
@@ -3282,9 +3321,11 @@ U.sort=S.ui.sort||'az';
 render();
 if(FIRST){MD={k:'w'};$('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(460px,100%)"><div class="dh"><h3 id="mt">Bienvenue dans StockInfos</h3></div><div class="wel"><div class="f" style="margin:0"><label for="w-co">Nom de ton entreprise</label><input class="in" id="w-co" placeholder="Ex : Location Martin" autocomplete="off"><span class="h">Il s'affichera en haut de l'app. Tu pourras le changer dans Paramètres.</span></div><p style="margin:8px 0 0">Comment veux-tu commencer ?</p><button class="btn" data-act="welcome" data-v="ex"><span><b>Avec des exemples</b><small>Du matériel, des kits et des chantiers fictifs pour tout essayer. Tu pourras les effacer dans Paramètres.</small></span></button><button class="btn" data-act="welcome" data-v="vide"><span><b>Avec un stock vide</b><small>Pour saisir directement ton vrai matériel et relier Google Agenda.</small></span></button></div></div></div>`}
 else{if(!S.cfg.coAsked){MD={k:'co'};$('#modal').innerHTML=`<div class="ov"><div class="dlg" role="dialog" aria-modal="true" aria-labelledby="mt" style="width:min(420px,100%)"><div class="dh"><h3 id="mt">Nom de ton entreprise</h3></div><div class="wel"><p style="margin:0">L'app s'appelle maintenant <b>StockInfos</b>. Quel nom d'entreprise veux-tu afficher en haut ?</p><input class="in" id="w-co" value="${esc(S.cfg.company||'')}" placeholder="Ex : Location Martin" autocomplete="off"><span class="h">Tu pourras le changer dans Paramètres.</span></div><div class="df"><button class="btn" data-act="co-skip">Ne rien afficher</button><button class="btn pri" data-act="co-ok">Valider</button></div></div></div>`;setTimeout(()=>$('#w-co')?.focus(),50)}
-  dbStatus().then(st=>{if(st&&st.connected)dbSync(false);const n=document.querySelector('.dbs');if(n)n.outerHTML=dbNavHTML()});
   if(!S.cfg.tourDone&&!MD&&!MOB)setTimeout(()=>{if(!MD&&!TOUR.on)tourStart()},700);
-  if(S.cfg.cals.length)syncNow(false);gStatus().then(async st=>{if(st&&st.connected){await dbStatus();if(DB.st&&DB.st.connected&&!S.cfg.gsrvOff)gSrvAuto();else gSync(false)}if(U.view==='set')render()});}
+  if(S.cfg.cals.length)syncNow(false);}
+// au démarrage, premier lancement compris : état de la base et de Google
+dbStatus().then(st=>{if(st&&st.connected)dbSync(false);const n=document.querySelector('.dbs');if(n)n.outerHTML=dbNavHTML();if(U.view==='set')render()});
+gStatus().then(async st=>{if(st&&st.connected){await dbStatus();if(DB.st&&DB.st.connected&&!S.cfg.gsrvOff)gSrvAuto();else gSync(false)}if(U.view==='set')render()});
 }
 </script>
 </body>
